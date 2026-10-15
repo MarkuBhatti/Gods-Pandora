@@ -1,0 +1,292 @@
+{
+  "sections": {
+    "create": {
+      "title": "Create",
+      "icon": "✦",
+      "intro": "The universal generation workspace. Generate images, videos, and audio using cloud APIs or fully-local open-source models.",
+      "steps": [
+        { "title": "1 · Choose Source", "body": "Select Cloud APIs (FAL.ai, Replicate, etc.) for fastest results, or Local open-source for free unlimited generation on your own machine." },
+        { "title": "2 · Pick a Kind", "body": "Choose Image, Video, or Audio. The model list updates automatically to show only models that support your chosen output type." },
+        { "title": "3 · Select a Model", "body": "Each model has different strengths. Flux Pro is great for photorealism. Kling/Seedance for video. WAN for animation. Open the Models tab to compare." },
+        { "title": "4 · Write Your Prompt", "body": "Be specific and visual — describe the subject, lighting, mood, camera angle, and key details. Example: 'Cinematic close-up of a woman in a rain-soaked Tokyo alley, neon reflections, shallow depth of field, 8K.'" },
+        { "title": "5 · Apply Controls", "body": "Camera Move adds cinematic motion. Visual Style applies a preset aesthetic. Character Lock and Location Lock maintain consistent identities and environments across generations." },
+        { "title": "6 · Add Reference Images", "body": "Upload Style, Subject, Color, or Composition references to guide the model visually. Upload to the matching slot for best results. Only ref-capable models use them." }
+      ],
+      "tips": [
+        "Add 'cinematic, 8K, ultra detailed, sharp focus' at the end of your prompt to boost quality.",
+        "Negative prompt: 'blurry, watermark, low quality, distorted' removes common artifacts.",
+        "Combine a Style chip with a strong prompt for consistent, recognizable aesthetics.",
+        "Use Character Lock + Location Lock together for story-consistent scene sequences."
+      ],
+      "apiKeys": ["FAL.ai — Flux, Kling, Seedance, WAN and more", "Replicate — thousands of models", "Anthropic — Claude for AI features"]
+    },
+    "film": {
+      "title": "Film Studio",
+      "icon": "🎬",
+      "intro": "Direct professional-grade film sequences with full cinematography controls — camera bodies, lenses, film stocks, directors' styles, color palettes, and shot-by-shot continuity.",
+      "steps": [
+        { "title": "1 · Create a Project", "body": "Name your film project and click Create. Or use a Quick-start template — Noir Crime Thriller, Sci-Fi Epic, Fashion Editorial, Horror, Music Video, Documentary — to get going instantly with pre-configured shots." },
+        { "title": "2 · Set the Project Look", "body": "Film Style, Director's Style, Color Palette, and Grain apply to every shot in the project. Set these first to lock the overall visual language." },
+        { "title": "3 · Add Shots", "body": "Each shot card has its own prompt, camera move, camera body, lens, character, and location lock. This lets you build a complete cinematic sequence shot by shot." },
+        { "title": "4 · Lock Characters & Locations", "body": "Create reusable identities in the Characters tab and environments in the Locations tab. Assign them to individual shots for perfect consistency across the sequence." },
+        { "title": "5 · Generate Shot by Shot", "body": "Hit Generate Shot on each card. Images and videos are automatically saved to your Library." },
+        { "title": "6 · Export to DaVinci Resolve", "body": "Use Send to Resolve to push generated clips directly into your editing timeline via the Resolve bridge." }
+      ],
+      "tips": [
+        "Set Film Style + Color Palette at the project level, then vary camera moves per shot for dynamic sequences.",
+        "Director's Style adds the strongest visual fingerprint — 'Denis Villeneuve' vs 'Wes Anderson' are night and day.",
+        "Use Shot Mood Color to create emotional arcs across scenes using color psychology.",
+        "Mix image and video shots in the same project for a combined still + motion storyboard."
+      ],
+      "apiKeys": ["FAL.ai — Kling, Seedance for video", "Replicate — video models"]
+    },
+    "fashion": {
+      "title": "Fashion Studio",
+      "icon": "✂",
+      "intro": "Create editorial fashion visuals, outfit concepts, try-on imagery, and lookbooks with full AI-powered fashion production tools.",
+      "steps": [
+        { "title": "1 · Pick a Tool", "body": "Choose from Fashion Editorial, Virtual Try-On, Style Transfer, Lookbook Generator, or other specialized fashion tools in the grid." },
+        { "title": "2 · Set Fashion Style", "body": "Select your aesthetic — Avant-Garde, Streetwear, Haute Couture, Minimalist, Y2K, and more — from the Fashion Style dropdown." },
+        { "title": "3 · Choose Pose & Lighting", "body": "Combine a pose style (power stance, editorial recline, candid motion) with a lighting mood (golden hour, studio, dramatic chiaroscuro)." },
+        { "title": "4 · Upload References", "body": "Use the Reference Images panel to upload Clothing, Shoes, Hair, and Overall Look references. The AI closely matches your uploaded images." },
+        { "title": "5 · Write Your Brief", "body": "Describe specific garments, model type, setting, and mood in the Details field. E.g. 'Oversized camel trench coat, model walking on Paris street, autumn, cinematic.'" }
+      ],
+      "tips": [
+        "Clothing reference images give the strongest results — upload the exact garment whenever possible.",
+        "'Editorial lighting' + 'Haute Couture' style = high-end magazine look consistently.",
+        "Hair references significantly improve model head-shot consistency.",
+        "Use Character Lock to maintain the same face across multiple outfit shots in a lookbook."
+      ],
+      "apiKeys": ["FAL.ai — best image quality for fashion"]
+    },
+    "product": {
+      "title": "Product Studio",
+      "icon": "◍",
+      "intro": "Create professional product photos, lifestyle imagery, and e-commerce visuals without a physical studio or photographer.",
+      "steps": [
+        { "title": "1 · Upload Your Product", "body": "Use the Product Photo reference slot to upload your actual product image. A clean white-background photo gives the best results." },
+        { "title": "2 · Choose a Tool", "body": "Ghost Mannequin for apparel, Background Replace for e-commerce shots, Lifestyle Scene to place the product in a real environment, or 360° Turntable for multiple angles." },
+        { "title": "3 · Add Context References", "body": "Upload Lifestyle Context images (e.g. a kitchen for a food product) and Background references for the desired scene." },
+        { "title": "4 · Describe the Scene", "body": "Describe lighting, surface, props, and mood. E.g. 'Marble surface, dramatic side lighting, minimalist white background, luxury feel.'" },
+        { "title": "5 · Generate & Iterate", "body": "Generate multiple options and fine-tune with more specific references or adjusted prompts." }
+      ],
+      "tips": [
+        "Product on clean white background input gives the cleanest output.",
+        "For lifestyle shots, specify season and time of day: 'summer morning, kitchen counter, bright natural light.'",
+        "'Flat lay, overhead shot, product centered' = e-commerce-ready images instantly.",
+        "Multiple generations from the same references are great for A/B testing ad creatives."
+      ],
+      "apiKeys": ["FAL.ai or Replicate"]
+    },
+    "marketing": {
+      "title": "Marketing Studio",
+      "icon": "📣",
+      "intro": "Generate scroll-stopping ad creatives, social media visuals, banners, and campaign assets at scale — no designer needed.",
+      "steps": [
+        { "title": "1 · Define Your Goal", "body": "Are you making a social ad, banner, email hero image, or print piece? Select the appropriate tool for your format." },
+        { "title": "2 · Upload Brand Assets", "body": "Add your brand colors, logo, and existing visual assets in the Brand Visual reference slot. This is the most important step for on-brand output." },
+        { "title": "3 · Add Inspiration", "body": "Upload competitor ads or reference campaigns you want to study or draw from in the Inspiration slot." },
+        { "title": "4 · Write the Creative Brief", "body": "Include the headline concept, call to action, target audience, and key message in the Details field." },
+        { "title": "5 · Generate & Iterate", "body": "Generate multiple variations and pick the strongest. Adjust prompt and references for each round of iteration." }
+      ],
+      "tips": [
+        "Describe your target audience explicitly in the prompt — it changes the energy of the image.",
+        "Brand reference + Mood Board together produce the most on-brand results.",
+        "Specify the platform ratio: '9:16 for TikTok', '4:5 for Instagram Feed', '1:1 for Meta ads.'",
+        "Include 'bold text overlay space at bottom' in the prompt for ad-ready images with CTA room."
+      ],
+      "apiKeys": ["FAL.ai or Replicate"]
+    },
+    "shorts": {
+      "title": "Shorts Studio",
+      "icon": "📱",
+      "intro": "Create viral short-form video content for TikTok, Instagram Reels, YouTube Shorts, and other vertical platforms.",
+      "steps": [
+        { "title": "1 · Define Your Hook", "body": "The first 3 seconds are everything. Describe a visually arresting opening frame in the Hook reference slot and in your prompt." },
+        { "title": "2 · Write or Generate Script", "body": "Use the AI Script tool to generate a complete short-form script with hook, body, and CTA in under 60 seconds of spoken content." },
+        { "title": "3 · Generate Clips", "body": "Create individual clips for each section of the script. Shorter 3-5 second clips with sharp cuts work best for the algorithm." },
+        { "title": "4 · Always Use 9:16", "body": "Set aspect ratio to 9:16 for all vertical platforms. Never use 16:9 for short-form — it will be cropped badly on mobile." },
+        { "title": "5 · Maintain Visual Style", "body": "Upload a style reference to ensure consistent color and aesthetic across your entire content library." }
+      ],
+      "tips": [
+        "9:16 aspect ratio is mandatory — every TikTok, Reel, and Short is vertical.",
+        "The first frame must create instant curiosity or surprise — describe it with extreme specificity.",
+        "Consistent color grading (via Color Reference) makes your content recognizable as a creator brand.",
+        "Upload your best-performing video as a style reference to replicate what already works."
+      ],
+      "apiKeys": ["FAL.ai — Kling/Seedance for video", "Anthropic — Claude for AI scripting"]
+    },
+    "explainer": {
+      "title": "Explainer Studio",
+      "icon": "🎓",
+      "intro": "Build explainer videos, educational content, tutorials, and animated presentations that communicate complex ideas clearly.",
+      "steps": [
+        { "title": "1 · Define the Topic", "body": "Be specific about what you're explaining and to whom. 'How blockchain works for non-technical CFOs' is much better than 'blockchain.'" },
+        { "title": "2 · Generate a Script", "body": "Use the AI Script Generator for a structured script: intro hook, 3 key points, clear conclusion, and CTA." },
+        { "title": "3 · Set the Visual Style", "body": "Upload art/animation style references — flat design, whiteboard, motion graphics, 3D animation, or photorealistic." },
+        { "title": "4 · Create Section Visuals", "body": "Generate a supporting visual for each section of the explainer. Keep each visual focused on ONE key idea." },
+        { "title": "5 · Add a Character", "body": "Use Character Lock if you have a presenter or mascot who appears throughout all sections." }
+      ],
+      "tips": [
+        "Keep each visual to ONE key concept — never try to explain two things in one image.",
+        "Whiteboard animation style is universally understood and never goes out of style.",
+        "Match the visual complexity to your audience — casual for consumers, clean corporate for enterprise.",
+        "Slide-style references produce more structured, education-forward output."
+      ],
+      "apiKeys": ["Anthropic — Claude for scripting", "FAL.ai — for visuals"]
+    },
+    "influencer": {
+      "title": "Influencer Studio",
+      "icon": "🌟",
+      "intro": "Create influencer-style content, personal branding visuals, sponsored post imagery, and lifestyle photography at scale.",
+      "steps": [
+        { "title": "1 · Define the Persona", "body": "Describe the influencer persona — niche (fitness, fashion, travel, tech), aesthetic, audience age, and platform." },
+        { "title": "2 · Upload Outfit & Pose References", "body": "Outfit and pose references are the most impactful uploads for influencer content. Be specific with each." },
+        { "title": "3 · Lock Identity", "body": "Create a Character in the Characters tab to lock the face and identity consistently across all posts. This is essential for creator brands." },
+        { "title": "4 · Lock Location", "body": "Use Location Lock to maintain a consistent environment for your feed aesthetic — e.g. always the same Paris apartment look." },
+        { "title": "5 · Generate at Scale", "body": "Create batches of content for different formats (grid post, story, reel thumbnail) from the same session." }
+      ],
+      "tips": [
+        "Outfit references are critical — upload the exact clothing item for best matching.",
+        "Consistent lighting style (golden hour, clean studio) builds an instantly recognizable brand.",
+        "Mix close-up portraits and wide environmental shots for natural feed variety.",
+        "1:1 for Instagram grid, 9:16 for Stories and Reels — always generate both formats."
+      ],
+      "apiKeys": ["FAL.ai — image and video generation"]
+    },
+    "voice": {
+      "title": "Voice Studio",
+      "icon": "🎙",
+      "intro": "Generate professional voiceovers, AI narration, sound effects, ambient audio, and music for your creative projects.",
+      "steps": [
+        { "title": "1 · Write Your Script", "body": "Prepare the exact text to narrate. Clear, well-punctuated scripts give the best audio. Include stage directions in brackets: [pause] [excited]." },
+        { "title": "2 · Specify Voice Style", "body": "Describe the voice in detail: 'Warm, authoritative, slightly British, documentary narrator.' The more specific, the more accurate." },
+        { "title": "3 · Choose a Model", "body": "Different providers offer different voice qualities. Try 2-3 options and compare. Some excel at character voices, others at clean narration." },
+        { "title": "4 · Generate & Preview", "body": "Generate and review the audio. Re-run with adjusted instructions for different tone, pace, or emphasis." },
+        { "title": "5 · Export to Film Studio", "body": "Audio files save to your Library for use in Film Studio projects or external editors." }
+      ],
+      "tips": [
+        "Commas and ellipses create natural breathing pauses — use them liberally.",
+        "Short bursts under 60 seconds give the cleanest, most consistent results.",
+        "Use Character voice associations to maintain the same voice across all project audio.",
+        "Add [enthusiastic] or [whispering] in brackets to inject emotion at specific moments."
+      ],
+      "apiKeys": ["FAL.ai or Replicate — text-to-speech models"]
+    },
+    "apps": {
+      "title": "Apps Studio",
+      "icon": "⊞",
+      "intro": "Generate app UI mockups, icon sets, splash screens, app store screenshots, and promotional assets for mobile and web apps.",
+      "steps": [
+        { "title": "1 · Choose Asset Type", "body": "App Icon, UI Screenshot, App Store Banner, Splash Screen, or UI Flow Diagram — each tool has a specialized output format." },
+        { "title": "2 · Upload UI References", "body": "Upload existing screenshots or Dribbble/Behance design references to guide the visual direction accurately." },
+        { "title": "3 · Upload Brand Colors", "body": "Upload your logo and brand color palette in the Brand reference slot for on-brand output." },
+        { "title": "4 · Describe the App", "body": "Name the app, describe its core purpose, and specify the exact screen or element. E.g. 'Social fitness app — home feed screen with workout cards, dark mode, iOS.'" },
+        { "title": "5 · Generate & Refine", "body": "Generate multiple options and select the strongest. Adjust platform, mode (dark/light), and style specifics to refine." }
+      ],
+      "tips": [
+        "Always specify 'iOS style' or 'Material Design' or 'custom' for consistent UI language.",
+        "App icon reference uploads give dramatically better results than prompts alone.",
+        "Dark mode and light mode need separate explicit generations — never assume.",
+        "For screenshots, describe UI elements to show: 'navigation bar, card grid, floating action button.'"
+      ],
+      "apiKeys": ["FAL.ai or Replicate"]
+    },
+    "appbuild": {
+      "title": "App Building",
+      "icon": "🛠",
+      "intro": "Generate functional code for web and mobile apps, build components, write backend logic, and create full-stack applications with Claude AI.",
+      "steps": [
+        { "title": "1 · Describe What to Build", "body": "Be highly specific: 'A React authentication form with email/password, validation, error states, loading spinner, and a success redirect.' Not just 'a login form.'" },
+        { "title": "2 · Upload UI References", "body": "Screenshot the design you want to replicate — Claude will code to match it precisely. This is the fastest path to accurate UI code." },
+        { "title": "3 · Specify Your Tech Stack", "body": "Always mention the stack: 'React + TypeScript + Tailwind CSS + Next.js App Router.' Never assume Claude knows your project's framework." },
+        { "title": "4 · Review Generated Code", "body": "Output appears in the result panel. Review, copy to your IDE, and test. The code is production-ready but always review before shipping." },
+        { "title": "5 · Iterate With Follow-ups", "body": "Ask for specific fixes, additions, or refactoring in the Details field for subsequent generations." }
+      ],
+      "tips": [
+        "More context = better code. Include existing component names and patterns when asking for additions.",
+        "Ask explicitly for TypeScript types if your project uses TypeScript — it won't assume.",
+        "'Production-ready with error handling and loading states' in the prompt produces much more robust output.",
+        "For full pages, break into smaller components and generate each one separately for best results."
+      ],
+      "apiKeys": ["Anthropic — Claude powers all code generation"]
+    },
+    "designdocs": {
+      "title": "Design Docs",
+      "icon": "📐",
+      "intro": "Create wireframes, design system documentation, product specs, PRDs, technical specs, and user flow documents.",
+      "steps": [
+        { "title": "1 · Choose Document Type", "body": "PRD, Technical Spec, Wireframe Description, Component API Spec, User Story, or Flow Diagram — each tool has a targeted template." },
+        { "title": "2 · Give Full Context", "body": "Describe the product, target user, problem being solved, and any technical constraints. The more context, the more accurate and useful the document." },
+        { "title": "3 · Upload References", "body": "Upload design mockups, competitive screenshots, or existing docs to ground the generated content in real examples." },
+        { "title": "4 · Generate & Review", "body": "The AI produces a fully structured document with sections, tables, acceptance criteria, and edge cases." },
+        { "title": "5 · Export", "body": "Copy the markdown output into Notion, Confluence, Linear, GitHub, or your preferred docs tool." }
+      ],
+      "tips": [
+        "More product context = dramatically more useful specs. Spend time on the setup.",
+        "'Include edge cases, error states, and empty states' adds significant practical value.",
+        "Wireframe descriptions work best when you describe each screen's purpose AND key interactions.",
+        "Name specific competitor products in your prompt to ground requirements in known UX patterns."
+      ],
+      "apiKeys": ["Anthropic — Claude for document generation"]
+    },
+    "digiproduct": {
+      "title": "Digital Products",
+      "icon": "📦",
+      "intro": "Create cover art, landing page heroes, promotional visuals, and mockup images for ebooks, online courses, templates, and SaaS tools.",
+      "steps": [
+        { "title": "1 · Upload Your Product", "body": "Upload a screenshot or draft cover for your digital product in the Product Visual reference slot. This grounds the AI in what you're actually selling." },
+        { "title": "2 · Choose Output Type", "body": "Cover Art, Device Mockup, Landing Page Hero, Social Card, or Bundle Visual — each is optimized for its format." },
+        { "title": "3 · Upload Brand Reference", "body": "Upload your brand color palette and logo for on-brand output that feels like your existing product family." },
+        { "title": "4 · Write the Brief", "body": "Describe the product's purpose and ideal buyer persona — this shapes the emotional message of the visual." },
+        { "title": "5 · Generate Multiple Options", "body": "Always generate at least 3 variations to compare. Run A/B tests with your audience to see which converts best." }
+      ],
+      "tips": [
+        "Mockup context (device frames, desk setups, hands holding screens) makes products feel real and premium.",
+        "Dark glowing designs convert well for tech/AI digital products.",
+        "Show the product in use — a course cover with a student at a laptop, an ebook on a Kindle.",
+        "Generate 1:1 for social and 16:9 for banners from the same session."
+      ],
+      "apiKeys": ["FAL.ai or Replicate"]
+    },
+    "spatial": {
+      "title": "3D & Spatial",
+      "icon": "🧊",
+      "intro": "Generate 3D scenes, architectural visualizations, product renders, and spatial art using AI-powered 3D generation tools.",
+      "steps": [
+        { "title": "1 · Describe the 3D Scene", "body": "Be specific about materials, lighting, camera angle, and environment. E.g. '3D render of a minimalist concrete house at dusk, Octane render, soft volumetric shadows, distant mountains.'" },
+        { "title": "2 · Specify Render Engine & Lighting", "body": "Name a render engine (Octane, Cycles, V-Ray, Unreal Engine) and a lighting setup (HDRI, three-point, golden hour, neon accent). These two things define the entire mood." },
+        { "title": "3 · Upload Reference", "body": "For architectural or product work, upload reference photos of buildings, materials, or products you want to match." },
+        { "title": "4 · Choose the Right Model", "body": "Some models specialize in photorealistic architecture, others in stylized or abstract 3D. Test 2-3 to find the best fit for your style." },
+        { "title": "5 · Iterate One Element at a Time", "body": "3D prompt crafting is iterative. Change one variable per generation — lighting, then materials, then composition — for controlled results." }
+      ],
+      "tips": [
+        "Naming a specific render engine transforms results: 'Octane render' alone adds hours of quality.",
+        "For architecture, name materials explicitly: 'brushed steel, smoked glass, polished concrete, teak wood.'",
+        "'HDRI lighting, golden hour, volumetric god rays' = instant cinematic photorealism.",
+        "'Neutral grey gradient background, turntable studio lighting' = perfect product render every time."
+      ],
+      "apiKeys": ["FAL.ai or Replicate"]
+    },
+    "touchdesigner": {
+      "title": "TouchDesigner",
+      "icon": "⬡",
+      "intro": "Connect God's Pandora to TouchDesigner for real-time generative visuals, audio-reactive art, particle systems, GLSL shaders, and live VJ/installation output via OSC and WebSocket.",
+      "steps": [
+        { "title": "1 · Start TouchDesigner", "body": "Open TouchDesigner on your machine before connecting. TD must be running — God's Pandora sends to it, not the other way around." },
+        { "title": "2 · Run the Setup Script", "body": "In TouchDesigner's Textport (F9), paste and run the SETUP_BRIDGE.py script from the public/td-scripts folder. It auto-creates the OSC In CHOP (port 7000) and Web Server DAT (port 9980)." },
+        { "title": "3 · Connect in God's Pandora", "body": "Open the Config panel in the TouchDesigner tab, enter your TD machine's IP (127.0.0.1 if on the same machine), and click Connect." },
+        { "title": "4 · Load a Template", "body": "Browse the Template Library. Click 'Control' on any template to see its live parameter sliders. Click 'Launch TD' to open its .toe file automatically." },
+        { "title": "5 · Control Parameters Live", "body": "Every slider in the parameter panel sends an OSC message to TouchDesigner in real time. Move a slider — see the result instantly in TD's viewport." },
+        { "title": "6 · Try AI Parameters", "body": "Describe a mood in words — 'aggressive red electricity storm' — and Claude will translate it into all OSC parameter values automatically and apply them live." }
+      ],
+      "tips": [
+        "Check your firewall allows UDP on port 7000 (OSC send) and 7001 (OSC receive).",
+        "WebSocket (port 9980) enables richer two-way communication — required for SD Prompt and more.",
+        "For live VJ performance, leave parameter sliders open and use keyboard macros in TD for quick preset switching.",
+        "Use the AI Parameter Control to explore completely new visual territory in seconds — it's the fastest creative tool in the whole tab."
+      ],
+      "apiKeys": ["Anthropic — Claude for AI parameter generation"]
+    }
+  }
+}

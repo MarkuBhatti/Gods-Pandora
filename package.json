@@ -1,0 +1,111 @@
+{
+  "name": "gods-pandora",
+  "productName": "God's Pandora",
+  "version": "0.3.0",
+  "description": "God's Pandora — Every model. Every medium. One creative universe. Cloud model APIs + open-source local models in one creative studio.",
+  "author": "Haider Bhatti",
+  "license": "MIT",
+  "main": "electron/main.js",
+  "scripts": {
+    "dev": "concurrently -k \"vite\" \"wait-on tcp:5173 && cross-env VITE_DEV=1 electron .\"",
+    "build:ui": "vite build",
+    "build:win": "npm run build:ui && electron-builder --win --publish never",
+    "build:mac": "npm run build:ui && electron-builder --mac --publish never",
+    "build": "npm run build:ui && electron-builder --publish never",
+    "release": "npm run build:ui && electron-builder --win --publish never"
+  },
+  "dependencies": {
+    "node-osc": "^11.6.0",
+    "react": "^18.3.1",
+    "react-dom": "^18.3.1",
+    "ws": "^8.21.0",
+    "electron-updater": "^6.8.9"
+  },
+  "devDependencies": {
+    "@vitejs/plugin-react": "^4.3.1",
+    "concurrently": "^8.2.2",
+    "cross-env": "^7.0.3",
+    "electron": "^31.3.0",
+    "electron-builder": "^24.13.3",
+    "vite": "^5.4.0",
+    "wait-on": "^7.2.0"
+  },
+  "build": {
+    "appId": "com.haider.godseye",
+    "productName": "God's Pandora",
+    "copyright": "Copyright © 2026 Haider Bhatti",
+    "files": [
+      "dist/**",
+      "electron/**",
+      "engine/**",
+      "!engine/**/__pycache__/**",
+      "data/**",
+      "package.json"
+    ],
+    "directories": {
+      "output": "release",
+      "buildResources": "build-assets"
+    },
+    "win": {
+      "target": [
+        {
+          "target": "nsis",
+          "arch": [
+            "x64"
+          ]
+        }
+      ],
+      "icon": "build-assets/icon.ico",
+      "requestedExecutionLevel": "asInvoker",
+      "sign": "./build-assets/sign.js",
+      "signingHashAlgorithms": ["sha256"]
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        },
+        {
+          "target": "zip",
+          "arch": [
+            "x64",
+            "arm64"
+          ]
+        }
+      ],
+      "icon": "build-assets/icon.png",
+      "category": "public.app-category.graphics-design",
+      "darkModeSupport": true,
+      "artifactName": "Gods-Pandora-${version}-${arch}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "allowToChangeInstallationDirectory": true,
+      "installerIcon": "build-assets/icon.ico",
+      "uninstallerIcon": "build-assets/icon.ico",
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "God's Pandora",
+      "artifactName": "Gods-Pandora-Setup-${version}.${ext}"
+    },
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "YOUR_GITHUB_USERNAME",
+        "repo": "gods-pandora",
+        "releaseType": "release"
+      }
+    ],
+    "asarUnpack": [
+      "engine/**"
+    ]
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/YOUR_GITHUB_USERNAME/gods-pandora.git"
+  }
+}

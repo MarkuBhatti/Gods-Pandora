@@ -1,0 +1,981 @@
+{
+ "note": "active=true → built-in adapter ships today; others are securely stored in the key vault and used as catalog adapters land.",
+ "providers": [
+  {
+   "id": "fal",
+   "name": "FAL.ai",
+   "hint": "Aggregator — one key → 985+ endpoints: FLUX, Kling, Seedance, Wan, Nano Banana, audio",
+   "keyUrl": "https://fal.ai/dashboard/keys",
+   "active": true,
+   "category": "Aggregators"
+  },
+  {
+   "id": "replicate",
+   "name": "Replicate",
+   "hint": "Aggregator — thousands of open + closed models",
+   "keyUrl": "https://replicate.com/account/api-tokens",
+   "active": true,
+   "category": "Aggregators"
+  },
+  {
+   "id": "higgsfield",
+   "name": "Higgsfield",
+   "hint": "SOUL, Kling, MiniMax Hailuo, Seedance, Wan… through one API. Paste as KEY_ID:KEY_SECRET",
+   "keyUrl": "https://console.higgsfield.ai",
+   "active": true,
+   "category": "Aggregators"
+  },
+  {
+   "id": "civitai",
+   "name": "Civitai",
+   "hint": "🆓 Optional — lets the Model Market download Civitai models that require login (civitai.com → Account settings → API Keys)",
+   "keyUrl": "https://civitai.com/user/account",
+   "active": true,
+   "category": "Aggregators"
+  },
+  {
+   "id": "openai",
+   "name": "OpenAI",
+   "hint": "GPT Image, Sora 2, TTS, Whisper",
+   "keyUrl": "https://platform.openai.com/api-keys",
+   "active": true,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "google",
+   "name": "Google AI Studio",
+   "hint": "Imagen 4, Veo 3, Nano Banana, Gemini",
+   "keyUrl": "https://aistudio.google.com/apikey",
+   "active": true,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "anthropic",
+   "name": "Anthropic (Claude)",
+   "hint": "App Forge, AI Director, prompt enhancement",
+   "keyUrl": "https://console.anthropic.com/settings/keys",
+   "active": true,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "elevenlabs",
+   "name": "ElevenLabs",
+   "hint": "Voice, TTS, sound effects, dubbing",
+   "keyUrl": "https://elevenlabs.io/app/settings/api-keys",
+   "active": true,
+   "category": "Voice & Audio"
+  },
+  {
+   "id": "stability",
+   "name": "Stability AI",
+   "hint": "Stable Image Ultra/Core, Stable Audio",
+   "keyUrl": "https://platform.stability.ai/account/keys",
+   "active": true,
+   "category": "Image & Video"
+  },
+  {
+   "id": "bfl",
+   "name": "Black Forest Labs",
+   "hint": "FLUX Pro / Ultra / Kontext direct API",
+   "keyUrl": "https://api.bfl.ai",
+   "active": false,
+   "category": "Image & Video"
+  },
+  {
+   "id": "runway",
+   "name": "Runway",
+   "hint": "Gen-4 video, Act-One performance capture",
+   "keyUrl": "https://dev.runwayml.com",
+   "active": false,
+   "category": "Image & Video"
+  },
+  {
+   "id": "luma",
+   "name": "Luma AI",
+   "hint": "Dream Machine / Ray video API",
+   "keyUrl": "https://lumalabs.ai/api",
+   "active": false,
+   "category": "Image & Video"
+  },
+  {
+   "id": "pika",
+   "name": "Pika",
+   "hint": "Pika video generation API",
+   "keyUrl": "https://pika.art/api",
+   "active": false,
+   "category": "Image & Video"
+  },
+  {
+   "id": "ideogram",
+   "name": "Ideogram",
+   "hint": "Ideogram V3 — best-in-class text rendering",
+   "keyUrl": "https://developer.ideogram.ai",
+   "active": false,
+   "category": "Image & Video"
+  },
+  {
+   "id": "recraft",
+   "name": "Recraft",
+   "hint": "Recraft V4 — SVG/vector + brand styles",
+   "keyUrl": "https://www.recraft.ai/api",
+   "active": false,
+   "category": "Image & Video"
+  },
+  {
+   "id": "byteplus",
+   "name": "BytePlus (ByteDance)",
+   "hint": "Seedance 2.0, Seedream direct API",
+   "keyUrl": "https://www.byteplus.com",
+   "active": false,
+   "category": "Image & Video"
+  },
+  {
+   "id": "kling",
+   "name": "Kling (Kuaishou)",
+   "hint": "Kling 3.0 video direct API",
+   "keyUrl": "https://klingai.com/dev",
+   "active": false,
+   "category": "Image & Video"
+  },
+  {
+   "id": "minimax",
+   "name": "MiniMax",
+   "hint": "Hailuo 02 video, music, TTS",
+   "keyUrl": "https://www.minimax.io/platform",
+   "active": false,
+   "category": "Voice & Audio"
+  },
+  {
+   "id": "xai",
+   "name": "xAI",
+   "hint": "Grok Imagine image/video",
+   "keyUrl": "https://console.x.ai",
+   "active": false,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "together",
+   "name": "Together AI",
+   "hint": "Open-source models served via API (OpenAI-compatible)",
+   "keyUrl": "https://api.together.ai/settings/api-keys",
+   "active": false,
+   "category": "Aggregators"
+  },
+  {
+   "id": "fireworks",
+   "name": "Fireworks AI",
+   "hint": "Fast open-model inference (OpenAI-compatible)",
+   "keyUrl": "https://fireworks.ai/account/api-keys",
+   "active": false,
+   "category": "Aggregators"
+  },
+  {
+   "id": "mistral",
+   "name": "Mistral",
+   "hint": "Open-weight LLMs via API",
+   "keyUrl": "https://console.mistral.ai/api-keys",
+   "active": false,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "deepseek",
+   "name": "DeepSeek",
+   "hint": "Low-cost frontier LLM API",
+   "keyUrl": "https://platform.deepseek.com/api_keys",
+   "active": false,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "groq",
+   "name": "Groq",
+   "hint": "Ultra-fast LLM/Whisper inference",
+   "keyUrl": "https://console.groq.com/keys",
+   "active": false,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "playht",
+   "name": "PlayHT",
+   "hint": "Voice cloning & TTS",
+   "keyUrl": "https://play.ht/studio/api-access",
+   "active": false,
+   "category": "Voice & Audio"
+  },
+  {
+   "id": "cartesia",
+   "name": "Cartesia",
+   "hint": "Low-latency Sonic TTS",
+   "keyUrl": "https://play.cartesia.ai/keys",
+   "active": false,
+   "category": "Voice & Audio"
+  },
+  {
+   "id": "deepgram",
+   "name": "Deepgram",
+   "hint": "Speech-to-text & audio intelligence",
+   "keyUrl": "https://console.deepgram.com",
+   "active": false,
+   "category": "Voice & Audio"
+  },
+  {
+   "id": "assemblyai",
+   "name": "AssemblyAI",
+   "hint": "Transcription & audio understanding",
+   "keyUrl": "https://www.assemblyai.com/dashboard",
+   "active": false,
+   "category": "Voice & Audio"
+  },
+  {
+   "id": "hume",
+   "name": "Hume AI",
+   "hint": "Expressive voice (EVI)",
+   "keyUrl": "https://platform.hume.ai",
+   "active": false,
+   "category": "Voice & Audio"
+  },
+  {
+   "id": "heygen",
+   "name": "HeyGen",
+   "hint": "Avatar video & video translate API",
+   "keyUrl": "https://app.heygen.com/settings/api",
+   "active": false,
+   "category": "Avatars"
+  },
+  {
+   "id": "did",
+   "name": "D-ID",
+   "hint": "Talking-head avatar API",
+   "keyUrl": "https://studio.d-id.com/account-settings",
+   "active": false,
+   "category": "Avatars"
+  },
+  {
+   "id": "hedra",
+   "name": "Hedra",
+   "hint": "Character-3 talking character video",
+   "keyUrl": "https://www.hedra.com/api",
+   "active": false,
+   "category": "Avatars"
+  },
+  {
+   "id": "topaz",
+   "name": "Topaz Labs",
+   "hint": "Upscale/enhance API (image & video)",
+   "keyUrl": "https://www.topazlabs.com/api",
+   "active": false,
+   "category": "Image & Video"
+  },
+  {
+   "id": "leonardo",
+   "name": "Leonardo.Ai",
+   "hint": "Production image pipelines, Phoenix",
+   "keyUrl": "https://app.leonardo.ai/api-access",
+   "active": false,
+   "category": "Image & Video"
+  },
+  {
+   "id": "openrouter",
+   "name": "OpenRouter",
+   "hint": "One key → 300+ LLMs (Claude, GPT, Gemini, Llama, open models)",
+   "keyUrl": "https://openrouter.ai/settings/keys",
+   "active": false,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "perplexity",
+   "name": "Perplexity",
+   "hint": "Sonar — search-grounded LLM API",
+   "keyUrl": "https://www.perplexity.ai/settings/api",
+   "active": false,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "cohere",
+   "name": "Cohere",
+   "hint": "Command R/R+ chat, embeddings, rerank",
+   "keyUrl": "https://dashboard.cohere.com/api-keys",
+   "active": false,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "ai21",
+   "name": "AI21 Labs",
+   "hint": "Jamba models API",
+   "keyUrl": "https://studio.ai21.com/account/api-key",
+   "active": false,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "azure-openai",
+   "name": "Azure OpenAI",
+   "hint": "GPT/Sora via Microsoft Azure enterprise",
+   "keyUrl": "https://portal.azure.com",
+   "active": false,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "bedrock",
+   "name": "AWS Bedrock",
+   "hint": "Claude, Llama, Titan, Nova via AWS",
+   "keyUrl": "https://console.aws.amazon.com/bedrock",
+   "active": false,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "vertex",
+   "name": "Google Vertex AI",
+   "hint": "Gemini/Imagen/Veo enterprise via GCP",
+   "keyUrl": "https://console.cloud.google.com/vertex-ai",
+   "active": false,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "nvidia",
+   "name": "NVIDIA NIM",
+   "hint": "Hosted open models (build.nvidia.com)",
+   "keyUrl": "https://build.nvidia.com",
+   "active": false,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "cerebras",
+   "name": "Cerebras",
+   "hint": "Fastest Llama/Qwen inference",
+   "keyUrl": "https://cloud.cerebras.ai",
+   "active": false,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "sambanova",
+   "name": "SambaNova",
+   "hint": "Fast open-model cloud",
+   "keyUrl": "https://cloud.sambanova.ai",
+   "active": false,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "huggingface",
+   "name": "Hugging Face",
+   "hint": "🆓 One token: download gated open-source models AND run thousands of hosted ones (FLUX, Qwen-Image, Wan…) via Inference Providers. Give the token \"Inference Providers\" permission.",
+   "keyUrl": "https://huggingface.co/settings/tokens",
+   "active": true,
+   "category": "Aggregators"
+  },
+  {
+   "id": "moonshot",
+   "name": "Moonshot AI",
+   "hint": "Kimi K2 API",
+   "keyUrl": "https://platform.moonshot.ai",
+   "active": false,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "zhipu",
+   "name": "Zhipu AI (Z.ai)",
+   "hint": "GLM-4.x API",
+   "keyUrl": "https://open.bigmodel.cn",
+   "active": false,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "dashscope",
+   "name": "Alibaba Model Studio",
+   "hint": "Qwen API (DashScope)",
+   "keyUrl": "https://dashscope.console.aliyun.com",
+   "active": false,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "meta-llama",
+   "name": "Meta Llama API",
+   "hint": "Official Llama API",
+   "keyUrl": "https://llama.developer.meta.com",
+   "active": false,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "v0",
+   "name": "v0 by Vercel",
+   "hint": "Generate production React/Next.js UIs via API",
+   "keyUrl": "https://v0.app/settings",
+   "active": false,
+   "category": "App Building"
+  },
+  {
+   "id": "replit",
+   "name": "Replit",
+   "hint": "Agent 4 app building + hosting platform",
+   "keyUrl": "https://replit.com/account#tokens",
+   "active": false,
+   "category": "App Building"
+  },
+  {
+   "id": "lovable",
+   "name": "Lovable",
+   "hint": "Full-stack SaaS app generation",
+   "keyUrl": "https://lovable.dev",
+   "active": false,
+   "category": "App Building"
+  },
+  {
+   "id": "bolt",
+   "name": "Bolt.new (StackBlitz)",
+   "hint": "In-browser full-stack app generation",
+   "keyUrl": "https://bolt.new",
+   "active": false,
+   "category": "App Building"
+  },
+  {
+   "id": "github-models",
+   "name": "GitHub Models",
+   "hint": "GPT/Llama/Phi via GitHub token",
+   "keyUrl": "https://github.com/settings/tokens",
+   "active": false,
+   "category": "App Building"
+  },
+  {
+   "id": "e2b",
+   "name": "E2B",
+   "hint": "Cloud sandboxes for running AI-generated code",
+   "keyUrl": "https://e2b.dev/dashboard",
+   "active": false,
+   "category": "App Building"
+  },
+  {
+   "id": "modal",
+   "name": "Modal",
+   "hint": "Serverless GPU compute for custom models",
+   "keyUrl": "https://modal.com/settings/tokens",
+   "active": false,
+   "category": "App Building"
+  },
+  {
+   "id": "figma",
+   "name": "Figma",
+   "hint": "REST API — files, components, design-to-code",
+   "keyUrl": "https://www.figma.com/developers/api",
+   "active": false,
+   "category": "Design"
+  },
+  {
+   "id": "canva",
+   "name": "Canva Connect",
+   "hint": "Designs, exports, brand templates via API",
+   "keyUrl": "https://www.canva.dev/docs/connect/",
+   "active": false,
+   "category": "Design"
+  },
+  {
+   "id": "firefly",
+   "name": "Adobe Firefly Services",
+   "hint": "Firefly, Photoshop & Lightroom APIs",
+   "keyUrl": "https://developer.adobe.com/console",
+   "active": false,
+   "category": "Design"
+  },
+  {
+   "id": "tavily",
+   "name": "Tavily",
+   "hint": "Search API built for AI agents",
+   "keyUrl": "https://app.tavily.com",
+   "active": false,
+   "category": "Search & Tools"
+  },
+  {
+   "id": "exa",
+   "name": "Exa",
+   "hint": "Neural web search for LLMs",
+   "keyUrl": "https://dashboard.exa.ai",
+   "active": false,
+   "category": "Search & Tools"
+  },
+  {
+   "id": "brave",
+   "name": "Brave Search",
+   "hint": "Independent search index API",
+   "keyUrl": "https://api-dashboard.search.brave.com",
+   "active": false,
+   "category": "Search & Tools"
+  },
+  {
+   "id": "jina",
+   "name": "Jina AI",
+   "hint": "Reader, embeddings, rerankers",
+   "keyUrl": "https://jina.ai/api-dashboard",
+   "active": false,
+   "category": "Search & Tools"
+  },
+  {
+   "id": "serpapi",
+   "name": "SerpApi",
+   "hint": "Google results as JSON",
+   "keyUrl": "https://serpapi.com/manage-api-key",
+   "active": false,
+   "category": "Search & Tools"
+  },
+  {
+   "id": "suno",
+   "name": "Suno",
+   "hint": "🆓 AI music generation — text-to-song with vocals. FREE tier: 50 credits/day",
+   "keyUrl": "https://suno.com/account",
+   "active": false,
+   "category": "Music Generation"
+  },
+  {
+   "id": "udio",
+   "name": "Udio",
+   "hint": "🆓 AI music & song generation. FREE tier available",
+   "keyUrl": "https://www.udio.com/api",
+   "active": false,
+   "category": "Music Generation"
+  },
+  {
+   "id": "mureka",
+   "name": "Mureka",
+   "hint": "🆓 AI music generation with stems separation. FREE tier",
+   "keyUrl": "https://www.mureka.ai",
+   "active": false,
+   "category": "Music Generation"
+  },
+  {
+   "id": "stableaudio",
+   "name": "Stable Audio (Stability)",
+   "hint": "🆓 Text-to-audio & music loops. FREE tier via stability.ai",
+   "keyUrl": "https://platform.stability.ai/account/keys",
+   "active": false,
+   "category": "Music Generation"
+  },
+  {
+   "id": "beatoven",
+   "name": "Beatoven.ai",
+   "hint": "🆓 Royalty-free AI music by mood/genre. FREE tier",
+   "keyUrl": "https://www.beatoven.ai",
+   "active": false,
+   "category": "Music Generation"
+  },
+  {
+   "id": "soundraw",
+   "name": "Soundraw",
+   "hint": "AI music composer — royalty-free. FREE preview tier",
+   "keyUrl": "https://soundraw.io",
+   "active": false,
+   "category": "Music Generation"
+  },
+  {
+   "id": "audiocraft",
+   "name": "Meta AudioCraft (via HF)",
+   "hint": "🆓 MusicGen/AudioGen models — FREE via Hugging Face Inference API",
+   "keyUrl": "https://huggingface.co/settings/tokens",
+   "active": false,
+   "category": "Music Generation"
+  },
+  {
+   "id": "tripo",
+   "name": "Tripo AI",
+   "hint": "🆓 Text/image → 3D model in seconds. FREE tier: 200 credits",
+   "keyUrl": "https://platform.tripo3d.ai",
+   "active": false,
+   "category": "3D & Spatial"
+  },
+  {
+   "id": "meshy",
+   "name": "Meshy",
+   "hint": "🆓 Text-to-3D & image-to-3D. FREE tier: 200 credits/month",
+   "keyUrl": "https://www.meshy.ai/api",
+   "active": false,
+   "category": "3D & Spatial"
+  },
+  {
+   "id": "rodin",
+   "name": "Hyper3D Rodin",
+   "hint": "🆓 High-quality text/image → 3D mesh. FREE tier available",
+   "keyUrl": "https://hyperhuman.deemos.com/rodin",
+   "active": false,
+   "category": "3D & Spatial"
+  },
+  {
+   "id": "csm",
+   "name": "Common Sense Machines",
+   "hint": "🆓 Image/video → 3D scene reconstruction. FREE tier",
+   "keyUrl": "https://3d.csm.ai",
+   "active": false,
+   "category": "3D & Spatial"
+  },
+  {
+   "id": "spline",
+   "name": "Spline AI",
+   "hint": "🆓 3D design + AI generation in browser. FREE tier",
+   "keyUrl": "https://spline.design",
+   "active": false,
+   "category": "3D & Spatial"
+  },
+  {
+   "id": "luma3d",
+   "name": "Luma AI (3D / NeRF)",
+   "hint": "🆓 NeRF capture & Genie 3D generation. FREE captures",
+   "keyUrl": "https://lumalabs.ai/api",
+   "active": false,
+   "category": "3D & Spatial"
+  },
+  {
+   "id": "removebg",
+   "name": "Remove.bg",
+   "hint": "🆓 Background removal API. FREE: 50 previews/month",
+   "keyUrl": "https://www.remove.bg/dashboard#api-key",
+   "active": false,
+   "category": "Image Tools"
+  },
+  {
+   "id": "photoroom",
+   "name": "PhotoRoom",
+   "hint": "🆓 Background removal + product photo studio API. FREE tier",
+   "keyUrl": "https://www.photoroom.com/api",
+   "active": false,
+   "category": "Image Tools"
+  },
+  {
+   "id": "clipdrop",
+   "name": "Clipdrop (Stability)",
+   "hint": "🆓 Remove.bg + background generation + relight API. FREE tier",
+   "keyUrl": "https://clipdrop.co/apis",
+   "active": false,
+   "category": "Image Tools"
+  },
+  {
+   "id": "picwish",
+   "name": "PicWish",
+   "hint": "🆓 Background removal, portrait enhancement API. FREE tier",
+   "keyUrl": "https://picwish.com/api",
+   "active": false,
+   "category": "Image Tools"
+  },
+  {
+   "id": "imgly",
+   "name": "img.ly / CE.SDK",
+   "hint": "🆓 Photo/video editing SDK APIs. FREE developer tier",
+   "keyUrl": "https://img.ly/products/creative-sdk",
+   "active": false,
+   "category": "Image Tools"
+  },
+  {
+   "id": "designify",
+   "name": "Designify",
+   "hint": "🆓 AI product photo enhancement. FREE tier",
+   "keyUrl": "https://www.designify.com/api",
+   "active": false,
+   "category": "Image Tools"
+  },
+  {
+   "id": "picsart",
+   "name": "PicsArt",
+   "hint": "🆓 Effects, background removal, AI image tools API. FREE tier",
+   "keyUrl": "https://picsart.io/api",
+   "active": false,
+   "category": "Image Tools"
+  },
+  {
+   "id": "captions",
+   "name": "Captions.ai",
+   "hint": "🆓 Auto-captions, video editing AI. FREE tier",
+   "keyUrl": "https://www.captions.ai",
+   "active": false,
+   "category": "Video Tools"
+  },
+  {
+   "id": "invideo",
+   "name": "InVideo AI",
+   "hint": "🆓 Text-to-video with stock footage. FREE tier (watermark)",
+   "keyUrl": "https://ai.invideo.io",
+   "active": false,
+   "category": "Video Tools"
+  },
+  {
+   "id": "synthesia",
+   "name": "Synthesia",
+   "hint": "AI avatar video creation API. Enterprise + trial",
+   "keyUrl": "https://www.synthesia.io/api",
+   "active": false,
+   "category": "Avatars"
+  },
+  {
+   "id": "veed",
+   "name": "VEED.IO",
+   "hint": "🆓 Auto-subtitle, translation, video editing API. FREE tier",
+   "keyUrl": "https://www.veed.io/api",
+   "active": false,
+   "category": "Video Tools"
+  },
+  {
+   "id": "descript",
+   "name": "Descript",
+   "hint": "🆓 Overdub voice clone, video editing API. FREE tier",
+   "keyUrl": "https://www.descript.com/api",
+   "active": false,
+   "category": "Video Tools"
+  },
+  {
+   "id": "wisecut",
+   "name": "Wisecut",
+   "hint": "🆓 Auto video cut + subtitles AI. FREE tier",
+   "keyUrl": "https://www.wisecut.video",
+   "active": false,
+   "category": "Video Tools"
+  },
+  {
+   "id": "pixverse",
+   "name": "PixVerse",
+   "hint": "🆓 Text-to-video & image-to-video. FREE tier",
+   "keyUrl": "https://platform.pixverse.ai",
+   "active": false,
+   "category": "Image & Video"
+  },
+  {
+   "id": "lightricks",
+   "name": "Lightricks LTX Video",
+   "hint": "🆓 LTX-Video fast generation. FREE via fal.ai or HF",
+   "keyUrl": "https://huggingface.co/Lightricks/LTX-Video",
+   "active": false,
+   "category": "Image & Video"
+  },
+  {
+   "id": "haiper",
+   "name": "Haiper",
+   "hint": "🆓 Text/image-to-video generation. FREE tier",
+   "keyUrl": "https://haiper.ai/api",
+   "active": false,
+   "category": "Image & Video"
+  },
+  {
+   "id": "vidu",
+   "name": "Vidu",
+   "hint": "🆓 High-quality video generation. FREE credits on signup",
+   "keyUrl": "https://www.vidu.io",
+   "active": false,
+   "category": "Image & Video"
+  },
+  {
+   "id": "cloudflare-ai",
+   "name": "Cloudflare Workers AI",
+   "hint": "🆓 Run 50+ models at the edge. FREE 10k neurons/day",
+   "keyUrl": "https://dash.cloudflare.com/profile/api-tokens",
+   "active": false,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "hyperbolic",
+   "name": "Hyperbolic",
+   "hint": "🆓 Fast open-model inference. FREE $10 credits on signup",
+   "keyUrl": "https://app.hyperbolic.xyz/settings",
+   "active": false,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "novita",
+   "name": "Novita AI",
+   "hint": "🆓 100+ models API (text + image). FREE $0.50 credits",
+   "keyUrl": "https://novita.ai/settings/key-management",
+   "active": false,
+   "category": "Aggregators"
+  },
+  {
+   "id": "lepton",
+   "name": "Lepton AI",
+   "hint": "🆓 Fast open-model inference. FREE tier",
+   "keyUrl": "https://dashboard.lepton.ai",
+   "active": false,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "lambda",
+   "name": "Lambda Labs",
+   "hint": "🆓 GPU cloud + inference API. FREE inference credits",
+   "keyUrl": "https://cloud.lambda.ai/api-keys",
+   "active": false,
+   "category": "LLM / Chat"
+  },
+  {
+   "id": "piapi",
+   "name": "PiAPI",
+   "hint": "🆓 Aggregator: Midjourney, Suno, Kling, Flux via one API. FREE trial",
+   "keyUrl": "https://piapi.ai/dashboard",
+   "active": false,
+   "category": "Aggregators"
+  },
+  {
+   "id": "naga",
+   "name": "Naga AI",
+   "hint": "🆓 Cheap OpenAI-compatible proxy for GPT/Claude/Gemini. FREE trial",
+   "keyUrl": "https://naga.ac/dashboard/api",
+   "active": false,
+   "category": "Aggregators"
+  },
+  {
+   "id": "aimlapi",
+   "name": "AI/ML API",
+   "hint": "🆓 300+ models via one key. FREE $5 credits on signup",
+   "keyUrl": "https://aimlapi.com/app/keys",
+   "active": false,
+   "category": "Aggregators"
+  },
+  {
+   "id": "whisper-openai",
+   "name": "OpenAI Whisper",
+   "hint": "Best-in-class transcription via OpenAI API. Pay-per-use",
+   "keyUrl": "https://platform.openai.com/api-keys",
+   "active": false,
+   "category": "Voice & Audio"
+  },
+  {
+   "id": "gladia",
+   "name": "Gladia",
+   "hint": "🆓 Whisper-based transcription + speaker diarization. FREE 10h/month",
+   "keyUrl": "https://app.gladia.io/account/api",
+   "active": false,
+   "category": "Voice & Audio"
+  },
+  {
+   "id": "rev",
+   "name": "Rev AI",
+   "hint": "🆓 Human + AI transcription API. FREE 45-min trial",
+   "keyUrl": "https://www.rev.ai/access_token",
+   "active": false,
+   "category": "Voice & Audio"
+  },
+  {
+   "id": "speechmatics",
+   "name": "Speechmatics",
+   "hint": "🆓 Multilingual ASR API. FREE 1000 min/month",
+   "keyUrl": "https://portal.speechmatics.com/manage-access/",
+   "active": false,
+   "category": "Voice & Audio"
+  },
+  {
+   "id": "voicemod",
+   "name": "Voicemod",
+   "hint": "🆓 Real-time voice effects API. FREE developer tier",
+   "keyUrl": "https://www.voicemod.net/api",
+   "active": false,
+   "category": "Voice & Audio"
+  },
+  {
+   "id": "resemble",
+   "name": "Resemble AI",
+   "hint": "🆓 Voice cloning + real-time TTS. FREE 10k chars/month",
+   "keyUrl": "https://app.resemble.ai/api",
+   "active": false,
+   "category": "Voice & Audio"
+  },
+  {
+   "id": "murf",
+   "name": "Murf AI",
+   "hint": "🆓 Studio-quality TTS voices. FREE 10 min/month",
+   "keyUrl": "https://murf.ai/api",
+   "active": false,
+   "category": "Voice & Audio"
+  },
+  {
+   "id": "serper",
+   "name": "Serper.dev",
+   "hint": "🆓 Google Search API. FREE 2500 queries on signup",
+   "keyUrl": "https://serper.dev/api-key",
+   "active": false,
+   "category": "Search & Tools"
+  },
+  {
+   "id": "scrapingbee",
+   "name": "ScrapingBee",
+   "hint": "🆓 Web scraping API. FREE 1000 credits",
+   "keyUrl": "https://app.scrapingbee.com/account/api",
+   "active": false,
+   "category": "Search & Tools"
+  },
+  {
+   "id": "diffbot",
+   "name": "Diffbot",
+   "hint": "🆓 Web page + article extraction API. FREE 2-week trial",
+   "keyUrl": "https://app.diffbot.com/get-started",
+   "active": false,
+   "category": "Search & Tools"
+  },
+  {
+   "id": "firecrawl",
+   "name": "Firecrawl",
+   "hint": "🆓 Web scrape & crawl for LLMs. FREE 500 pages/month",
+   "keyUrl": "https://www.firecrawl.dev/app/api-keys",
+   "active": false,
+   "category": "Search & Tools"
+  },
+  {
+   "id": "zenrows",
+   "name": "ZenRows",
+   "hint": "🆓 Anti-bot scraping API. FREE 1000 credits",
+   "keyUrl": "https://app.zenrows.com",
+   "active": false,
+   "category": "Search & Tools"
+  },
+  {
+   "id": "make",
+   "name": "Make (Integromat)",
+   "hint": "🆓 Visual automation platform. FREE 1000 ops/month",
+   "keyUrl": "https://www.make.com/en/api-documentation",
+   "active": false,
+   "category": "Search & Tools"
+  },
+  {
+   "id": "zapier",
+   "name": "Zapier AI Actions",
+   "hint": "🆓 Connect 6000+ apps via AI-callable actions. FREE tier",
+   "keyUrl": "https://actions.zapier.com/credentials/",
+   "active": false,
+   "category": "Search & Tools"
+  },
+  {
+   "id": "airtable",
+   "name": "Airtable",
+   "hint": "🆓 Database + no-code API. FREE 1200 records/base",
+   "keyUrl": "https://airtable.com/create/tokens",
+   "active": false,
+   "category": "Search & Tools"
+  },
+  {
+   "id": "pexels",
+   "name": "Pexels",
+   "hint": "🆓 Free stock photos & videos API. Completely FREE",
+   "keyUrl": "https://www.pexels.com/api/",
+   "active": false,
+   "category": "Stock & Assets"
+  },
+  {
+   "id": "unsplash",
+   "name": "Unsplash",
+   "hint": "🆓 Free high-res photos API. FREE 50 req/hour",
+   "keyUrl": "https://unsplash.com/developers",
+   "active": false,
+   "category": "Stock & Assets"
+  },
+  {
+   "id": "pixabay",
+   "name": "Pixabay",
+   "hint": "🆓 Free stock photos, videos, music API. Completely FREE",
+   "keyUrl": "https://pixabay.com/api/docs/",
+   "active": false,
+   "category": "Stock & Assets"
+  },
+  {
+   "id": "freesound",
+   "name": "Freesound",
+   "hint": "🆓 Creative Commons sound effects API. FREE",
+   "keyUrl": "https://freesound.org/apiv2/apply",
+   "active": false,
+   "category": "Stock & Assets"
+  },
+  {
+   "id": "storyblocks",
+   "name": "Storyblocks",
+   "hint": "Stock video, audio & images API. Subscription-based",
+   "keyUrl": "https://www.storyblocks.com/api/docs",
+   "active": false,
+   "category": "Stock & Assets"
+  }
+ ]
+}

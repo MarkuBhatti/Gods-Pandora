@@ -1,0 +1,838 @@
+{
+ "note": "The God's Pandora AI Market — every major AI model category on earth, API and open-source, continuously extendable.",
+ "categories": [
+  {
+   "id": "llm",
+   "name": "Language / Chat",
+   "icon": "💬",
+   "entries": [
+    {
+     "name": "Claude Fable 5 / Opus 4.8",
+     "org": "Anthropic",
+     "access": "api",
+     "link": "https://docs.claude.com",
+     "note": ""
+    },
+    {
+     "name": "GPT series",
+     "org": "OpenAI",
+     "access": "api",
+     "link": "https://platform.openai.com",
+     "note": ""
+    },
+    {
+     "name": "Gemini",
+     "org": "Google",
+     "access": "api",
+     "link": "https://ai.google.dev",
+     "note": ""
+    },
+    {
+     "name": "Grok",
+     "org": "xAI",
+     "access": "api",
+     "link": "https://console.x.ai",
+     "note": ""
+    },
+    {
+     "name": "Llama 3.3 / 4",
+     "org": "Meta",
+     "access": "open",
+     "link": "https://huggingface.co/meta-llama",
+     "note": ""
+    },
+    {
+     "name": "DeepSeek-V3 / R1",
+     "org": "DeepSeek",
+     "access": "open",
+     "link": "https://huggingface.co/deepseek-ai",
+     "note": ""
+    },
+    {
+     "name": "Qwen 3",
+     "org": "Alibaba",
+     "access": "open",
+     "link": "https://huggingface.co/Qwen",
+     "note": ""
+    },
+    {
+     "name": "Mistral / Mixtral",
+     "org": "Mistral AI",
+     "access": "open",
+     "link": "https://huggingface.co/mistralai",
+     "note": ""
+    },
+    {
+     "name": "Gemma 3",
+     "org": "Google",
+     "access": "open",
+     "link": "https://huggingface.co/google",
+     "note": ""
+    },
+    {
+     "name": "Kimi K2",
+     "org": "Moonshot",
+     "access": "open",
+     "link": "https://huggingface.co/moonshotai",
+     "note": ""
+    },
+    {
+     "name": "GLM-4.5",
+     "org": "Zhipu",
+     "access": "open",
+     "link": "https://huggingface.co/zai-org",
+     "note": ""
+    },
+    {
+     "name": "Phi-4",
+     "org": "Microsoft",
+     "access": "open",
+     "link": "https://huggingface.co/microsoft",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "image",
+   "name": "Image Generation",
+   "icon": "🖼",
+   "entries": [
+    {
+     "name": "GPT Image",
+     "org": "OpenAI",
+     "access": "api",
+     "link": "https://platform.openai.com",
+     "note": ""
+    },
+    {
+     "name": "Imagen 4 / Nano Banana",
+     "org": "Google",
+     "access": "api",
+     "link": "https://ai.google.dev",
+     "note": ""
+    },
+    {
+     "name": "FLUX Pro / Kontext",
+     "org": "Black Forest Labs",
+     "access": "api",
+     "link": "https://api.bfl.ai",
+     "note": ""
+    },
+    {
+     "name": "Seedream 5",
+     "org": "ByteDance",
+     "access": "api",
+     "link": "https://fal.ai",
+     "note": ""
+    },
+    {
+     "name": "Ideogram V3",
+     "org": "Ideogram",
+     "access": "api",
+     "link": "https://developer.ideogram.ai",
+     "note": ""
+    },
+    {
+     "name": "Recraft V4 (SVG)",
+     "org": "Recraft",
+     "access": "api",
+     "link": "https://www.recraft.ai/api",
+     "note": ""
+    },
+    {
+     "name": "FLUX.1 Schnell/Dev",
+     "org": "BFL",
+     "access": "open",
+     "link": "https://huggingface.co/black-forest-labs",
+     "note": ""
+    },
+    {
+     "name": "SD 3.5 / SDXL",
+     "org": "Stability",
+     "access": "open",
+     "link": "https://huggingface.co/stabilityai",
+     "note": ""
+    },
+    {
+     "name": "Qwen-Image",
+     "org": "Alibaba",
+     "access": "open",
+     "link": "https://huggingface.co/Qwen",
+     "note": ""
+    },
+    {
+     "name": "HiDream-I1",
+     "org": "HiDream",
+     "access": "open",
+     "link": "https://huggingface.co/HiDream-ai",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "video",
+   "name": "Video Generation",
+   "icon": "🎥",
+   "entries": [
+    {
+     "name": "Sora 2",
+     "org": "OpenAI",
+     "access": "api",
+     "link": "https://platform.openai.com",
+     "note": ""
+    },
+    {
+     "name": "Veo 3.1",
+     "org": "Google",
+     "access": "api",
+     "link": "https://ai.google.dev",
+     "note": ""
+    },
+    {
+     "name": "Kling 3.0",
+     "org": "Kuaishou",
+     "access": "api",
+     "link": "https://klingai.com",
+     "note": ""
+    },
+    {
+     "name": "Seedance 2.0",
+     "org": "ByteDance",
+     "access": "api",
+     "link": "https://www.byteplus.com",
+     "note": ""
+    },
+    {
+     "name": "Runway Gen-4",
+     "org": "Runway",
+     "access": "api",
+     "link": "https://dev.runwayml.com",
+     "note": ""
+    },
+    {
+     "name": "Ray 2 / Dream Machine",
+     "org": "Luma",
+     "access": "api",
+     "link": "https://lumalabs.ai/api",
+     "note": ""
+    },
+    {
+     "name": "HunyuanVideo",
+     "org": "Tencent",
+     "access": "open",
+     "link": "https://huggingface.co/tencent/HunyuanVideo",
+     "note": ""
+    },
+    {
+     "name": "Wan 2.2",
+     "org": "Alibaba",
+     "access": "open",
+     "link": "https://huggingface.co/Wan-AI",
+     "note": ""
+    },
+    {
+     "name": "LTX-Video",
+     "org": "Lightricks",
+     "access": "open",
+     "link": "https://huggingface.co/Lightricks/LTX-Video",
+     "note": ""
+    },
+    {
+     "name": "Mochi 1",
+     "org": "Genmo",
+     "access": "open",
+     "link": "https://huggingface.co/genmo/mochi-1-preview",
+     "note": ""
+    },
+    {
+     "name": "CogVideoX",
+     "org": "Zhipu",
+     "access": "open",
+     "link": "https://huggingface.co/zai-org",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "music",
+   "name": "Music",
+   "icon": "🎵",
+   "entries": [
+    {
+     "name": "Suno v5",
+     "org": "Suno",
+     "access": "api",
+     "link": "https://suno.com",
+     "note": ""
+    },
+    {
+     "name": "Udio",
+     "org": "Udio",
+     "access": "api",
+     "link": "https://www.udio.com",
+     "note": ""
+    },
+    {
+     "name": "MiniMax Music",
+     "org": "MiniMax",
+     "access": "api",
+     "link": "https://www.minimax.io",
+     "note": ""
+    },
+    {
+     "name": "Stable Audio 2",
+     "org": "Stability",
+     "access": "api",
+     "link": "https://platform.stability.ai",
+     "note": ""
+    },
+    {
+     "name": "YuE (open Suno)",
+     "org": "M-A-P",
+     "access": "open",
+     "link": "https://github.com/multimodal-art-projection/YuE",
+     "note": ""
+    },
+    {
+     "name": "MusicGen",
+     "org": "Meta",
+     "access": "open",
+     "link": "https://huggingface.co/facebook/musicgen-large",
+     "note": ""
+    },
+    {
+     "name": "Stable Audio Open",
+     "org": "Stability",
+     "access": "open",
+     "link": "https://huggingface.co/stabilityai/stable-audio-open-1.0",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "speech",
+   "name": "Speech & Voice",
+   "icon": "🎙",
+   "entries": [
+    {
+     "name": "Eleven v3",
+     "org": "ElevenLabs",
+     "access": "api",
+     "link": "https://elevenlabs.io",
+     "note": ""
+    },
+    {
+     "name": "Cartesia Sonic",
+     "org": "Cartesia",
+     "access": "api",
+     "link": "https://cartesia.ai",
+     "note": ""
+    },
+    {
+     "name": "Seed Audio",
+     "org": "ByteDance",
+     "access": "api",
+     "link": "https://fal.ai",
+     "note": ""
+    },
+    {
+     "name": "Hume EVI",
+     "org": "Hume",
+     "access": "api",
+     "link": "https://platform.hume.ai",
+     "note": ""
+    },
+    {
+     "name": "F5-TTS",
+     "org": "SWivid",
+     "access": "open",
+     "link": "https://huggingface.co/SWivid/F5-TTS",
+     "note": ""
+    },
+    {
+     "name": "XTTS-v2",
+     "org": "Coqui",
+     "access": "open",
+     "link": "https://huggingface.co/coqui/XTTS-v2",
+     "note": ""
+    },
+    {
+     "name": "Bark",
+     "org": "Suno",
+     "access": "open",
+     "link": "https://huggingface.co/suno/bark",
+     "note": ""
+    },
+    {
+     "name": "Whisper large-v3 (STT)",
+     "org": "OpenAI",
+     "access": "open",
+     "link": "https://huggingface.co/openai/whisper-large-v3",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "threed",
+   "name": "3D Generation",
+   "icon": "🧊",
+   "entries": [
+    {
+     "name": "Meshy 5",
+     "org": "Meshy",
+     "access": "api",
+     "link": "https://www.meshy.ai",
+     "note": ""
+    },
+    {
+     "name": "Tripo 3.0",
+     "org": "Tripo",
+     "access": "api",
+     "link": "https://www.tripo3d.ai",
+     "note": ""
+    },
+    {
+     "name": "Rodin",
+     "org": "Deemos",
+     "access": "api",
+     "link": "https://hyper3d.ai",
+     "note": ""
+    },
+    {
+     "name": "Kaedim",
+     "org": "Kaedim",
+     "access": "api",
+     "link": "https://www.kaedim3d.com",
+     "note": ""
+    },
+    {
+     "name": "Hunyuan3D-2",
+     "org": "Tencent",
+     "access": "open",
+     "link": "https://github.com/Tencent-Hunyuan/Hunyuan3D-2",
+     "note": ""
+    },
+    {
+     "name": "TRELLIS.2",
+     "org": "Microsoft",
+     "access": "open",
+     "link": "https://microsoft.github.io/TRELLIS.2/",
+     "note": ""
+    },
+    {
+     "name": "Stable Fast 3D",
+     "org": "Stability",
+     "access": "open",
+     "link": "https://huggingface.co/stabilityai/stable-fast-3d",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "world",
+   "name": "World Models",
+   "icon": "🌍",
+   "entries": [
+    {
+     "name": "Genie 3 / Project Genie",
+     "org": "Google DeepMind",
+     "access": "api",
+     "link": "https://deepmind.google/blog/genie-3-a-new-frontier-for-world-models/",
+     "note": ""
+    },
+    {
+     "name": "Sora world sim",
+     "org": "OpenAI",
+     "access": "api",
+     "link": "https://openai.com/sora",
+     "note": ""
+    },
+    {
+     "name": "Cosmos WFMs",
+     "org": "NVIDIA",
+     "access": "open",
+     "link": "https://www.nvidia.com/en-us/ai/cosmos/",
+     "note": ""
+    },
+    {
+     "name": "Open-Sora",
+     "org": "HPC-AI",
+     "access": "open",
+     "link": "https://huggingface.co/hpcai-tech",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "agents",
+   "name": "Agents & Computer Use",
+   "icon": "🤖",
+   "entries": [
+    {
+     "name": "Claude Agent SDK / MCP",
+     "org": "Anthropic",
+     "access": "api",
+     "link": "https://docs.claude.com",
+     "note": ""
+    },
+    {
+     "name": "Operator / computer-use",
+     "org": "OpenAI",
+     "access": "api",
+     "link": "https://platform.openai.com",
+     "note": ""
+    },
+    {
+     "name": "Project Mariner",
+     "org": "Google",
+     "access": "api",
+     "link": "https://deepmind.google",
+     "note": ""
+    },
+    {
+     "name": "Browser-use",
+     "org": "open community",
+     "access": "open",
+     "link": "https://github.com/browser-use/browser-use",
+     "note": ""
+    },
+    {
+     "name": "OpenHands",
+     "org": "All-Hands",
+     "access": "open",
+     "link": "https://github.com/All-Hands-AI/OpenHands",
+     "note": ""
+    },
+    {
+     "name": "LangGraph",
+     "org": "LangChain",
+     "access": "open",
+     "link": "https://github.com/langchain-ai/langgraph",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "code",
+   "name": "Coding",
+   "icon": "⌨",
+   "entries": [
+    {
+     "name": "Claude Code",
+     "org": "Anthropic",
+     "access": "api",
+     "link": "https://docs.claude.com/claude-code",
+     "note": ""
+    },
+    {
+     "name": "Codex",
+     "org": "OpenAI",
+     "access": "api",
+     "link": "https://platform.openai.com",
+     "note": ""
+    },
+    {
+     "name": "Cursor Composer",
+     "org": "Cursor",
+     "access": "api",
+     "link": "https://cursor.com",
+     "note": ""
+    },
+    {
+     "name": "Qwen2.5-Coder",
+     "org": "Alibaba",
+     "access": "open",
+     "link": "https://huggingface.co/Qwen",
+     "note": ""
+    },
+    {
+     "name": "DeepSeek-Coder-V2",
+     "org": "DeepSeek",
+     "access": "open",
+     "link": "https://huggingface.co/deepseek-ai",
+     "note": ""
+    },
+    {
+     "name": "StarCoder2",
+     "org": "BigCode",
+     "access": "open",
+     "link": "https://huggingface.co/bigcode",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "robotics",
+   "name": "Robotics / Physical AI",
+   "icon": "🦾",
+   "entries": [
+    {
+     "name": "Isaac GR00T N2",
+     "org": "NVIDIA",
+     "access": "open",
+     "link": "https://developer.nvidia.com/isaac/gr00t",
+     "note": ""
+    },
+    {
+     "name": "π0 / π0-FAST",
+     "org": "Physical Intelligence",
+     "access": "open",
+     "link": "https://huggingface.co/blog/pi0",
+     "note": ""
+    },
+    {
+     "name": "OpenVLA",
+     "org": "Stanford+",
+     "access": "open",
+     "link": "https://github.com/openvla/openvla",
+     "note": ""
+    },
+    {
+     "name": "RT-2 / RT-X",
+     "org": "Google DeepMind",
+     "access": "api",
+     "link": "https://deepmind.google",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "science",
+   "name": "Science & Biology",
+   "icon": "🧬",
+   "entries": [
+    {
+     "name": "AlphaFold 3",
+     "org": "DeepMind/Isomorphic",
+     "access": "api",
+     "link": "https://alphafoldserver.com",
+     "note": ""
+    },
+    {
+     "name": "ESM3",
+     "org": "EvolutionaryScale",
+     "access": "api",
+     "link": "https://www.evolutionaryscale.ai",
+     "note": ""
+    },
+    {
+     "name": "Boltz-2",
+     "org": "MIT",
+     "access": "open",
+     "link": "https://github.com/jwohlwend/boltz",
+     "note": ""
+    },
+    {
+     "name": "Evo 2 (DNA)",
+     "org": "Arc Institute",
+     "access": "open",
+     "link": "https://github.com/ArcInstitute/evo2",
+     "note": ""
+    },
+    {
+     "name": "GraphCast / Aurora (weather)",
+     "org": "DeepMind / Microsoft",
+     "access": "open",
+     "link": "https://github.com/google-deepmind/graphcast",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "embed",
+   "name": "Embeddings & Search",
+   "icon": "🔎",
+   "entries": [
+    {
+     "name": "text-embedding-3",
+     "org": "OpenAI",
+     "access": "api",
+     "link": "https://platform.openai.com",
+     "note": ""
+    },
+    {
+     "name": "Voyage 3",
+     "org": "Voyage/Anthropic",
+     "access": "api",
+     "link": "https://www.voyageai.com",
+     "note": ""
+    },
+    {
+     "name": "Cohere Embed 4",
+     "org": "Cohere",
+     "access": "api",
+     "link": "https://cohere.com",
+     "note": ""
+    },
+    {
+     "name": "BGE-M3",
+     "org": "BAAI",
+     "access": "open",
+     "link": "https://huggingface.co/BAAI/bge-m3",
+     "note": ""
+    },
+    {
+     "name": "Jina Embeddings v3",
+     "org": "Jina",
+     "access": "open",
+     "link": "https://huggingface.co/jinaai",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "docs",
+   "name": "OCR & Documents",
+   "icon": "📄",
+   "entries": [
+    {
+     "name": "Gemini Doc AI",
+     "org": "Google",
+     "access": "api",
+     "link": "https://ai.google.dev",
+     "note": ""
+    },
+    {
+     "name": "Azure Document Intelligence",
+     "org": "Microsoft",
+     "access": "api",
+     "link": "https://azure.microsoft.com",
+     "note": ""
+    },
+    {
+     "name": "olmOCR",
+     "org": "Allen AI",
+     "access": "open",
+     "link": "https://github.com/allenai/olmocr",
+     "note": ""
+    },
+    {
+     "name": "GOT-OCR2",
+     "org": "StepFun",
+     "access": "open",
+     "link": "https://huggingface.co/stepfun-ai/GOT-OCR2_0",
+     "note": ""
+    },
+    {
+     "name": "Marker",
+     "org": "open community",
+     "access": "open",
+     "link": "https://github.com/VikParuchuri/marker",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "translate",
+   "name": "Translation",
+   "icon": "🌐",
+   "entries": [
+    {
+     "name": "DeepL API",
+     "org": "DeepL",
+     "access": "api",
+     "link": "https://www.deepl.com/pro-api",
+     "note": ""
+    },
+    {
+     "name": "Google Translate API",
+     "org": "Google",
+     "access": "api",
+     "link": "https://cloud.google.com/translate",
+     "note": ""
+    },
+    {
+     "name": "SeamlessM4T v2",
+     "org": "Meta",
+     "access": "open",
+     "link": "https://huggingface.co/facebook/seamless-m4t-v2-large",
+     "note": ""
+    },
+    {
+     "name": "NLLB-200",
+     "org": "Meta",
+     "access": "open",
+     "link": "https://huggingface.co/facebook/nllb-200-3.3B",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "avatar",
+   "name": "Avatars & Lipsync",
+   "icon": "🗣",
+   "entries": [
+    {
+     "name": "HeyGen Avatar IV",
+     "org": "HeyGen",
+     "access": "api",
+     "link": "https://www.heygen.com",
+     "note": ""
+    },
+    {
+     "name": "Hedra Character-3",
+     "org": "Hedra",
+     "access": "api",
+     "link": "https://www.hedra.com",
+     "note": ""
+    },
+    {
+     "name": "D-ID",
+     "org": "D-ID",
+     "access": "api",
+     "link": "https://www.d-id.com",
+     "note": ""
+    },
+    {
+     "name": "SadTalker",
+     "org": "open community",
+     "access": "open",
+     "link": "https://github.com/OpenTalker/SadTalker",
+     "note": ""
+    },
+    {
+     "name": "LatentSync",
+     "org": "ByteDance",
+     "access": "open",
+     "link": "https://github.com/bytedance/LatentSync",
+     "note": ""
+    }
+   ]
+  },
+  {
+   "id": "safety",
+   "name": "Safety & Moderation",
+   "icon": "🛡",
+   "entries": [
+    {
+     "name": "Moderation API",
+     "org": "OpenAI",
+     "access": "api",
+     "link": "https://platform.openai.com/docs/guides/moderation",
+     "note": ""
+    },
+    {
+     "name": "Perspective API",
+     "org": "Google Jigsaw",
+     "access": "api",
+     "link": "https://perspectiveapi.com",
+     "note": ""
+    },
+    {
+     "name": "Llama Guard 3",
+     "org": "Meta",
+     "access": "open",
+     "link": "https://huggingface.co/meta-llama",
+     "note": ""
+    },
+    {
+     "name": "ShieldGemma",
+     "org": "Google",
+     "access": "open",
+     "link": "https://huggingface.co/google",
+     "note": ""
+    }
+   ]
+  }
+ ]
+}

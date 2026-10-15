@@ -1,0 +1,147 @@
+{
+ "note": "Film color theory engine — StudioBinder-style schemes, psychology and arcs, injected into prompts.",
+ "schemes": [
+  {
+   "id": "monochromatic",
+   "name": "Monochromatic",
+   "desc": "One hue, many shades — hypnotic uniformity.",
+   "examples": "Grand Budapest (pink) · The Matrix (green)",
+   "prompt": "monochromatic color scheme: one dominant hue with tonal variations only, hypnotic uniform palette"
+  },
+  {
+   "id": "complementary",
+   "name": "Complementary",
+   "desc": "Opposite wheel hues — maximum visual tension.",
+   "examples": "Amélie (red/green) · every teal-orange blockbuster",
+   "prompt": "complementary color scheme: two opposite hues on the color wheel playing against each other for tension"
+  },
+  {
+   "id": "analogous",
+   "name": "Analogous",
+   "desc": "Neighboring hues — harmonious, calm, natural.",
+   "examples": "Traffic (blue chapter / yellow chapter)",
+   "prompt": "analogous color scheme: neighboring hues on the wheel, harmonious and unified atmosphere"
+  },
+  {
+   "id": "triadic",
+   "name": "Triadic",
+   "desc": "Three evenly-spaced hues — vibrant comic energy.",
+   "examples": "Superman (red/blue/yellow)",
+   "prompt": "triadic color scheme: three evenly spaced hues, vibrant balanced comic-book energy"
+  },
+  {
+   "id": "discordant",
+   "name": "Discordant",
+   "desc": "One color deliberately breaks the palette to grab the eye.",
+   "examples": "Sixth Sense (red = the dead's world) · Schindler's List",
+   "prompt": "discordant color: the palette is muted except ONE deliberately clashing accent color on the story-critical element, drawing the eye instantly"
+  },
+  {
+   "id": "character",
+   "name": "Associated with Character",
+   "desc": "A signature color follows one character.",
+   "examples": "Kill Bill (Bride's yellow) · Joker purple vs Batman black",
+   "prompt": "character-associated color: the main character carries a consistent signature color through wardrobe and lighting"
+  },
+  {
+   "id": "transitional",
+   "name": "Transitional",
+   "desc": "The palette shifts across the story as characters transform.",
+   "examples": "Up (vibrant→muted) · Luke Skywalker (white→black) · Breaking Bad (green→brown)",
+   "prompt": "transitional color design: this moment's palette reflects the character's current arc position, part of a deliberate palette evolution across the story"
+  }
+ ],
+ "psychology": [
+  {
+   "color": "Red",
+   "hex": "#c62828",
+   "emotions": [
+    "love",
+    "passion",
+    "violence",
+    "danger",
+    "anger",
+    "power"
+   ],
+   "prompt": "dominant red palette — love, passion, danger and power charge the frame"
+  },
+  {
+   "color": "Pink",
+   "hex": "#ef8fb0",
+   "emotions": [
+    "innocence",
+    "sweetness",
+    "femininity",
+    "playful",
+    "empathy",
+    "beauty"
+   ],
+   "prompt": "dominant pink palette — innocence, sweetness and playful beauty"
+  },
+  {
+   "color": "Orange",
+   "hex": "#e87c2c",
+   "emotions": [
+    "warmth",
+    "sociability",
+    "friendliness",
+    "happiness",
+    "exotic",
+    "youth"
+   ],
+   "prompt": "dominant warm orange palette — sociable, friendly, youthful warmth"
+  },
+  {
+   "color": "Yellow",
+   "hex": "#e8c22c",
+   "emotions": [
+    "madness",
+    "sickness",
+    "insecurity",
+    "obsessive",
+    "idyllic",
+    "naive"
+   ],
+   "prompt": "dominant yellow palette — unsettling idyll: madness, obsession or naive brightness under the surface"
+  },
+  {
+   "color": "Green",
+   "hex": "#3d8a4a",
+   "emotions": [
+    "nature",
+    "immaturity",
+    "corruption",
+    "ominous",
+    "darkness",
+    "danger"
+   ],
+   "prompt": "dominant green palette — nature twisted toward corruption and unease"
+  },
+  {
+   "color": "Blue",
+   "hex": "#2c5f8a",
+   "emotions": [
+    "cold",
+    "isolation",
+    "cerebral",
+    "melancholy",
+    "passivity",
+    "calm"
+   ],
+   "prompt": "dominant blue palette — cold, isolated, cerebral melancholy and calm"
+  },
+  {
+   "color": "Purple",
+   "hex": "#6a3d8a",
+   "emotions": [
+    "fantasy",
+    "ethereal",
+    "eroticism",
+    "illusory",
+    "mystical",
+    "ominous"
+   ],
+   "prompt": "dominant purple palette — ethereal, mystical, illusory fantasy"
+  }
+ ]
+}

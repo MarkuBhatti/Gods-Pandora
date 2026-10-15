@@ -1,0 +1,28 @@
+{
+  "presets": [
+    { "id": "dolly-in", "name": "Dolly In", "category": "Dolly", "promptText": "slow cinematic dolly in, camera physically moves toward the subject on a track, shallow depth of field" },
+    { "id": "dolly-out", "name": "Dolly Out", "category": "Dolly", "promptText": "smooth dolly out, camera pulls away from subject revealing the environment" },
+    { "id": "crash-zoom", "name": "Crash Zoom", "category": "Zoom", "promptText": "aggressive crash zoom-in on the subject, fast snap zoom, high energy" },
+    { "id": "push-in", "name": "Push In", "category": "Zoom", "promptText": "slow push-in, lens zooms toward subject while camera position stays fixed" },
+    { "id": "orbit-360", "name": "360 Orbit", "category": "Orbit", "promptText": "camera orbits 360 degrees around the subject at constant height, smooth circular motion" },
+    { "id": "orbit-half", "name": "Half Orbit", "category": "Orbit", "promptText": "camera arcs 180 degrees around the subject, cinematic parallax" },
+    { "id": "crane-up", "name": "Crane Up", "category": "Crane", "promptText": "crane shot rising upward while tilting down to keep subject framed, epic reveal" },
+    { "id": "crane-down", "name": "Crane Down", "category": "Crane", "promptText": "crane descends from high angle to eye level with the subject" },
+    { "id": "pan-left", "name": "Pan Left", "category": "Pan/Tilt", "promptText": "smooth horizontal pan to the left across the scene" },
+    { "id": "pan-right", "name": "Pan Right", "category": "Pan/Tilt", "promptText": "smooth horizontal pan to the right across the scene" },
+    { "id": "tilt-up", "name": "Tilt Up", "category": "Pan/Tilt", "promptText": "camera tilts upward from ground level, revealing the full subject" },
+    { "id": "tracking", "name": "Tracking Shot", "category": "Tracking", "promptText": "lateral tracking shot following the subject in motion, steady speed" },
+    { "id": "follow-behind", "name": "Follow Cam", "category": "Tracking", "promptText": "camera follows behind the subject, steadicam feel, immersive movement" },
+    { "id": "fpv-drone", "name": "FPV Drone", "category": "Drone", "promptText": "fast FPV drone shot weaving through the environment, dynamic banking turns" },
+    { "id": "aerial-rise", "name": "Aerial Rise", "category": "Drone", "promptText": "drone rises vertically revealing an aerial wide view of the location" },
+    { "id": "bullet-time", "name": "Bullet Time", "category": "FX", "promptText": "bullet time effect, subject frozen mid-action while camera sweeps around" },
+    { "id": "dolly-zoom", "name": "Dolly Zoom (Vertigo)", "category": "FX", "promptText": "dolly zoom vertigo effect, background warps while subject stays same size" },
+    { "id": "handheld", "name": "Handheld", "category": "Style", "promptText": "handheld camera, subtle natural shake, documentary realism" },
+    { "id": "low-angle", "name": "Low Angle Hero", "category": "Style", "promptText": "static low-angle hero shot looking up at the subject, dramatic perspective" },
+    { "id": "overhead", "name": "Top-Down", "category": "Style", "promptText": "top-down overhead shot looking straight down at the scene" },
+    { "id": "whip-pan", "name": "Whip Pan", "category": "FX", "promptText": "fast whip pan transition with motion blur" },
+    { "id": "snorricam", "name": "Snorricam", "category": "FX", "promptText": "snorricam rigged to the subject, background moves while face stays locked" },
+    { "id": "boltcam", "name": "Bolt Cam", "category": "FX", "promptText": "high-speed robotic bolt camera move, extreme speed ramp toward the subject" },
+    { "id": "static", "name": "Locked Off", "category": "Style", "promptText": "static locked-off tripod shot, perfectly still frame" }
+  ]
+}

@@ -1,0 +1,343 @@
+{
+ "fashionStyles": [
+  "Streetwear",
+  "Haute Couture",
+  "Y2K",
+  "Old Money",
+  "Techwear",
+  "Cottagecore",
+  "Dark Academia",
+  "Scandi Minimalist",
+  "Avant-Garde",
+  "Bohemian",
+  "Grunge",
+  "Punk",
+  "Athleisure",
+  "Business Formal",
+  "Vintage 1950s",
+  "Disco 1970s",
+  "90s Hip-Hop",
+  "Gothic",
+  "Fairycore",
+  "Coastal Resort"
+ ],
+ "poses": [
+  "walking toward camera",
+  "runway strut",
+  "over-the-shoulder glance",
+  "hands in pockets",
+  "leaning against wall",
+  "crouching low",
+  "seated on stool",
+  "full twirl mid-motion",
+  "jump mid-air",
+  "back to camera, head turned",
+  "arms crossed",
+  "hand on hip",
+  "profile stride",
+  "adjusting cuff",
+  "adjusting sunglasses",
+  "wind-blown hair pose",
+  "seated on floor, legs crossed",
+  "lying on side, propped on elbow",
+  "candid mid-laugh",
+  "jacket slung over shoulder",
+  "wide power stance",
+  "contrapposto",
+  "leaning forward, hands on knees",
+  "dramatic head tilt",
+  "looking up, dreamy",
+  "candid phone check",
+  "coffee-in-hand walk",
+  "under an umbrella",
+  "descending stairs",
+  "doorway lean",
+  "hands framing face",
+  "chin resting on hand",
+  "one foot on step",
+  "kneeling on one knee",
+  "crossing the street candid",
+  "skirt spin",
+  "self-hug",
+  "reaching up in stretch",
+  "hood up, hands in pockets",
+  "tying shoelace crouch",
+  "mirror reflection pose",
+  "frozen dance move",
+  "backlit silhouette",
+  "shoulder check over lapel",
+  "tossing jacket",
+  "hair flip mid-motion",
+  "sitting backwards on chair",
+  "leaning on railing",
+  "hands clasped behind back",
+  "mid-stride slow-motion fabric flow",
+  "S-curve stance (shoulders and hips opposing)",
+  "hip pop, weight on one leg",
+  "three-quarter angle to camera"
+ ],
+ "lightMoods": [
+  "softbox beauty light",
+  "hard rim light",
+  "golden hour sun",
+  "blue hour ambience",
+  "mixed neon signage",
+  "warm tungsten interior",
+  "flat fluorescent",
+  "ring light glow",
+  "dramatic split light",
+  "Rembrandt portrait light",
+  "butterfly glamour light",
+  "backlit silhouette",
+  "dappled light through foliage",
+  "north-facing window light",
+  "harsh noon sun",
+  "overcast diffuse sky",
+  "duotone colored gels",
+  "direct on-camera flash",
+  "candlelight flicker",
+  "projector pattern light"
+ ],
+ "palettes": [
+  {
+   "name": "Monochrome Black",
+   "colors": [
+    "#0a0a0a",
+    "#2b2b2b",
+    "#555"
+   ]
+  },
+  {
+   "name": "All-White Minimal",
+   "colors": [
+    "#fafafa",
+    "#e8e8e8",
+    "#cfcfcf"
+   ]
+  },
+  {
+   "name": "Camel & Cream",
+   "colors": [
+    "#c19a6b",
+    "#f2e8d5",
+    "#8a6f4d"
+   ]
+  },
+  {
+   "name": "Burgundy & Gold",
+   "colors": [
+    "#6d071a",
+    "#d4af37",
+    "#2b0710"
+   ]
+  },
+  {
+   "name": "Sage & Cream",
+   "colors": [
+    "#9caf88",
+    "#f2ead3",
+    "#5e6f52"
+   ]
+  },
+  {
+   "name": "Lavender Grey",
+   "colors": [
+    "#b7a6c9",
+    "#8d8d99",
+    "#e6e0ee"
+   ]
+  },
+  {
+   "name": "Denim Blues",
+   "colors": [
+    "#3b5b8f",
+    "#7ba2c9",
+    "#1e2f4a"
+   ]
+  },
+  {
+   "name": "Blush Nude",
+   "colors": [
+    "#e8b4a8",
+    "#f2d5cb",
+    "#b8837a"
+   ]
+  },
+  {
+   "name": "Emerald & Black",
+   "colors": [
+    "#0f5c3f",
+    "#0a0a0a",
+    "#2ea87a"
+   ]
+  },
+  {
+   "name": "Red & Black Power",
+   "colors": [
+    "#e8192c",
+    "#0a0a0a",
+    "#7a0d17"
+   ]
+  },
+  {
+   "name": "Mustard 70s",
+   "colors": [
+    "#d4a017",
+    "#8a5a2b",
+    "#3d2b1a"
+   ]
+  },
+  {
+   "name": "Pastel Sorbet",
+   "colors": [
+    "#f8c8dc",
+    "#c8e7f8",
+    "#f8f0c8"
+   ]
+  },
+  {
+   "name": "Neon Pop",
+   "colors": [
+    "#39ff14",
+    "#ff2d78",
+    "#19c8ff"
+   ]
+  },
+  {
+   "name": "Earth Tones",
+   "colors": [
+    "#8a6f4d",
+    "#a58d6f",
+    "#5c4a33"
+   ]
+  },
+  {
+   "name": "Navy & Camel",
+   "colors": [
+    "#1e2f4a",
+    "#c19a6b",
+    "#0e1626"
+   ]
+  },
+  {
+   "name": "Chocolate Mocha",
+   "colors": [
+    "#4a2f22",
+    "#8a6a55",
+    "#d9c3ad"
+   ]
+  },
+  {
+   "name": "Silver Chrome",
+   "colors": [
+    "#c0c0c0",
+    "#8a8a8a",
+    "#f2f2f2"
+   ]
+  },
+  {
+   "name": "Gold Champagne",
+   "colors": [
+    "#d4af37",
+    "#f2e2b8",
+    "#8a742b"
+   ]
+  },
+  {
+   "name": "Forest & Rust",
+   "colors": [
+    "#2e4a2e",
+    "#b3502d",
+    "#1a2b1a"
+   ]
+  },
+  {
+   "name": "Ivory Taupe",
+   "colors": [
+    "#f2ede4",
+    "#b8ad9e",
+    "#8a8073"
+   ]
+  },
+  {
+   "name": "Cobalt & Orange",
+   "colors": [
+    "#0047ab",
+    "#ff8c42",
+    "#00295c"
+   ]
+  },
+  {
+   "name": "Fuchsia Clash",
+   "colors": [
+    "#ff2dae",
+    "#e85252",
+    "#8f1d6b"
+   ]
+  },
+  {
+   "name": "Khaki Military",
+   "colors": [
+    "#786f52",
+    "#4a4634",
+    "#a59d80"
+   ]
+  },
+  {
+   "name": "Ice Blue & White",
+   "colors": [
+    "#bfe3f2",
+    "#f7fbfd",
+    "#7ab8d1"
+   ]
+  },
+  {
+   "name": "Plum & Charcoal",
+   "colors": [
+    "#5c3a5c",
+    "#2b2b2e",
+    "#8f6a8f"
+   ]
+  },
+  {
+   "name": "Terracotta Sand",
+   "colors": [
+    "#c56b47",
+    "#e8cdb0",
+    "#8a4a30"
+   ]
+  },
+  {
+   "name": "Mint Chocolate",
+   "colors": [
+    "#a8e0c8",
+    "#4a2f22",
+    "#d5f2e5"
+   ]
+  },
+  {
+   "name": "Cherry Cola",
+   "colors": [
+    "#7a1f2b",
+    "#3d1a10",
+    "#c94257"
+   ]
+  },
+  {
+   "name": "Graphite & Lime",
+   "colors": [
+    "#3a3d40",
+    "#b6f04a",
+    "#1c1e20"
+   ]
+  },
+  {
+   "name": "Oxblood & Cream",
+   "colors": [
+    "#4a0d17",
+    "#f2e8d5",
+    "#7a2432"
+   ]
+  }
+ ]
+}

@@ -1,0 +1,813 @@
+{
+ "filmStyles": [
+  {
+   "id": "fs0",
+   "name": "Film Noir",
+   "prompt": "Film Noir film style"
+  },
+  {
+   "id": "fs1",
+   "name": "Neo-Noir",
+   "prompt": "Neo-Noir film style"
+  },
+  {
+   "id": "fs2",
+   "name": "German Expressionism",
+   "prompt": "German Expressionism film style"
+  },
+  {
+   "id": "fs3",
+   "name": "French New Wave",
+   "prompt": "French New Wave film style"
+  },
+  {
+   "id": "fs4",
+   "name": "Italian Neorealism",
+   "prompt": "Italian Neorealism film style"
+  },
+  {
+   "id": "fs5",
+   "name": "Soviet Montage",
+   "prompt": "Soviet Montage film style"
+  },
+  {
+   "id": "fs6",
+   "name": "Golden Age Hollywood",
+   "prompt": "Golden Age Hollywood film style"
+  },
+  {
+   "id": "fs7",
+   "name": "Technicolor Musical",
+   "prompt": "Technicolor Musical film style"
+  },
+  {
+   "id": "fs8",
+   "name": "Spaghetti Western",
+   "prompt": "Spaghetti Western film style"
+  },
+  {
+   "id": "fs9",
+   "name": "Classic Western",
+   "prompt": "Classic Western film style"
+  },
+  {
+   "id": "fs10",
+   "name": "Samurai Cinema",
+   "prompt": "Samurai Cinema film style"
+  },
+  {
+   "id": "fs11",
+   "name": "Hong Kong Action",
+   "prompt": "Hong Kong Action film style"
+  },
+  {
+   "id": "fs12",
+   "name": "Wuxia Epic",
+   "prompt": "Wuxia Epic film style"
+  },
+  {
+   "id": "fs13",
+   "name": "Blaxploitation",
+   "prompt": "Blaxploitation film style"
+  },
+  {
+   "id": "fs14",
+   "name": "Grindhouse",
+   "prompt": "Grindhouse film style"
+  },
+  {
+   "id": "fs15",
+   "name": "Giallo",
+   "prompt": "Giallo film style"
+  },
+  {
+   "id": "fs16",
+   "name": "Hammer Horror",
+   "prompt": "Hammer Horror film style"
+  },
+  {
+   "id": "fs17",
+   "name": "Folk Horror",
+   "prompt": "Folk Horror film style"
+  },
+  {
+   "id": "fs18",
+   "name": "Found Footage",
+   "prompt": "Found Footage film style"
+  },
+  {
+   "id": "fs19",
+   "name": "Mumblecore",
+   "prompt": "Mumblecore film style"
+  },
+  {
+   "id": "fs20",
+   "name": "Dogme 95",
+   "prompt": "Dogme 95 film style"
+  },
+  {
+   "id": "fs21",
+   "name": "Cinéma Vérité",
+   "prompt": "Cinéma Vérité film style"
+  },
+  {
+   "id": "fs22",
+   "name": "Direct Cinema",
+   "prompt": "Direct Cinema film style"
+  },
+  {
+   "id": "fs23",
+   "name": "Documentary Realism",
+   "prompt": "Documentary Realism film style"
+  },
+  {
+   "id": "fs24",
+   "name": "Epic Blockbuster",
+   "prompt": "Epic Blockbuster film style"
+  },
+  {
+   "id": "fs25",
+   "name": "Space Opera",
+   "prompt": "Space Opera film style"
+  },
+  {
+   "id": "fs26",
+   "name": "Cyberpunk",
+   "prompt": "Cyberpunk film style"
+  },
+  {
+   "id": "fs27",
+   "name": "Dystopian Sci-Fi",
+   "prompt": "Dystopian Sci-Fi film style"
+  },
+  {
+   "id": "fs28",
+   "name": "Retro-Futurism",
+   "prompt": "Retro-Futurism film style"
+  },
+  {
+   "id": "fs29",
+   "name": "Synthwave 80s",
+   "prompt": "Synthwave 80s film style"
+  },
+  {
+   "id": "fs30",
+   "name": "VHS Home Video",
+   "prompt": "VHS Home Video film style"
+  },
+  {
+   "id": "fs31",
+   "name": "Super 8 Nostalgia",
+   "prompt": "Super 8 Nostalgia film style"
+  },
+  {
+   "id": "fs32",
+   "name": "16mm Indie",
+   "prompt": "16mm Indie film style"
+  },
+  {
+   "id": "fs33",
+   "name": "70mm Epic",
+   "prompt": "70mm Epic film style"
+  },
+  {
+   "id": "fs34",
+   "name": "Silent Era",
+   "prompt": "Silent Era film style"
+  },
+  {
+   "id": "fs35",
+   "name": "Pulp Serial",
+   "prompt": "Pulp Serial film style"
+  },
+  {
+   "id": "fs36",
+   "name": "Bollywood Masala",
+   "prompt": "Bollywood Masala film style"
+  },
+  {
+   "id": "fs37",
+   "name": "Parallel Cinema",
+   "prompt": "Parallel Cinema film style"
+  },
+  {
+   "id": "fs38",
+   "name": "A24 Elevated",
+   "prompt": "A24 Elevated film style"
+  },
+  {
+   "id": "fs39",
+   "name": "Music Video Gloss",
+   "prompt": "Music Video Gloss film style"
+  }
+ ],
+ "cameras": [
+  "ARRI Alexa 35",
+  "ARRI Alexa Mini LF",
+  "ARRI Alexa 65",
+  "ARRI Alexa Classic",
+  "ARRI Amira",
+  "ARRIFLEX 16SR",
+  "ARRIFLEX 35BL",
+  "ARRICAM LT",
+  "ARRIFLEX 435",
+  "ARRIFLEX 235",
+  "RED V-Raptor XL 8K",
+  "RED Komodo-X",
+  "RED Monstro 8K VV",
+  "RED Helium 8K",
+  "RED Dragon 6K",
+  "RED One MX",
+  "Sony Venice 2",
+  "Sony Venice",
+  "Sony FX9",
+  "Sony FX6",
+  "Sony FX3",
+  "Sony A7S III",
+  "Sony F65",
+  "Sony F35",
+  "Canon C700 FF",
+  "Canon C500 Mark II",
+  "Canon C300 Mark III",
+  "Canon C70",
+  "Canon 5D Mark III",
+  "Canon EOS-1D C",
+  "Panavision Millennium DXL2",
+  "Panaflex Millennium XL2",
+  "Panaflex Gold II",
+  "Panaflex Platinum",
+  "Panavision System 65",
+  "Blackmagic URSA Mini Pro 12K",
+  "Blackmagic Pocket 6K Pro",
+  "Blackmagic Pocket 4K",
+  "Panasonic Varicam LT",
+  "Panasonic EVA1",
+  "Panasonic S1H",
+  "Panasonic GH6",
+  "Bolex H16",
+  "Krasnogorsk-3",
+  "Éclair NPR",
+  "Aaton LTR 54",
+  "Aaton 35-III",
+  "Mitchell BNC",
+  "Bell & Howell 2709",
+  "Moviecam Compact",
+  "IMAX MSM 9802",
+  "IMAX MKIV",
+  "Phantom Flex 4K",
+  "Phantom TMX 7510",
+  "Photo-Sonics 4ER",
+  "Kinefinity Mavo Edge 8K",
+  "Z CAM E2-F8",
+  "DJI Ronin 4D 8K",
+  "Digital Bolex D16",
+  "Ikonoskop A-Cam dII",
+  "Canon Scoopic 16mm",
+  "Beaulieu 4008",
+  "Nizo S800",
+  "Kodak Super 8",
+  "Panasonic M40 VHS Camcorder",
+  "Sony Betacam SP",
+  "Sony DCR-VX1000",
+  "Sony Hi8 Handycam",
+  "GoPro Hero 12",
+  "iPhone 15 Pro (ProRes Log)"
+ ],
+ "lenses": [
+  "Zeiss Master Prime",
+  "Zeiss Super Speed",
+  "Zeiss Ultra Prime",
+  "Zeiss Supreme Prime",
+  "Zeiss B-Speed",
+  "Contax Zeiss (rehoused)",
+  "Cooke S4/i",
+  "Cooke S7/i",
+  "Cooke Speed Panchro",
+  "Cooke Anamorphic/i",
+  "Cooke Varotal Zoom",
+  "Panavision C-Series Anamorphic",
+  "Panavision E-Series Anamorphic",
+  "Panavision G-Series Anamorphic",
+  "Panavision T-Series Anamorphic",
+  "Panavision Primo Prime",
+  "Panavision Primo 70",
+  "Panavision Ultra Panatar",
+  "Panaspeed",
+  "Leica Summilux-C",
+  "Leica Summicron-C",
+  "Leitz Thalia",
+  "Leitz Prime",
+  "Leica Noctilux 50mm f/0.95",
+  "Canon K-35",
+  "Canon FD (rehoused)",
+  "Canon CN-E Prime",
+  "Canon 50mm f/0.95 Dream Lens",
+  "Angénieux Optimo 24-290",
+  "Angénieux Optimo Ultra 12x",
+  "Angénieux EZ Zoom",
+  "Angénieux 25-250 HR",
+  "Kowa Cine Prominar Anamorphic",
+  "Kowa Spherical Prominar",
+  "LOMO Round-Front Anamorphic",
+  "LOMO Square-Front Anamorphic",
+  "LOMO Illumina",
+  "Helios 44-2 58mm",
+  "Mir-1B 37mm",
+  "Jupiter-9 85mm",
+  "Atlas Orion Anamorphic",
+  "Atlas Mercury Anamorphic",
+  "Sirui Anamorphic",
+  "Laowa Nanomorph",
+  "Laowa 24mm Probe",
+  "Petzval 85",
+  "Lensbaby Composer",
+  "Bausch & Lomb Super Baltar",
+  "Baltar Classic",
+  "Kinoptik 9.8mm",
+  "Century Swing/Shift",
+  "Canon TS-E 24mm Tilt-Shift",
+  "Nikkor AI-S (rehoused)",
+  "Voigtländer Nokton",
+  "SLR Magic Anamorphot",
+  "Iscorama 54",
+  "Hawk V-Lite Anamorphic",
+  "Hawk C-Series Anamorphic",
+  "Masterbuilt Soft Flare",
+  "Tribe7 Blackwing7",
+  "Vantage One T1",
+  "Todd-AO Anamorphic",
+  "Schneider Xenon FF",
+  "Sigma Cine Prime",
+  "Tokina Vista Prime",
+  "Fujinon Premista",
+  "Fujinon MK Zoom",
+  "DZOFilm Vespid",
+  "DZOFilm Pictor Zoom",
+  "Rokinon Xeen CF"
+ ],
+ "grain": [
+  {
+   "id": "clean",
+   "name": "Digital Clean",
+   "prompt": "pristine clean digital image, zero grain"
+  },
+  {
+   "id": "fine35",
+   "name": "Fine 35mm Grain",
+   "prompt": "subtle fine 35mm film grain, Kodak Vision3 500T texture"
+  },
+  {
+   "id": "heavy16",
+   "name": "Heavy 16mm Grain",
+   "prompt": "pronounced 16mm film grain, organic and gritty"
+  },
+  {
+   "id": "super8",
+   "name": "Super 8 Grain",
+   "prompt": "chunky Super 8 grain, gate weave, warm halation"
+  },
+  {
+   "id": "pushed",
+   "name": "Pushed Stock",
+   "prompt": "push-processed film stock, coarse grain, lifted blacks"
+  },
+  {
+   "id": "tungsten",
+   "name": "Tungsten Night Grain",
+   "prompt": "night tungsten grain, shadow noise like 500T pushed two stops"
+  },
+  {
+   "id": "bw-tri-x",
+   "name": "B&W Tri-X",
+   "prompt": "Kodak Tri-X black and white grain, silver halide texture"
+  },
+  {
+   "id": "vhs",
+   "name": "VHS Noise",
+   "prompt": "VHS tape noise, chroma bleed, scanlines, tracking artifacts"
+  },
+  {
+   "id": "crt",
+   "name": "CRT Static",
+   "prompt": "CRT phosphor glow, interlacing, analog static"
+  },
+  {
+   "id": "digicam",
+   "name": "2000s Digicam Noise",
+   "prompt": "early digital camera noise, CCD smear, low-res charm"
+  },
+  {
+   "id": "iso-noise",
+   "name": "High-ISO Digital Noise",
+   "prompt": "high ISO digital sensor noise, cinematic low-light texture"
+  },
+  {
+   "id": "halation",
+   "name": "Halation Bloom",
+   "prompt": "film halation, red-edged highlight bloom, dreamy glow"
+  }
+ ],
+ "directors": [
+  "Stanley Kubrick",
+  "Alfred Hitchcock",
+  "Steven Spielberg",
+  "Martin Scorsese",
+  "Quentin Tarantino",
+  "Christopher Nolan",
+  "David Fincher",
+  "Denis Villeneuve",
+  "Wes Anderson",
+  "Paul Thomas Anderson",
+  "Akira Kurosawa",
+  "Yasujirō Ozu",
+  "Hayao Miyazaki",
+  "Satoshi Kon",
+  "Makoto Shinkai",
+  "Wong Kar-wai",
+  "Park Chan-wook",
+  "Bong Joon-ho",
+  "Zhang Yimou",
+  "Ang Lee",
+  "John Woo",
+  "Tsui Hark",
+  "Hirokazu Kore-eda",
+  "Satyajit Ray",
+  "Guru Dutt",
+  "Raj Kapoor",
+  "S.S. Rajamouli",
+  "Sanjay Leela Bhansali",
+  "Mani Ratnam",
+  "Anurag Kashyap",
+  "Federico Fellini",
+  "Michelangelo Antonioni",
+  "Vittorio De Sica",
+  "Sergio Leone",
+  "Dario Argento",
+  "Bernardo Bertolucci",
+  "Paolo Sorrentino",
+  "Jean-Luc Godard",
+  "François Truffaut",
+  "Robert Bresson",
+  "Jean-Pierre Melville",
+  "Agnès Varda",
+  "Jacques Tati",
+  "Luc Besson",
+  "Jean-Pierre Jeunet",
+  "Gaspar Noé",
+  "Ingmar Bergman",
+  "Andrei Tarkovsky",
+  "Sergei Eisenstein",
+  "Werner Herzog",
+  "Wim Wenders",
+  "Rainer Werner Fassbinder",
+  "Fritz Lang",
+  "F.W. Murnau",
+  "Michael Haneke",
+  "Pedro Almodóvar",
+  "Guillermo del Toro",
+  "Alejandro G. Iñárritu",
+  "Alfonso Cuarón",
+  "Luis Buñuel",
+  "Ridley Scott",
+  "David Lean",
+  "Michael Powell",
+  "Danny Boyle",
+  "Ken Loach",
+  "Mike Leigh",
+  "Edgar Wright",
+  "Guy Ritchie",
+  "Joel & Ethan Coen",
+  "Terrence Malick",
+  "David Lynch",
+  "Tim Burton",
+  "James Cameron",
+  "George Lucas",
+  "Francis Ford Coppola",
+  "Sofia Coppola",
+  "Greta Gerwig",
+  "Kathryn Bigelow",
+  "Chloé Zhao",
+  "Jordan Peele",
+  "Spike Lee",
+  "Barry Jenkins",
+  "Damien Chazelle",
+  "Robert Eggers",
+  "Ari Aster",
+  "Yorgos Lanthimos",
+  "Lars von Trier",
+  "Nicolas Winding Refn",
+  "Spike Jonze",
+  "Richard Linklater",
+  "John Carpenter",
+  "Sam Raimi",
+  "Peter Jackson",
+  "Michael Mann",
+  "Sidney Lumet",
+  "Billy Wilder",
+  "Orson Welles",
+  "Charlie Chaplin",
+  "Buster Keaton",
+  "John Ford",
+  "Abbas Kiarostami",
+  "Asghar Farhadi",
+  "Jafar Panahi",
+  "Nuri Bilge Ceylan",
+  "Fernando Meirelles",
+  "Walter Salles",
+  "Lucrecia Martel",
+  "Pablo Larraín",
+  "Krzysztof Kieślowski",
+  "Andrzej Wajda",
+  "Paweł Pawlikowski",
+  "Béla Tarr",
+  "Theo Angelopoulos",
+  "Cristian Mungiu",
+  "Ousmane Sembène",
+  "Souleymane Cissé",
+  "Youssef Chahine",
+  "Elia Suleiman",
+  "Nadine Labaki",
+  "Ritwik Ghatak",
+  "Adoor Gopalakrishnan",
+  "Payal Kapadia",
+  "Apichatpong Weerasethakul",
+  "Lino Brocka",
+  "Lav Diaz",
+  "Tran Anh Hung",
+  "Hou Hsiao-hsien",
+  "Edward Yang",
+  "Jia Zhangke",
+  "Lee Chang-dong"
+ ],
+ "palettes": [
+  {
+   "name": "Teal & Orange Blockbuster",
+   "colors": [
+    "#0f4c5c",
+    "#ff8c42"
+   ],
+   "prompt": "teal shadows, orange skin tones, blockbuster grade"
+  },
+  {
+   "name": "Matrix Green",
+   "colors": [
+    "#0d2818",
+    "#3fbf6f",
+    "#0a0f0a"
+   ],
+   "prompt": "green-tinted digital dystopia grade"
+  },
+  {
+   "name": "Blade Runner Neon",
+   "colors": [
+    "#0b1026",
+    "#ff2d78",
+    "#19c8ff"
+   ],
+   "prompt": "neon magenta and cyan against deep night blue"
+  },
+  {
+   "name": "Amélie Red-Green",
+   "colors": [
+    "#9a1f1f",
+    "#3f7d3a",
+    "#e2b13c"
+   ],
+   "prompt": "saturated storybook reds and greens with golden warmth"
+  },
+  {
+   "name": "Grand Budapest Pastel",
+   "colors": [
+    "#f2b5c4",
+    "#7a4988",
+    "#e8d3a2"
+   ],
+   "prompt": "symmetrical pastel pink and lavender confection"
+  },
+  {
+   "name": "Mad Max Chrome",
+   "colors": [
+    "#d96c2c",
+    "#1f6f8b",
+    "#c0c0c0"
+   ],
+   "prompt": "scorched orange desert against cobalt night, chrome accents"
+  },
+  {
+   "name": "Her Coral",
+   "colors": [
+    "#f25d50",
+    "#f7c8b8",
+    "#e8e2d0"
+   ],
+   "prompt": "soft coral warmth, gentle near-future intimacy"
+  },
+  {
+   "name": "Moonlight Blue",
+   "colors": [
+    "#1b3b6f",
+    "#7c5cff",
+    "#0e1a2b"
+   ],
+   "prompt": "moonlit skin, deep blue and violet night tones"
+  },
+  {
+   "name": "La La Land Twilight",
+   "colors": [
+    "#2d3f8f",
+    "#c94277",
+    "#f2b134"
+   ],
+   "prompt": "magic-hour purple sky, jazz-club primaries"
+  },
+  {
+   "name": "In the Mood for Love",
+   "colors": [
+    "#8f1d2c",
+    "#2c4a3b",
+    "#d9a441"
+   ],
+   "prompt": "smoky crimson and jade, lamplit nostalgia"
+  },
+  {
+   "name": "Sin City Selective",
+   "colors": [
+    "#000000",
+    "#ffffff",
+    "#e8192c"
+   ],
+   "prompt": "stark black and white with selective red"
+  },
+  {
+   "name": "O Brother Sepia",
+   "colors": [
+    "#c9a66b",
+    "#8a6f3d",
+    "#4a3b25"
+   ],
+   "prompt": "dustbowl sepia, digitally bleached summer"
+  },
+  {
+   "name": "Bleach Bypass",
+   "colors": [
+    "#5a5a5a",
+    "#8a8578",
+    "#2b2b2b"
+   ],
+   "prompt": "bleach bypass, desaturated silver retention grit"
+  },
+  {
+   "name": "Saving Private Ryan",
+   "colors": [
+    "#6b705c",
+    "#a5a58d",
+    "#3f4238"
+   ],
+   "prompt": "desaturated 60% saturation war-documentary grade"
+  },
+  {
+   "name": "300 Bronze",
+   "colors": [
+    "#8c5a2b",
+    "#d9b26f",
+    "#1a1410"
+   ],
+   "prompt": "crushed bronze contrast, graphic-novel skies"
+  },
+  {
+   "name": "Drive Synth",
+   "colors": [
+    "#ff2d78",
+    "#19c8ff",
+    "#0d0d1a"
+   ],
+   "prompt": "synthwave pink and electric blue night drive"
+  },
+  {
+   "name": "Parasite Neutral",
+   "colors": [
+    "#8a9a9a",
+    "#d9d4c5",
+    "#2e3532"
+   ],
+   "prompt": "cool architectural neutrals hiding class tension"
+  },
+  {
+   "name": "Dune Sand & Slate",
+   "colors": [
+    "#c8a878",
+    "#6d7b8d",
+    "#2b2620"
+   ],
+   "prompt": "monolithic sand tones against slate shadow"
+  },
+  {
+   "name": "Arrival Grey-Green",
+   "colors": [
+    "#5c6b63",
+    "#8fa39a",
+    "#22292b"
+   ],
+   "prompt": "misty grey-green, muted sci-fi hush"
+  },
+  {
+   "name": "The Revenant Cold",
+   "colors": [
+    "#7d8f99",
+    "#c7d3d4",
+    "#2a2f33"
+   ],
+   "prompt": "natural-light cold blues, frostbitten realism"
+  },
+  {
+   "name": "Schindler Mono+Red",
+   "colors": [
+    "#1a1a1a",
+    "#f2f2f2",
+    "#b3121f"
+   ],
+   "prompt": "monochrome with a single red accent"
+  },
+  {
+   "name": "Pleasantville Split",
+   "colors": [
+    "#8a8a8a",
+    "#e05252",
+    "#4a90d9"
+   ],
+   "prompt": "selective color blooming inside black and white"
+  },
+  {
+   "name": "Hero Crimson",
+   "colors": [
+    "#b31217",
+    "#e8481c",
+    "#4a0d0d"
+   ],
+   "prompt": "chapter-coded saturated crimson epic"
+  },
+  {
+   "name": "Suspiria Primary",
+   "colors": [
+    "#e8192c",
+    "#1932e8",
+    "#e8d419"
+   ],
+   "prompt": "gelled primary red and blue giallo nightmare"
+  },
+  {
+   "name": "Vertigo Green-Magenta",
+   "colors": [
+    "#2f9e6e",
+    "#c936a8",
+    "#1c2431"
+   ],
+   "prompt": "hallucinatory green and magenta obsession"
+  },
+  {
+   "name": "Godfather Amber",
+   "colors": [
+    "#b8860b",
+    "#3d2b1f",
+    "#0d0906"
+   ],
+   "prompt": "underexposed amber and black, Gordon Willis shadow"
+  },
+  {
+   "name": "Kill Bill Yellow",
+   "colors": [
+    "#f2c200",
+    "#111111",
+    "#b3121f"
+   ],
+   "prompt": "high-contrast yellow and black with blood red"
+  },
+  {
+   "name": "Joker Grime Teal",
+   "colors": [
+    "#1f5f5b",
+    "#c96f2c",
+    "#2b1f2e"
+   ],
+   "prompt": "grimy teal fluorescents and sodium orange"
+  },
+  {
+   "name": "Fincher Green-Grey",
+   "colors": [
+    "#3d4a3d",
+    "#8a9a7b",
+    "#1a1f1a"
+   ],
+   "prompt": "sickly green-grey precision, crushed midtones"
+  },
+  {
+   "name": "Nolan Steel",
+   "colors": [
+    "#4a5a6a",
+    "#94a3b3",
+    "#12161a"
+   ],
+   "prompt": "steel blue IMAX contrast, minimal saturation"
+  }
+ ]
+}

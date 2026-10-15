@@ -1,0 +1,28 @@
+{
+  "presets": [
+    { "id": "cinematic-teal", "name": "Cinematic Teal & Orange", "category": "Film", "promptText": "cinematic color grade, teal and orange palette, anamorphic lens flares, filmic contrast, 35mm" },
+    { "id": "noir", "name": "Film Noir", "category": "Film", "promptText": "black and white film noir, hard key light, venetian blind shadows, deep contrast, 1940s mood" },
+    { "id": "kodak-portra", "name": "Kodak Portra", "category": "Film", "promptText": "shot on Kodak Portra 400, soft grain, warm natural skin tones, gentle highlight rolloff" },
+    { "id": "imax-epic", "name": "IMAX Epic", "category": "Film", "promptText": "IMAX 70mm large-format look, immense depth, crisp detail, epic scale composition" },
+    { "id": "a24", "name": "Indie A24 Mood", "category": "Film", "promptText": "muted indie film palette, natural window light, melancholic atmosphere, shallow focus" },
+    { "id": "editorial-vogue", "name": "High Fashion Editorial", "category": "Fashion", "promptText": "high fashion editorial photography, studio strobes, bold styling, Vogue magazine aesthetic" },
+    { "id": "street-style", "name": "Street Style", "category": "Fashion", "promptText": "candid street style photography, golden hour city backdrop, 50mm, authentic motion" },
+    { "id": "y2k", "name": "Y2K Flash", "category": "Fashion", "promptText": "Y2K direct-flash photography, glossy saturated colors, early 2000s paparazzi energy" },
+    { "id": "clean-studio", "name": "Clean Studio", "category": "Product", "promptText": "clean e-commerce studio shot, seamless white background, soft even lighting, sharp focus" },
+    { "id": "luxury-dark", "name": "Luxury Dark", "category": "Product", "promptText": "luxury product photography, black backdrop, dramatic rim lighting, reflective surface" },
+    { "id": "kinfolk", "name": "Kinfolk Minimal", "category": "Product", "promptText": "minimal lifestyle product scene, neutral tones, natural textures, soft daylight, negative space" },
+    { "id": "neon-cyber", "name": "Neon Cyberpunk", "category": "World", "promptText": "cyberpunk neon palette, rain-slick streets, holographic signage, blade runner atmosphere" },
+    { "id": "ghibli-soft", "name": "Painterly Anime", "category": "Illustration", "promptText": "soft painterly anime style, lush hand-painted backgrounds, warm wholesome light" },
+    { "id": "comic-ink", "name": "Comic Ink", "category": "Illustration", "promptText": "bold comic book inking, halftone shading, dynamic panel-ready composition" },
+    { "id": "claymation", "name": "Claymation", "category": "Illustration", "promptText": "stop-motion claymation style, visible fingerprints in clay, miniature set, tilt-shift" },
+    { "id": "watercolor", "name": "Watercolor", "category": "Illustration", "promptText": "loose watercolor illustration, wet-on-wet bleeds, paper texture, delicate linework" },
+    { "id": "3d-render", "name": "3D Product Render", "category": "Product", "promptText": "octane 3D render, studio HDRI lighting, physically based materials, ultra clean" },
+    { "id": "vhs-retro", "name": "VHS Retro", "category": "FX", "promptText": "VHS camcorder look, scanlines, chromatic bleed, timestamp overlay, 1990s home video" },
+    { "id": "golden-hour", "name": "Golden Hour", "category": "Natural", "promptText": "golden hour backlight, sun flare, long warm shadows, atmospheric haze" },
+    { "id": "brutalist", "name": "Brutalist Editorial", "category": "World", "promptText": "brutalist concrete architecture backdrop, stark geometry, overcast diffuse light, fashion-forward austerity" },
+    { "id": "macro-detail", "name": "Macro Detail", "category": "Product", "promptText": "extreme macro photography, texture-level detail, focus stacking, jewel-like clarity" },
+    { "id": "documentary", "name": "Documentary Real", "category": "Natural", "promptText": "unstaged documentary realism, available light only, honest imperfect frames" },
+    { "id": "dark-fantasy", "name": "Dark Fantasy", "category": "World", "promptText": "dark fantasy concept art, volumetric god rays, ancient ruins, painterly epic detail" },
+    { "id": "mixed-media", "name": "Mixed Media Collage", "category": "FX", "promptText": "mixed media collage, torn paper edges, illustration layered over photography, handmade zine feel" }
+  ]
+}

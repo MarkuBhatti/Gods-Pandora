@@ -1,0 +1,993 @@
+{
+  "openSource": [
+    {
+      "name": "Qwen-Image 2.1",
+      "repo": "Qwen/Qwen-Image-2.1",
+      "type": "image",
+      "vram": "24 GB+",
+      "added": "2026-09",
+      "license": "see model card",
+      "note": "Newest Qwen image model — gen + edit, strong text rendering, RGBA",
+      "link": "https://huggingface.co/Qwen/Qwen-Image-2.1",
+      "engine": true
+    },
+    {
+      "name": "FLUX.2 [klein] 4B",
+      "repo": "black-forest-labs/FLUX.2-klein-4B",
+      "type": "image",
+      "vram": "13 GB+",
+      "added": "2026-01",
+      "license": "Apache-2.0",
+      "note": "Fastest FLUX — sub-second on consumer GPUs, gen + edit, commercial OK",
+      "link": "https://huggingface.co/black-forest-labs/FLUX.2-klein-4B",
+      "engine": true
+    },
+    {
+      "name": "FLUX.2 [klein] 9B",
+      "repo": "black-forest-labs/FLUX.2-klein-9B",
+      "type": "image",
+      "vram": "20 GB+",
+      "added": "2026-01",
+      "license": "FLUX non-commercial",
+      "note": "Higher quality klein; non-commercial license",
+      "link": "https://huggingface.co/black-forest-labs/FLUX.2-klein-9B",
+      "engine": true,
+      "gated": true
+    },
+    {
+      "name": "FLUX.2 [dev]",
+      "repo": "black-forest-labs/FLUX.2-dev",
+      "type": "image",
+      "vram": "24 GB+ (fp8/offload)",
+      "added": "2025-11",
+      "license": "FLUX non-commercial",
+      "note": "32B, up to 4MP, multi-reference editing; gated — needs HF token",
+      "link": "https://huggingface.co/black-forest-labs/FLUX.2-dev",
+      "engine": true,
+      "gated": true
+    },
+    {
+      "name": "HunyuanImage 3.0",
+      "repo": "tencent/HunyuanImage-3.0",
+      "type": "image",
+      "vram": "multi-GPU",
+      "added": "2025-09",
+      "license": "Tencent license",
+      "note": "Large MoE image model (custom code — download only)",
+      "link": "https://huggingface.co/tencent/HunyuanImage-3.0",
+      "engine": false
+    },
+    {
+      "name": "Janus-Pro 7B",
+      "repo": "deepseek-ai/Janus-Pro-7B",
+      "type": "image",
+      "vram": "16 GB+",
+      "added": "2025-01",
+      "license": "MIT/DeepSeek",
+      "note": "Unified understand + generate model (custom code — download only)",
+      "link": "https://huggingface.co/deepseek-ai/Janus-Pro-7B",
+      "engine": false
+    },
+    {
+      "name": "FLUX.1 Schnell",
+      "repo": "black-forest-labs/FLUX.1-schnell",
+      "link": "https://huggingface.co/black-forest-labs/FLUX.1-schnell",
+      "type": "image",
+      "note": "Apache-2.0, 4-step fast, excellent quality",
+      "vram": "12 GB+",
+      "engine": true
+    },
+    {
+      "name": "FLUX.1 Dev",
+      "repo": "black-forest-labs/FLUX.1-dev",
+      "link": "https://huggingface.co/black-forest-labs/FLUX.1-dev",
+      "type": "image",
+      "note": "Top open image quality (non-commercial license)",
+      "vram": "16 GB+",
+      "engine": true,
+      "gated": true
+    },
+    {
+      "name": "Stable Diffusion 3.5 Large",
+      "repo": "stabilityai/stable-diffusion-3.5-large",
+      "link": "https://huggingface.co/stabilityai/stable-diffusion-3.5-large",
+      "type": "image",
+      "note": "Strong prompt adherence, typography",
+      "vram": "16 GB+",
+      "engine": true,
+      "gated": true
+    },
+    {
+      "name": "SDXL Base 1.0",
+      "repo": "stabilityai/stable-diffusion-xl-base-1.0",
+      "link": "https://huggingface.co/stabilityai/stable-diffusion-xl-base-1.0",
+      "type": "image",
+      "note": "Huge ecosystem: LoRAs, ControlNet, IP-Adapter",
+      "vram": "8 GB+",
+      "engine": true
+    },
+    {
+      "name": "SD 1.5",
+      "repo": "stable-diffusion-v1-5/stable-diffusion-v1-5",
+      "link": "https://huggingface.co/stable-diffusion-v1-5/stable-diffusion-v1-5",
+      "type": "image",
+      "note": "Runs on almost anything; biggest LoRA library",
+      "vram": "4 GB+",
+      "engine": true
+    },
+    {
+      "name": "PixArt-Σ",
+      "repo": "PixArt-alpha/PixArt-Sigma-XL-2-1024-MS",
+      "link": "https://huggingface.co/PixArt-alpha/PixArt-Sigma-XL-2-1024-MS",
+      "type": "image",
+      "note": "Efficient DiT, 4K-capable",
+      "vram": "12 GB+",
+      "engine": true
+    },
+    {
+      "name": "Playground v2.5",
+      "repo": "playgroundai/playground-v2.5-1024px-aesthetic",
+      "link": "https://huggingface.co/playgroundai/playground-v2.5-1024px-aesthetic",
+      "type": "image",
+      "note": "Aesthetic-tuned SDXL-class",
+      "vram": "8 GB+",
+      "engine": true
+    },
+    {
+      "name": "Kolors",
+      "repo": "Kwai-Kolors/Kolors-diffusers",
+      "link": "https://huggingface.co/Kwai-Kolors/Kolors-diffusers",
+      "type": "image",
+      "note": "Kuaishou bilingual image model",
+      "vram": "12 GB+",
+      "engine": true
+    },
+    {
+      "name": "HiDream-I1",
+      "repo": "HiDream-ai/HiDream-I1-Full",
+      "link": "https://huggingface.co/HiDream-ai/HiDream-I1-Full",
+      "type": "image",
+      "note": "17B open image model, top benchmark scores",
+      "vram": "24 GB+",
+      "engine": true
+    },
+    {
+      "name": "Qwen-Image",
+      "repo": "Qwen/Qwen-Image",
+      "link": "https://huggingface.co/Qwen/Qwen-Image",
+      "type": "image",
+      "note": "Alibaba open image + strong text rendering",
+      "vram": "20 GB+",
+      "engine": true
+    },
+    {
+      "name": "Wan-Animate-2 14B Distilled (local Shapeshift)",
+      "repo": "Wan-AI/Wan2.2-Animate-2-14B-Distilled-Diffusers",
+      "type": "video",
+      "vram": "24 GB+ GPU and 64 GB+ RAM",
+      "added": "2026-08",
+      "license": "Apache-2.0",
+      "note": "Powers offline Shapeshift: animates a character / edited frame with any video's motion (10 steps)",
+      "link": "https://huggingface.co/Wan-AI/Wan2.2-Animate-2-14B-Distilled-Diffusers",
+      "engine": false
+    },
+    {
+      "name": "Wan 2.2 Animate-2 14B",
+      "repo": "Wan-AI/Wan2.2-Animate-2-14B-Diffusers",
+      "type": "video",
+      "vram": "24 GB+",
+      "added": "2026-08",
+      "license": "Apache-2.0",
+      "note": "Character animation / replacement from reference video",
+      "link": "https://huggingface.co/Wan-AI/Wan2.2-Animate-2-14B-Diffusers",
+      "engine": false
+    },
+    {
+      "name": "LTX-2.3",
+      "repo": "Lightricks/LTX-2.3",
+      "type": "video",
+      "vram": "24 GB+ (fp8 available)",
+      "added": "2026-03",
+      "license": "LTX license",
+      "note": "Video + synced audio in one pass; most downloaded open video model",
+      "link": "https://huggingface.co/Lightricks/LTX-2.3",
+      "engine": false
+    },
+    {
+      "name": "HunyuanVideo 1.5",
+      "repo": "tencent/HunyuanVideo-1.5",
+      "type": "video",
+      "vram": "14 GB+ (offload)",
+      "added": "2025-11",
+      "license": "Tencent license",
+      "note": "8.3B, runs on a single consumer GPU",
+      "link": "https://huggingface.co/tencent/HunyuanVideo-1.5",
+      "engine": false
+    },
+    {
+      "name": "Wan 2.2 TI2V 5B (Diffusers)",
+      "repo": "Wan-AI/Wan2.2-TI2V-5B-Diffusers",
+      "type": "video",
+      "vram": "12 GB+",
+      "added": "2025-07",
+      "license": "Apache-2.0",
+      "note": "720p text+image→video on consumer GPUs",
+      "link": "https://huggingface.co/Wan-AI/Wan2.2-TI2V-5B-Diffusers",
+      "engine": false
+    },
+    {
+      "name": "SkyReels V2 T2V 14B 720P",
+      "repo": "Skywork/SkyReels-V2-T2V-14B-720P",
+      "type": "video",
+      "vram": "24 GB+",
+      "added": "2025-04",
+      "license": "Skywork license",
+      "note": "Long, consistent cinematic clips",
+      "link": "https://huggingface.co/Skywork/SkyReels-V2-T2V-14B-720P",
+      "engine": false
+    },
+    {
+      "name": "CogVideoX 1.5 5B",
+      "repo": "zai-org/CogVideoX1.5-5B",
+      "type": "video",
+      "vram": "12 GB+",
+      "added": "2024-11",
+      "license": "CogVideoX license",
+      "note": "1360×768, 10s clips, strong prompt adherence",
+      "link": "https://huggingface.co/zai-org/CogVideoX1.5-5B",
+      "engine": false
+    },
+    {
+      "name": "HunyuanVideo",
+      "repo": "tencent/HunyuanVideo",
+      "link": "https://huggingface.co/tencent/HunyuanVideo",
+      "type": "video",
+      "note": "Benchmark open video quality (Tencent)",
+      "vram": "24 GB+",
+      "engine": false
+    },
+    {
+      "name": "Wan 2.2 A14B",
+      "repo": "Wan-AI/Wan2.2-T2V-A14B",
+      "link": "https://huggingface.co/Wan-AI/Wan2.2-T2V-A14B",
+      "type": "video",
+      "note": "MoE T2V+I2V+edit in one; most versatile",
+      "vram": "16-24 GB",
+      "engine": false
+    },
+    {
+      "name": "LTX-Video",
+      "repo": "Lightricks/LTX-Video",
+      "link": "https://huggingface.co/Lightricks/LTX-Video",
+      "type": "video",
+      "note": "Fastest open video; audio+video in LTX-2.x; mid-range GPUs",
+      "vram": "12 GB+",
+      "engine": false
+    },
+    {
+      "name": "Mochi 1",
+      "repo": "genmo/mochi-1-preview",
+      "link": "https://huggingface.co/genmo/mochi-1-preview",
+      "type": "video",
+      "note": "High-fidelity short clips, strong prompt alignment",
+      "vram": "24 GB+",
+      "engine": false
+    },
+    {
+      "name": "CogVideoX-5B",
+      "repo": "zai-org/CogVideoX-5b",
+      "link": "https://huggingface.co/zai-org/CogVideoX-5b",
+      "type": "video",
+      "note": "Zhipu AI, 2B/5B variants, solid I2V",
+      "vram": "12 GB+",
+      "engine": false
+    },
+    {
+      "name": "Stable Video Diffusion",
+      "repo": "stabilityai/stable-video-diffusion-img2vid-xt",
+      "link": "https://huggingface.co/stabilityai/stable-video-diffusion-img2vid-xt",
+      "type": "video",
+      "note": "Image-to-video, well-supported",
+      "vram": "12 GB+",
+      "engine": false
+    },
+    {
+      "name": "AnimateDiff",
+      "repo": "guoyww/animatediff-motion-adapter-v1-5-3",
+      "link": "https://huggingface.co/guoyww/animatediff-motion-adapter-v1-5-3",
+      "type": "video",
+      "note": "Motion adapter for any SD1.5 checkpoint",
+      "vram": "8 GB+",
+      "engine": false
+    },
+    {
+      "name": "Open-Sora",
+      "repo": "hpcai-tech/OpenSora-STDiT-v3",
+      "link": "https://huggingface.co/hpcai-tech/OpenSora-STDiT-v3",
+      "type": "video",
+      "note": "Fully open training + weights",
+      "vram": "16 GB+",
+      "engine": false
+    },
+    {
+      "name": "YuE2 3B",
+      "repo": "m-a-p/YuE2-3B",
+      "link": "https://huggingface.co/m-a-p/YuE2-3B",
+      "type": "audio",
+      "note": "Newest lyrics-to-song model with editing — download-only (runs in its own app / ComfyUI)",
+      "vram": "12 GB+",
+      "added": "2026-09",
+      "license": "CC-BY-NC-4.0",
+      "engine": false
+    },
+    {
+      "name": "IndexTTS 2.5",
+      "repo": "IndexTeam/IndexTTS-2.5",
+      "link": "https://huggingface.co/IndexTeam/IndexTTS-2.5",
+      "type": "audio",
+      "note": "Zero-shot voice cloning, emotion control, cross-lingual TTS — download-only (runs in its own app / ComfyUI)",
+      "vram": "8 GB+",
+      "added": "2026-08",
+      "license": "see card",
+      "engine": false
+    },
+    {
+      "name": "MiniMax Music 3",
+      "repo": "MiniMaxAI/MiniMax-Music3",
+      "link": "https://huggingface.co/MiniMaxAI/MiniMax-Music3",
+      "type": "audio",
+      "note": "Text-to-music (diffusers) — download-only (runs in its own app / ComfyUI)",
+      "vram": "16 GB+",
+      "added": "2026-08",
+      "license": "see card",
+      "engine": false
+    },
+    {
+      "name": "Higgs TTS 3 4B",
+      "repo": "bosonai/higgs-tts-3-4b",
+      "link": "https://huggingface.co/bosonai/higgs-tts-3-4b",
+      "type": "audio",
+      "note": "Expressive, controllable voice-agent TTS — download-only (runs in its own app / ComfyUI)",
+      "vram": "12 GB+",
+      "added": "2026-06",
+      "license": "see card",
+      "engine": false
+    },
+    {
+      "name": "Supertonic 3",
+      "repo": "Supertone/supertonic-3",
+      "link": "https://huggingface.co/Supertone/supertonic-3",
+      "type": "audio",
+      "note": "On-device multilingual TTS (ONNX) — download-only (runs in its own app / ComfyUI)",
+      "vram": "CPU",
+      "added": "2026-05",
+      "license": "OpenRAIL",
+      "engine": false
+    },
+    {
+      "name": "Stable Audio 3 Medium",
+      "repo": "stabilityai/stable-audio-3-medium",
+      "link": "https://huggingface.co/stabilityai/stable-audio-3-medium",
+      "type": "audio",
+      "note": "Music + sound effects from text — download-only (runs in its own app / ComfyUI)",
+      "vram": "12 GB+",
+      "added": "2026-05",
+      "license": "Stability license",
+      "engine": false
+    },
+    {
+      "name": "Stable Audio 3 Small SFX",
+      "repo": "stabilityai/stable-audio-3-small-sfx",
+      "link": "https://huggingface.co/stabilityai/stable-audio-3-small-sfx",
+      "type": "audio",
+      "note": "Fast sound-effect generation — download-only (runs in its own app / ComfyUI)",
+      "vram": "6 GB+",
+      "added": "2026-05",
+      "license": "Stability license",
+      "engine": false
+    },
+    {
+      "name": "Magenta RealTime 2",
+      "repo": "google/magenta-realtime-2",
+      "link": "https://huggingface.co/google/magenta-realtime-2",
+      "type": "audio",
+      "note": "Real-time interactive music generation — download-only (runs in its own app / ComfyUI)",
+      "vram": "8 GB+",
+      "added": "2026-05",
+      "license": "CC-BY-4.0",
+      "engine": false
+    },
+    {
+      "name": "OmniVoice",
+      "repo": "k2-fsa/OmniVoice",
+      "link": "https://huggingface.co/k2-fsa/OmniVoice",
+      "type": "audio",
+      "note": "Voice cloning + voice design in 600+ languages — download-only (runs in its own app / ComfyUI)",
+      "vram": "6 GB+",
+      "added": "2026-03",
+      "license": "see card",
+      "engine": false
+    },
+    {
+      "name": "Fish Audio S2 Pro",
+      "repo": "fishaudio/s2-pro",
+      "link": "https://huggingface.co/fishaudio/s2-pro",
+      "type": "audio",
+      "note": "Instruction-following expressive multilingual TTS — download-only (runs in its own app / ComfyUI)",
+      "vram": "12 GB+",
+      "added": "2026-03",
+      "license": "see card",
+      "engine": false
+    },
+    {
+      "name": "Qwen3-TTS 1.7B CustomVoice",
+      "repo": "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice",
+      "link": "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice",
+      "type": "audio",
+      "note": "Multilingual TTS with custom voices — download-only (runs in its own app / ComfyUI)",
+      "vram": "6 GB+",
+      "added": "2026-01",
+      "license": "Apache-2.0",
+      "engine": false
+    },
+    {
+      "name": "ACE-Step 1.5",
+      "repo": "ACE-Step/Ace-Step1.5",
+      "link": "https://huggingface.co/ACE-Step/Ace-Step1.5",
+      "type": "audio",
+      "note": "Full songs with vocals from text + lyrics — download-only (runs in its own app / ComfyUI)",
+      "vram": "8 GB+",
+      "added": "2026-01",
+      "license": "MIT",
+      "engine": false
+    },
+    {
+      "name": "Chatterbox",
+      "repo": "ResembleAI/chatterbox",
+      "link": "https://huggingface.co/ResembleAI/chatterbox",
+      "type": "audio",
+      "note": "Voice cloning TTS, 23 languages, emotion control — download-only (runs in its own app / ComfyUI)",
+      "vram": "6 GB+",
+      "added": "2025-04",
+      "license": "MIT",
+      "engine": false
+    },
+    {
+      "name": "Kokoro 82M",
+      "repo": "hexgrad/Kokoro-82M",
+      "link": "https://huggingface.co/hexgrad/Kokoro-82M",
+      "type": "audio",
+      "note": "Tiny, fast, high-quality TTS — runs on CPU — download-only (runs in its own app / ComfyUI)",
+      "vram": "CPU / 2 GB",
+      "added": "2024-12",
+      "license": "Apache-2.0",
+      "engine": false
+    },
+    {
+      "name": "MusicGen Large",
+      "repo": "facebook/musicgen-large",
+      "link": "https://huggingface.co/facebook/musicgen-large",
+      "type": "audio",
+      "note": "Meta music generation from text",
+      "vram": "8 GB+",
+      "engine": false
+    },
+    {
+      "name": "Stable Audio Open",
+      "repo": "stabilityai/stable-audio-open-1.0",
+      "link": "https://huggingface.co/stabilityai/stable-audio-open-1.0",
+      "type": "audio",
+      "note": "Samples, SFX, loops",
+      "vram": "8 GB+",
+      "engine": false
+    },
+    {
+      "name": "Bark",
+      "repo": "suno/bark",
+      "link": "https://huggingface.co/suno/bark",
+      "type": "audio",
+      "note": "Expressive TTS w/ laughter, singing",
+      "vram": "8 GB+",
+      "engine": false
+    },
+    {
+      "name": "XTTS-v2",
+      "repo": "coqui/XTTS-v2",
+      "link": "https://huggingface.co/coqui/XTTS-v2",
+      "type": "audio",
+      "note": "Voice cloning TTS, 17 languages",
+      "vram": "6 GB+",
+      "engine": false
+    },
+    {
+      "name": "F5-TTS",
+      "repo": "SWivid/F5-TTS",
+      "link": "https://huggingface.co/SWivid/F5-TTS",
+      "type": "audio",
+      "note": "SOTA open zero-shot voice cloning",
+      "vram": "8 GB+",
+      "engine": false
+    },
+    {
+      "name": "Parler-TTS",
+      "repo": "parler-tts/parler-tts-large-v1",
+      "link": "https://huggingface.co/parler-tts/parler-tts-large-v1",
+      "type": "audio",
+      "note": "Controllable described-voice TTS",
+      "vram": "6 GB+",
+      "engine": false
+    },
+    {
+      "name": "Whisper large-v3",
+      "repo": "openai/whisper-large-v3",
+      "link": "https://huggingface.co/openai/whisper-large-v3",
+      "type": "audio",
+      "note": "Best open speech-to-text",
+      "vram": "6 GB+",
+      "engine": false
+    },
+    {
+      "name": "TRELLIS.2 4B",
+      "repo": "microsoft/TRELLIS.2-4B",
+      "link": "https://huggingface.co/microsoft/TRELLIS.2-4B",
+      "type": "3d",
+      "note": "Image → high-quality textured 3D mesh — download-only (runs in its own app / ComfyUI)",
+      "vram": "16 GB+",
+      "added": "2025-12",
+      "license": "MIT",
+      "engine": false
+    },
+    {
+      "name": "Hunyuan3D 2.1",
+      "repo": "tencent/Hunyuan3D-2.1",
+      "link": "https://huggingface.co/tencent/Hunyuan3D-2.1",
+      "type": "3d",
+      "note": "Image/text → 3D with PBR textures — download-only (runs in its own app / ComfyUI)",
+      "vram": "12 GB+",
+      "added": "2025-06",
+      "license": "Tencent license",
+      "engine": false
+    },
+    {
+      "name": "SPAR3D",
+      "repo": "stabilityai/stable-point-aware-3d",
+      "link": "https://huggingface.co/stabilityai/stable-point-aware-3d",
+      "type": "3d",
+      "note": "Point-aware image-to-3D, editable — download-only (runs in its own app / ComfyUI)",
+      "vram": "8 GB+",
+      "added": "2024-12",
+      "license": "Stability license",
+      "engine": false
+    },
+    {
+      "name": "TRELLIS image large",
+      "repo": "microsoft/TRELLIS-image-large",
+      "link": "https://huggingface.co/microsoft/TRELLIS-image-large",
+      "type": "3d",
+      "note": "Proven image-to-3D (GLB / Gaussians) — download-only (runs in its own app / ComfyUI)",
+      "vram": "16 GB+",
+      "added": "2024-12",
+      "license": "MIT",
+      "engine": false
+    },
+    {
+      "name": "Stable Fast 3D",
+      "repo": "stabilityai/stable-fast-3d",
+      "link": "https://huggingface.co/stabilityai/stable-fast-3d",
+      "type": "3d",
+      "note": "Single image → 3D in ~1 second — download-only (runs in its own app / ComfyUI)",
+      "vram": "8 GB+",
+      "added": "2024-07",
+      "license": "Stability license",
+      "engine": false
+    },
+    {
+      "name": "DeepSeek V4.1 Flash",
+      "repo": "deepseek-ai/DeepSeek-V4.1-Flash",
+      "type": "llm",
+      "vram": "multi-GPU",
+      "added": "2026-09",
+      "license": "MIT",
+      "note": "Newest DeepSeek release, vision + text",
+      "link": "https://huggingface.co/deepseek-ai/DeepSeek-V4.1-Flash",
+      "engine": false
+    },
+    {
+      "name": "Qwen3.8 27B",
+      "repo": "Qwen/Qwen3.8-27B",
+      "type": "llm",
+      "vram": "24 GB+ (fp8)",
+      "added": "2026-08",
+      "license": "Apache-2.0",
+      "note": "Newest Qwen dense model, vision + text",
+      "link": "https://huggingface.co/Qwen/Qwen3.8-27B",
+      "engine": false
+    },
+    {
+      "name": "GLM-5.3 Flash",
+      "repo": "zai-org/GLM-5.3-Flash",
+      "type": "llm",
+      "vram": "multi-GPU",
+      "added": "2026-08",
+      "license": "MIT",
+      "note": "Zhipu agentic/coding model, vision + text",
+      "link": "https://huggingface.co/zai-org/GLM-5.3-Flash",
+      "engine": false
+    },
+    {
+      "name": "Kimi K3",
+      "repo": "moonshotai/Kimi-K3",
+      "type": "llm",
+      "vram": "multi-GPU (very large)",
+      "added": "2026-06",
+      "license": "Modified MIT",
+      "note": "Moonshot flagship open-weights agentic model",
+      "link": "https://huggingface.co/moonshotai/Kimi-K3",
+      "engine": false
+    },
+    {
+      "name": "Gemma 4 12B",
+      "repo": "google/gemma-4-12B-it",
+      "type": "llm",
+      "vram": "10 GB+",
+      "added": "2026-05",
+      "license": "Apache-2.0",
+      "note": "Best quality-per-GB for single GPUs",
+      "link": "https://huggingface.co/google/gemma-4-12B-it",
+      "engine": false
+    },
+    {
+      "name": "Gemma 4 31B",
+      "repo": "google/gemma-4-31B-it",
+      "type": "llm",
+      "vram": "24 GB+",
+      "added": "2026-03",
+      "license": "Apache-2.0",
+      "note": "Google open multimodal model",
+      "link": "https://huggingface.co/google/gemma-4-31B-it",
+      "engine": false
+    },
+    {
+      "name": "Llama 4 Scout 17B-16E",
+      "repo": "meta-llama/Llama-4-Scout-17B-16E-Instruct",
+      "type": "llm",
+      "vram": "~60 GB (int4 ~24)",
+      "added": "2025-04",
+      "license": "Llama 4 Community",
+      "note": "Meta multimodal MoE; gated — needs HF token",
+      "link": "https://huggingface.co/meta-llama/Llama-4-Scout-17B-16E-Instruct",
+      "engine": false,
+      "gated": true
+    },
+    {
+      "name": "Llama 4 Maverick 17B-128E",
+      "repo": "meta-llama/Llama-4-Maverick-17B-128E-Instruct",
+      "type": "llm",
+      "vram": "multi-GPU",
+      "added": "2025-04",
+      "license": "Llama 4 Community",
+      "note": "Meta flagship MoE; gated — needs HF token",
+      "link": "https://huggingface.co/meta-llama/Llama-4-Maverick-17B-128E-Instruct",
+      "engine": false,
+      "gated": true
+    },
+    {
+      "name": "Llama 3.3 70B Instruct",
+      "repo": "meta-llama/Llama-3.3-70B-Instruct",
+      "link": "https://huggingface.co/meta-llama/Llama-3.3-70B-Instruct",
+      "type": "llm",
+      "note": "Meta flagship open chat model",
+      "vram": "48 GB+ (Q4: 2×24)",
+      "engine": false,
+      "gated": true
+    },
+    {
+      "name": "Llama 3.1 8B Instruct",
+      "repo": "meta-llama/Llama-3.1-8B-Instruct",
+      "link": "https://huggingface.co/meta-llama/Llama-3.1-8B-Instruct",
+      "type": "llm",
+      "note": "Best small all-rounder; runs everywhere",
+      "vram": "8 GB+",
+      "engine": false,
+      "gated": true
+    },
+    {
+      "name": "Qwen3 32B",
+      "repo": "Qwen/Qwen3-32B",
+      "link": "https://huggingface.co/Qwen/Qwen3-32B",
+      "type": "llm",
+      "note": "Alibaba hybrid-reasoning open model",
+      "vram": "24 GB+",
+      "engine": false
+    },
+    {
+      "name": "Qwen2.5 72B Instruct",
+      "repo": "Qwen/Qwen2.5-72B-Instruct",
+      "link": "https://huggingface.co/Qwen/Qwen2.5-72B-Instruct",
+      "type": "llm",
+      "note": "Top open benchmark scores",
+      "vram": "48 GB+",
+      "engine": false
+    },
+    {
+      "name": "DeepSeek-R1",
+      "repo": "deepseek-ai/DeepSeek-R1",
+      "link": "https://huggingface.co/deepseek-ai/DeepSeek-R1",
+      "type": "llm",
+      "note": "Open reasoning model (MIT); distills run on 12 GB",
+      "vram": "distills 12 GB+",
+      "engine": false
+    },
+    {
+      "name": "DeepSeek-V3",
+      "repo": "deepseek-ai/DeepSeek-V3",
+      "link": "https://huggingface.co/deepseek-ai/DeepSeek-V3",
+      "type": "llm",
+      "note": "Frontier-class open MoE",
+      "vram": "multi-GPU",
+      "engine": false
+    },
+    {
+      "name": "Mistral Small 3.1 24B",
+      "repo": "mistralai/Mistral-Small-3.1-24B-Instruct-2503",
+      "link": "https://huggingface.co/mistralai/Mistral-Small-3.1-24B-Instruct-2503",
+      "type": "llm",
+      "note": "Apache-2.0, vision + text",
+      "vram": "20 GB+",
+      "engine": false
+    },
+    {
+      "name": "Mixtral 8x7B",
+      "repo": "mistralai/Mixtral-8x7B-Instruct-v0.1",
+      "link": "https://huggingface.co/mistralai/Mixtral-8x7B-Instruct-v0.1",
+      "type": "llm",
+      "note": "Classic efficient MoE",
+      "vram": "24 GB+",
+      "engine": false
+    },
+    {
+      "name": "Gemma 3 27B",
+      "repo": "google/gemma-3-27b-it",
+      "link": "https://huggingface.co/google/gemma-3-27b-it",
+      "type": "llm",
+      "note": "Google open model, multimodal",
+      "vram": "20 GB+",
+      "engine": false
+    },
+    {
+      "name": "Phi-4",
+      "repo": "microsoft/phi-4",
+      "link": "https://huggingface.co/microsoft/phi-4",
+      "type": "llm",
+      "note": "14B punches far above its size",
+      "vram": "12 GB+",
+      "engine": false
+    },
+    {
+      "name": "Kimi K2 Instruct",
+      "repo": "moonshotai/Kimi-K2-Instruct",
+      "link": "https://huggingface.co/moonshotai/Kimi-K2-Instruct",
+      "type": "llm",
+      "note": "1T MoE open-weights agentic model",
+      "vram": "multi-GPU",
+      "engine": false
+    },
+    {
+      "name": "GLM-4.5",
+      "repo": "zai-org/GLM-4.5",
+      "link": "https://huggingface.co/zai-org/GLM-4.5",
+      "type": "llm",
+      "note": "Zhipu open agentic/coding model",
+      "vram": "multi-GPU",
+      "engine": false
+    },
+    {
+      "name": "Command R+",
+      "repo": "CohereLabs/c4ai-command-r-plus",
+      "link": "https://huggingface.co/CohereLabs/c4ai-command-r-plus",
+      "type": "llm",
+      "note": "RAG-optimized open weights",
+      "vram": "48 GB+",
+      "engine": false,
+      "gated": true
+    },
+    {
+      "name": "OLMo 2 13B",
+      "repo": "allenai/OLMo-2-1124-13B-Instruct",
+      "link": "https://huggingface.co/allenai/OLMo-2-1124-13B-Instruct",
+      "type": "llm",
+      "note": "Fully open (data+code+weights)",
+      "vram": "12 GB+",
+      "engine": false
+    },
+    {
+      "name": "Qwen2.5-Coder 32B",
+      "repo": "Qwen/Qwen2.5-Coder-32B-Instruct",
+      "link": "https://huggingface.co/Qwen/Qwen2.5-Coder-32B-Instruct",
+      "type": "code",
+      "note": "Best open coding model",
+      "vram": "24 GB+",
+      "engine": false
+    },
+    {
+      "name": "DeepSeek-Coder-V2",
+      "repo": "deepseek-ai/DeepSeek-Coder-V2-Instruct",
+      "link": "https://huggingface.co/deepseek-ai/DeepSeek-Coder-V2-Instruct",
+      "type": "code",
+      "note": "GPT-4-class coding MoE",
+      "vram": "multi-GPU",
+      "engine": false
+    },
+    {
+      "name": "StarCoder2 15B",
+      "repo": "bigcode/starcoder2-15b",
+      "link": "https://huggingface.co/bigcode/starcoder2-15b",
+      "type": "code",
+      "note": "BigCode permissive coding model",
+      "vram": "16 GB+",
+      "engine": false
+    }
+  ],
+  "api": [
+    {
+      "name": "Sora 2",
+      "provider": "OpenAI",
+      "type": "video",
+      "link": "https://platform.openai.com/docs/models"
+    },
+    {
+      "name": "GPT Image 1",
+      "provider": "OpenAI",
+      "type": "image",
+      "link": "https://platform.openai.com/docs/guides/image-generation"
+    },
+    {
+      "name": "Veo 3 / 3.1",
+      "provider": "Google",
+      "type": "video",
+      "link": "https://ai.google.dev/gemini-api/docs/video"
+    },
+    {
+      "name": "Imagen 4",
+      "provider": "Google",
+      "type": "image",
+      "link": "https://ai.google.dev/gemini-api/docs/imagen"
+    },
+    {
+      "name": "Nano Banana Pro",
+      "provider": "Google (via FAL too)",
+      "type": "image",
+      "link": "https://fal.ai/models/fal-ai/nano-banana-pro"
+    },
+    {
+      "name": "Kling 3.0",
+      "provider": "Kuaishou (via FAL)",
+      "type": "video",
+      "link": "https://fal.ai/models?q=kling"
+    },
+    {
+      "name": "Seedance 2.0",
+      "provider": "ByteDance (via FAL/BytePlus)",
+      "type": "video",
+      "link": "https://fal.ai/models?q=seedance"
+    },
+    {
+      "name": "Seedream 5",
+      "provider": "ByteDance",
+      "type": "image",
+      "link": "https://fal.ai/models?q=seedream"
+    },
+    {
+      "name": "Runway Gen-4",
+      "provider": "Runway",
+      "type": "video",
+      "link": "https://dev.runwayml.com"
+    },
+    {
+      "name": "Dream Machine / Ray 2",
+      "provider": "Luma",
+      "type": "video",
+      "link": "https://lumalabs.ai/api"
+    },
+    {
+      "name": "Pika 2.x",
+      "provider": "Pika",
+      "type": "video",
+      "link": "https://pika.art"
+    },
+    {
+      "name": "Hailuo 02",
+      "provider": "MiniMax (via FAL)",
+      "type": "video",
+      "link": "https://fal.ai/models?q=minimax"
+    },
+    {
+      "name": "FLUX 1.1 Pro Ultra / Kontext",
+      "provider": "Black Forest Labs",
+      "type": "image",
+      "link": "https://api.bfl.ai"
+    },
+    {
+      "name": "Ideogram V3",
+      "provider": "Ideogram",
+      "type": "image",
+      "link": "https://developer.ideogram.ai"
+    },
+    {
+      "name": "Recraft V4 (SVG)",
+      "provider": "Recraft",
+      "type": "image",
+      "link": "https://www.recraft.ai/api"
+    },
+    {
+      "name": "Grok Imagine",
+      "provider": "xAI",
+      "type": "image/video",
+      "link": "https://console.x.ai"
+    },
+    {
+      "name": "Stable Image Ultra",
+      "provider": "Stability AI",
+      "type": "image",
+      "link": "https://platform.stability.ai"
+    },
+    {
+      "name": "Wan 2.6",
+      "provider": "Alibaba (via FAL)",
+      "type": "video",
+      "link": "https://fal.ai/models?q=wan"
+    },
+    {
+      "name": "Eleven v3 / Multilingual",
+      "provider": "ElevenLabs",
+      "type": "audio",
+      "link": "https://elevenlabs.io/docs"
+    },
+    {
+      "name": "Claude Fable 5 / Sonnet",
+      "provider": "Anthropic",
+      "type": "text/code",
+      "link": "https://docs.claude.com"
+    },
+    {
+      "name": "FLUX.2 [pro] / [flex]",
+      "provider": "Black Forest Labs",
+      "type": "image",
+      "link": "https://docs.bfl.ai"
+    },
+    {
+      "name": "LTX-2.3 (hosted)",
+      "provider": "Lightricks / FAL",
+      "type": "video",
+      "link": "https://fal.ai/models?q=ltx"
+    }
+  ],
+  "runtimes": [
+    {
+      "name": "Ollama",
+      "link": "https://ollama.com",
+      "note": "One-line local LLM runtime — God's Pandora can drive it at http://localhost:11434"
+    },
+    {
+      "name": "LM Studio",
+      "link": "https://lmstudio.ai",
+      "note": "Desktop LLM runner with OpenAI-compatible local server"
+    },
+    {
+      "name": "llama.cpp",
+      "link": "https://github.com/ggerganov/llama.cpp",
+      "note": "CPU/GPU GGUF inference engine underlying most local runners"
+    },
+    {
+      "name": "vLLM",
+      "link": "https://github.com/vllm-project/vllm",
+      "note": "Production-grade high-throughput model serving"
+    },
+    {
+      "name": "ComfyUI",
+      "link": "https://github.com/comfyanonymous/ComfyUI",
+      "note": "Node-graph diffusion runtime — complements the built-in engine"
+    }
+  ],
+  "verified": "2026-10-13 against huggingface.co/api"
+}

@@ -1,0 +1,1825 @@
+{
+ "note": "Studio tool definitions. Each tool composes a prompt template over ref-capable edit models. {field} placeholders come from tool inputs. imageInputs are picked by the user and attached as reference images.",
+ "studios": [
+  {
+   "id": "fashion",
+   "name": "Fashion Studio",
+   "icon": "✂",
+   "subtitle": "30 tools — try-on, lookbooks, editorial, e-com sets, patterns, tech-packs — each with fashion styles, poses, light moods, palettes, camera, lens, character and Location Lock.",
+   "tools": [
+    {
+     "id": "outfit-swap",
+     "name": "Outfit Swap",
+     "desc": "Put the garment from image B onto the person in image A. Pose and background stay.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "person",
+       "label": "Person photo"
+      },
+      {
+       "id": "garment",
+       "label": "Garment photo"
+      }
+     ],
+     "template": "Dress the person from the first reference image in the exact garment shown in the second reference image. Preserve the person's identity, pose, body and the original background. Fabric drape must be physically plausible. {notes}"
+    },
+    {
+     "id": "tryon-model",
+     "name": "Lookbook Shot",
+     "desc": "Studio lookbook photo of a garment on a model or your saved character.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "garment",
+       "label": "Garment photo"
+      }
+     ],
+     "template": "Professional fashion lookbook photograph of a model wearing the exact garment from the reference image. Full outfit visible, natural confident pose. {notes}"
+    },
+    {
+     "id": "colorway",
+     "name": "Colorway Generator",
+     "desc": "Same garment, new colors/patterns for a drop.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "garment",
+       "label": "Garment photo"
+      }
+     ],
+     "template": "Recreate the exact garment from the reference image in a new colorway: {notes}. Keep the cut, silhouette, stitching, material and presentation identical — change only the color/pattern."
+    },
+    {
+     "id": "fabric-macro",
+     "name": "Fabric Macro",
+     "desc": "Extreme close-up of fabric texture and stitching for PDPs.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "garment",
+       "label": "Garment photo"
+      }
+     ],
+     "template": "Extreme macro photograph of the fabric of the garment in the reference image: weave, texture, stitching detail, tactile realism. {notes}"
+    },
+    {
+     "id": "runway-video",
+     "name": "Runway Video",
+     "desc": "Model walks the runway in the garment.",
+     "kind": "video",
+     "imageInputs": [
+      {
+       "id": "garment",
+       "label": "Look reference"
+      }
+     ],
+     "template": "Fashion runway video: model walks toward camera wearing the exact look from the reference image, professional runway lighting, audience bokeh in background. {notes}"
+    },
+    {
+     "id": "flatlay",
+     "name": "Flat Lay",
+     "desc": "Editorial flat-lay of a full outfit.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "garment",
+       "label": "Item photo(s)"
+      }
+     ],
+     "template": "Editorial flat lay photograph of the clothing items from the reference images arranged on a neutral surface, top-down, styled with minimal accessories. {notes}"
+    },
+    {
+     "id": "street-style",
+     "name": "Street Style Shot",
+     "desc": "Candid paparazzi-style street look.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "garment",
+       "label": "Garment photo"
+      }
+     ],
+     "template": "Candid street style photograph of a model wearing the exact garment from the reference image, city backdrop, natural stride. {notes}"
+    },
+    {
+     "id": "editorial-cover",
+     "name": "Editorial Cover",
+     "desc": "Magazine cover-grade fashion image with masthead space.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "garment",
+       "label": "Garment photo"
+      }
+     ],
+     "template": "High-fashion magazine cover image featuring the exact garment from the reference image, bold styling, negative space at top for masthead. {notes}"
+    },
+    {
+     "id": "ecom-set",
+     "name": "E-Com On-Model Set",
+     "desc": "Front/side/back set for product pages.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "garment",
+       "label": "Garment photo"
+      }
+     ],
+     "template": "E-commerce on-model set of the exact garment from the reference image: consistent studio lighting, neutral background, catalog-clean. Angle: {notes}"
+    },
+    {
+     "id": "ghost-mannequin",
+     "name": "Ghost Mannequin",
+     "desc": "Invisible-mannequin product shot.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "garment",
+       "label": "Garment photo"
+      }
+     ],
+     "template": "Ghost mannequin photograph of the exact garment from the reference image: hollow-form 3D shape, no visible model, pure white background. {notes}"
+    },
+    {
+     "id": "accessory",
+     "name": "Accessory Styling",
+     "desc": "Style accessories with an outfit.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "garment",
+       "label": "Garment photo"
+      }
+     ],
+     "template": "Editorial styling shot pairing the exact items from the reference images into one cohesive look. {notes}"
+    },
+    {
+     "id": "jewelry",
+     "name": "Jewelry Hero",
+     "desc": "Macro jewelry beauty shot.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "jewelry",
+       "label": "Jewelry photo"
+      }
+     ],
+     "template": "Luxury macro beauty shot of the exact jewelry piece from the reference image, controlled reflections, dark velvet or skin context. {notes}"
+    },
+    {
+     "id": "shoe-hero",
+     "name": "Shoe Hero",
+     "desc": "Sneaker/heel hero product shot.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "shoe",
+       "label": "Shoe photo"
+      }
+     ],
+     "template": "Dynamic hero shot of the exact footwear from the reference image, floating composition, dramatic lighting, texture detail. {notes}"
+    },
+    {
+     "id": "bag-hero",
+     "name": "Bag Hero",
+     "desc": "Handbag campaign shot.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "bag",
+       "label": "Bag photo"
+      }
+     ],
+     "template": "Luxury campaign shot of the exact bag from the reference image, premium set styling, hardware detail visible. {notes}"
+    },
+    {
+     "id": "capsule",
+     "name": "Seasonal Capsule",
+     "desc": "Cohesive mini-collection board.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "garment",
+       "label": "Garment photo"
+      }
+     ],
+     "template": "Seasonal capsule collection board built around the exact garment from the reference image: 6 coordinated pieces, cohesive palette, flat presentation. {notes}"
+    },
+    {
+     "id": "moodboard",
+     "name": "Moodboard",
+     "desc": "Collection moodboard from a theme.",
+     "kind": "image",
+     "imageInputs": [],
+     "template": "Fashion collection moodboard: fabrics, palette chips, silhouettes, texture references and location mood for: {notes}"
+    },
+    {
+     "id": "pattern",
+     "name": "Pattern Designer",
+     "desc": "Seamless textile pattern.",
+     "kind": "image",
+     "imageInputs": [],
+     "template": "Seamless repeating textile pattern design: {notes}. Production-ready, balanced repeat, fashion print quality."
+    },
+    {
+     "id": "textile-print",
+     "name": "Print on Garment",
+     "desc": "Apply a print to a garment.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "garment",
+       "label": "Garment photo"
+      },
+      {
+       "id": "print",
+       "label": "Print/artwork"
+      }
+     ],
+     "template": "Apply the exact print from the second reference image onto the garment from the first reference image, following fabric drape and seams realistically. {notes}"
+    },
+    {
+     "id": "sketch-to-garment",
+     "name": "Sketch → Garment",
+     "desc": "Fashion sketch rendered as a real piece.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "sketch",
+       "label": "Design sketch"
+      }
+     ],
+     "template": "Photorealistic garment produced exactly from the fashion sketch in the reference image, on-model studio presentation, faithful proportions and details. {notes}"
+    },
+    {
+     "id": "techpack-flat",
+     "name": "Tech-Pack Flat",
+     "desc": "Manufacturing flat drawing.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "garment",
+       "label": "Garment photo"
+      }
+     ],
+     "template": "Technical flat drawing of the exact garment from the reference image: front and back vector-style line art, stitch lines and construction details, white background. {notes}"
+    },
+    {
+     "id": "size-inclusive",
+     "name": "Size-Inclusive Set",
+     "desc": "Same look across body types.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "garment",
+       "label": "Garment photo"
+      }
+     ],
+     "template": "The exact garment from the reference image presented on models of diverse body types, identical styling and lighting, respectful editorial quality. {notes}"
+    },
+    {
+     "id": "hair-makeup",
+     "name": "Hair & Makeup Look",
+     "desc": "Beauty look to match a styling brief.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "model",
+       "label": "Model / person photo"
+      }
+     ],
+     "template": "Beauty editorial of the person from the reference image with this hair and makeup direction: {notes}. Identity preserved."
+    },
+    {
+     "id": "campaign-poster",
+     "name": "Campaign Poster",
+     "desc": "Full campaign key visual with type space.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "garment",
+       "label": "Garment photo"
+      }
+     ],
+     "template": "Fashion campaign key visual featuring the exact garment from the reference image, cinematic set, generous negative space for logotype and tagline. {notes}"
+    },
+    {
+     "id": "bts",
+     "name": "Behind-the-Scenes",
+     "desc": "On-set BTS reportage frame.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "garment",
+       "label": "Garment photo"
+      }
+     ],
+     "template": "Behind-the-scenes documentary photo of a fashion shoot featuring the exact garment from the reference image: lights, crew silhouettes, candid energy. {notes}"
+    },
+    {
+     "id": "fitting-mirror",
+     "name": "Fitting Room Mirror",
+     "desc": "Mirror-selfie try-on aesthetic.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "garment",
+       "label": "Garment photo"
+      }
+     ],
+     "template": "Fitting-room mirror try-on shot of the exact garment from the reference image, phone-camera realism, flattering store lighting. {notes}"
+    },
+    {
+     "id": "catalog-grid",
+     "name": "Catalog Grid",
+     "desc": "Multi-look catalog page.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "garment",
+       "label": "Garment photo"
+      }
+     ],
+     "template": "Catalog page grid of 4 looks built around the exact garment from the reference image, consistent model, lighting and background. {notes}"
+    },
+    {
+     "id": "trend-board",
+     "name": "Trend Forecast Board",
+     "desc": "Trend direction board for a season.",
+     "kind": "image",
+     "imageInputs": [],
+     "template": "Fashion trend forecast board for: {notes}. Key silhouettes, fabric direction, palette chips, styling notes, editorial layout."
+    },
+    {
+     "id": "swim-resort",
+     "name": "Swim / Resort Shot",
+     "desc": "Resort-wear location editorial.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "garment",
+       "label": "Garment photo"
+      }
+     ],
+     "template": "Resort editorial of the exact swim/resort piece from the reference image, sun-drenched location, tasteful composition. {notes}"
+    },
+    {
+     "id": "activewear",
+     "name": "Activewear Motion",
+     "desc": "Athletic wear in dynamic movement.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "garment",
+       "label": "Garment photo"
+      }
+     ],
+     "template": "Dynamic activewear shot: athlete mid-movement wearing the exact garment from the reference image, frozen motion, gym or urban setting. {notes}"
+    },
+    {
+     "id": "denim-detail",
+     "name": "Denim & Knit Detail",
+     "desc": "Wash, stitch and knit texture study.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "garment",
+       "label": "Garment photo"
+      }
+     ],
+     "template": "Texture study of the exact garment from the reference image: wash gradients, stitching, hardware and weave in tight detail crops. {notes}"
+    }
+   ]
+  },
+  {
+   "id": "product",
+   "name": "Product Designer",
+   "icon": "◍",
+   "subtitle": "Packshots, lifestyle scenes, ads, mockups — lock your product like a character.",
+   "tools": [
+    {
+     "id": "packshot",
+     "name": "Packshot",
+     "desc": "Clean e-commerce hero shot on seamless background.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "Clean e-commerce packshot of the exact product from the reference image on a seamless studio background, soft shadows, perfect lighting, label text preserved exactly. {notes}"
+    },
+    {
+     "id": "lifestyle",
+     "name": "Lifestyle Scene",
+     "desc": "Product in a real-world scene — combine with Location Lock.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "Photorealistic lifestyle scene featuring the exact product from the reference image in natural use. Product label, shape, colors and proportions must match the reference exactly. {notes}"
+    },
+    {
+     "id": "placement",
+     "name": "Product Placement",
+     "desc": "Insert your product into an existing photo.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      },
+      {
+       "id": "scene",
+       "label": "Scene photo"
+      }
+     ],
+     "template": "Insert the exact product from the first reference image into the scene from the second reference image. Match perspective, lighting and shadows of the scene. Keep everything else unchanged. {notes}"
+    },
+    {
+     "id": "ad-shot",
+     "name": "Ad Creative",
+     "desc": "Scroll-stopping ad visual with headline space.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "High-impact advertising visual for the exact product from the reference image: bold composition, dramatic lighting, clean negative space on top third for headline text. {notes}"
+    },
+    {
+     "id": "variants",
+     "name": "Angle Set",
+     "desc": "New camera angle of the same product.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "Photograph the exact product from the reference image from a different angle: {notes}. Identical product, identical materials and label, studio consistency."
+    },
+    {
+     "id": "product-video",
+     "name": "Product Video",
+     "desc": "Cinematic product motion shot.",
+     "kind": "video",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "Cinematic product commercial shot of the exact product from the reference image, slow elegant motion, premium lighting. {notes}"
+    },
+    {
+     "id": "turntable",
+     "name": "360 Turntable",
+     "desc": "Product rotates on a turntable (video).",
+     "kind": "video",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "360 degree turntable video of the exact product from the reference image rotating slowly on a pedestal, studio lighting, seamless background. {notes}"
+    },
+    {
+     "id": "exploded",
+     "name": "Exploded View",
+     "desc": "Technical exploded-parts render.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "Technical exploded view render of the exact product from the reference image, parts separated along one axis, clean studio background, engineering-catalog quality. {notes}"
+    },
+    {
+     "id": "packaging",
+     "name": "Packaging Mockup",
+     "desc": "Your product art on box/pouch/bottle mockups.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "Professional packaging mockup featuring the exact product/artwork from the reference image, realistic materials and print finish. {notes}"
+    },
+    {
+     "id": "billboard",
+     "name": "Billboard Scene",
+     "desc": "Your ad on a real-world billboard or storefront.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "Photorealistic city scene with the exact product from the reference image displayed on a large billboard, natural perspective and lighting. {notes}"
+    },
+    {
+     "id": "story-cutout",
+     "name": "Social Cutout",
+     "desc": "9:16 story-ready cutout with bold backdrop.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "Social-media story visual: the exact product from the reference image cut out on a bold graphic backdrop with soft drop shadow, 9:16 composition, headline space top. {notes}"
+    },
+    {
+     "id": "in-hand",
+     "name": "In-Hand Scale",
+     "desc": "Product held in a hand for scale and warmth.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "Photorealistic shot of a hand naturally holding the exact product from the reference image, showing true scale, soft daylight. {notes}"
+    },
+    {
+     "id": "seasonal",
+     "name": "Seasonal Theme",
+     "desc": "Holiday/seasonal campaign scene.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "Seasonal campaign scene for the exact product from the reference image, themed props and lighting for: {notes}. Product label preserved exactly."
+    },
+    {
+     "id": "bundle",
+     "name": "Bundle / Family",
+     "desc": "Full product line-up in one hero shot.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "Hero family shot of the product range from the reference images arranged in a balanced composition, consistent studio lighting. {notes}"
+    },
+    {
+     "id": "before-after",
+     "name": "Before / After",
+     "desc": "Split-frame demonstration visual.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "Clean split-frame before-and-after demonstration visual for the exact product from the reference image. {notes}"
+    },
+    {
+     "id": "ingredients",
+     "name": "Ingredient Story",
+     "desc": "Product surrounded by its ingredients/materials.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "The exact product from the reference image surrounded by its raw ingredients artfully arranged, editorial food-photography lighting. {notes}"
+    },
+    {
+     "id": "blueprint",
+     "name": "Blueprint Line Art",
+     "desc": "Patent-style technical line drawing.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "Patent-style blueprint line drawing of the exact product from the reference image, white lines on blueprint blue, annotated measurements. {notes}"
+    },
+    {
+     "id": "web-hero",
+     "name": "Website Hero",
+     "desc": "Wide hero banner with negative space for copy.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "Wide website hero banner featuring the exact product from the reference image, generous negative space on one side for headline copy, on-brand backdrop. {notes}"
+    },
+    {
+     "id": "unboxing",
+     "name": "Unboxing Video",
+     "desc": "Hands open the packaging on camera.",
+     "kind": "video",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "Unboxing video: hands open premium packaging revealing the exact product from the reference image, top-down camera, satisfying pacing. {notes}"
+    },
+    {
+     "id": "color-variants",
+     "name": "Color Variants",
+     "desc": "Same product in N colorways, grid.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "Grid of the exact product from the reference image rendered in multiple colorways: {notes}. Shape, materials and label layout identical."
+    },
+    {
+     "id": "detail-macro",
+     "name": "Detail Macro",
+     "desc": "Tight close-up of material, texture and construction quality.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "Extreme detail macro photograph of the exact product from the reference image: material texture, construction and finish quality, focus-stacked sharpness. {notes}"
+    }
+   ]
+  },
+  {
+   "id": "apps",
+   "name": "Apps",
+   "icon": "⊞",
+   "subtitle": "One-click creative tools, Higgsfield-style — all running through your own keys or local models.",
+   "tools": [
+    {
+     "id": "headshot",
+     "name": "AI Headshot",
+     "desc": "LinkedIn-grade professional headshot from a selfie.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "face",
+       "label": "Selfie"
+      }
+     ],
+     "template": "Professional corporate headshot of the person in the reference image: same identity, business attire, neutral studio backdrop, confident expression, sharp focus. {notes}"
+    },
+    {
+     "id": "restyle",
+     "name": "Restyle Photo",
+     "desc": "Re-render any photo in a chosen visual style.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "photo",
+       "label": "Photo"
+      }
+     ],
+     "template": "Re-render the reference image faithfully in this style: {notes}. Preserve composition and subjects."
+    },
+    {
+     "id": "background-swap",
+     "name": "Background Swap",
+     "desc": "New environment behind the subject — pair with Location Lock.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "photo",
+       "label": "Photo"
+      }
+     ],
+     "template": "Replace the background of the reference image with: {notes}. Keep the subject cutout pixel-faithful, match lighting direction and color temperature to the new environment."
+    },
+    {
+     "id": "skin-enhance",
+     "name": "Skin Enhancer",
+     "desc": "Natural retouch without plastic look.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "photo",
+       "label": "Portrait"
+      }
+     ],
+     "template": "Retouch the portrait from the reference image: natural skin texture preserved, even tone, remove temporary blemishes only, no beauty-filter artifacts. {notes}"
+    },
+    {
+     "id": "expand",
+     "name": "Uncrop / Expand",
+     "desc": "Extend the image beyond its frame.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "photo",
+       "label": "Photo"
+      }
+     ],
+     "template": "Extend the reference image beyond its current borders, seamlessly continuing the scene in every direction. {notes}"
+    },
+    {
+     "id": "talking-head",
+     "name": "Talking Avatar",
+     "desc": "Character speaks your script (video).",
+     "kind": "video",
+     "imageInputs": [
+      {
+       "id": "face",
+       "label": "Character photo"
+      }
+     ],
+     "template": "The person from the reference image speaks directly to camera with natural lip movement, subtle head motion and blinks, saying: \"{notes}\""
+    },
+    {
+     "id": "face-swap",
+     "name": "Face Swap",
+     "desc": "Swap the face in image A with the face from image B.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "target",
+       "label": "Target photo"
+      },
+      {
+       "id": "face",
+       "label": "Face photo"
+      }
+     ],
+     "template": "Replace the face of the person in the first reference image with the face from the second reference image. Blend lighting, skin tone and angle seamlessly; everything else unchanged. {notes}"
+    },
+    {
+     "id": "video-face-swap",
+     "name": "Video Face Swap",
+     "desc": "Face swap applied to a short clip.",
+     "kind": "video",
+     "imageInputs": [
+      {
+       "id": "face",
+       "label": "Face photo"
+      }
+     ],
+     "template": "Short video of the person from the reference image, face identity locked, natural motion. {notes}"
+    },
+    {
+     "id": "lipsync",
+     "name": "Lipsync Studio",
+     "desc": "Sync a character's mouth to your script.",
+     "kind": "video",
+     "imageInputs": [
+      {
+       "id": "face",
+       "label": "Face photo"
+      }
+     ],
+     "template": "The person from the reference image speaks with precise lip sync, natural expressions and head motion, saying: \"{notes}\""
+    },
+    {
+     "id": "age",
+     "name": "Age Transform",
+     "desc": "Younger or older version of a person.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "face",
+       "label": "Face photo"
+      }
+     ],
+     "template": "Age-transform the person from the reference image: {notes}. Keep identity clearly recognizable."
+    },
+    {
+     "id": "hairstyle",
+     "name": "Hairstyle Try-On",
+     "desc": "Preview a new haircut/color.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "face",
+       "label": "Face photo"
+      }
+     ],
+     "template": "Give the person from the reference image this hairstyle: {notes}. Face identity and lighting unchanged."
+    },
+    {
+     "id": "makeup",
+     "name": "Makeup Artist",
+     "desc": "Apply a makeup look.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "face",
+       "label": "Face photo"
+      }
+     ],
+     "template": "Apply this makeup look to the person from the reference image: {notes}. Natural skin texture preserved."
+    },
+    {
+     "id": "tattoo",
+     "name": "Tattoo Preview",
+     "desc": "Preview a tattoo on skin.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "photo",
+       "label": "Photo"
+      }
+     ],
+     "template": "Add a realistic tattoo to the person in the reference image: {notes}. Follow body contours, realistic ink saturation."
+    },
+    {
+     "id": "pet-portrait",
+     "name": "Pet Portrait",
+     "desc": "Renaissance/royal portraits of your pet.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "pet",
+       "label": "Pet photo"
+      }
+     ],
+     "template": "Regal renaissance oil portrait of the exact pet from the reference image in ornate costume. {notes}"
+    },
+    {
+     "id": "caricature",
+     "name": "Caricature",
+     "desc": "Friendly exaggerated cartoon of a person.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "face",
+       "label": "Face photo"
+      }
+     ],
+     "template": "Friendly hand-drawn caricature of the person from the reference image, exaggerated but recognizable and flattering. {notes}"
+    },
+    {
+     "id": "stickers",
+     "name": "Sticker Pack",
+     "desc": "Chat sticker set of a character.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "face",
+       "label": "Face photo"
+      }
+     ],
+     "template": "Sticker pack sheet: 9 chibi-style stickers of the person from the reference image with different emotions, die-cut white borders, transparent background feel. {notes}"
+    },
+    {
+     "id": "album-cover",
+     "name": "Album Cover",
+     "desc": "Square cover art with title space.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "photo",
+       "label": "Photo"
+      }
+     ],
+     "template": "Album cover art based on the reference image, square composition, iconic and bold, space for artist name and title. {notes}"
+    },
+    {
+     "id": "movie-poster",
+     "name": "Movie Poster",
+     "desc": "One-sheet poster from your photo.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "photo",
+       "label": "Photo"
+      }
+     ],
+     "template": "Cinematic movie one-sheet poster featuring the reference image subject, dramatic composition, title treatment space, credits block at bottom. {notes}"
+    },
+    {
+     "id": "thumbnail",
+     "name": "YouTube Thumbnail",
+     "desc": "High-CTR 16:9 thumbnail.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "photo",
+       "label": "Photo"
+      }
+     ],
+     "template": "High-impact YouTube thumbnail from the reference image: exaggerated expression emphasis, bold rim light, clean background separation, room for 3-4 word text. {notes}"
+    },
+    {
+     "id": "logo-ideas",
+     "name": "Logo Concepts",
+     "desc": "Logo direction board from a brief.",
+     "kind": "image",
+     "imageInputs": [],
+     "template": "Logo concept board: 6 distinct logo directions for: {notes}. Vector-flat presentation on neutral grid."
+    },
+    {
+     "id": "interior",
+     "name": "Interior Redesign",
+     "desc": "Restyle a room photo.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "room",
+       "label": "Room photo"
+      }
+     ],
+     "template": "Redesign the room from the reference image in this style: {notes}. Keep architecture, windows and layout; change furniture, palette and decor."
+    },
+    {
+     "id": "landscape",
+     "name": "Garden Design",
+     "desc": "Landscape a yard photo.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "yard",
+       "label": "Yard photo"
+      }
+     ],
+     "template": "Professional landscape design applied to the yard from the reference image: {notes}. Keep house and boundaries unchanged."
+    },
+    {
+     "id": "car-wrap",
+     "name": "Car Wrap Preview",
+     "desc": "Preview a wrap/livery on your car.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "car",
+       "label": "Car photo"
+      }
+     ],
+     "template": "Apply this wrap design to the exact car from the reference image: {notes}. Body lines, reflections and environment preserved."
+    },
+    {
+     "id": "colorize",
+     "name": "Colorize B&W",
+     "desc": "Color for old black-and-white photos.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "photo",
+       "label": "Photo"
+      }
+     ],
+     "template": "Colorize the black-and-white reference photograph with historically plausible, naturally graded colors. {notes}"
+    },
+    {
+     "id": "restore",
+     "name": "Photo Restore",
+     "desc": "Repair scratches, fading, damage.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "photo",
+       "label": "Photo"
+      }
+     ],
+     "template": "Restore the damaged reference photograph: remove scratches, tears and fading, recover detail, keep authentic character. {notes}"
+    },
+    {
+     "id": "remove-object",
+     "name": "Object Remover",
+     "desc": "Erase anything from a photo.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "photo",
+       "label": "Photo"
+      }
+     ],
+     "template": "Remove this from the reference image: {notes}. Reconstruct the background seamlessly."
+    },
+    {
+     "id": "relight",
+     "name": "Relight",
+     "desc": "Change the lighting of a finished photo.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "photo",
+       "label": "Photo"
+      }
+     ],
+     "template": "Relight the reference image: {notes}. Subject and composition unchanged, physically plausible new light."
+    },
+    {
+     "id": "parallax",
+     "name": "3D Parallax",
+     "desc": "Turn a photo into a depth parallax clip.",
+     "kind": "video",
+     "imageInputs": [
+      {
+       "id": "photo",
+       "label": "Photo"
+      }
+     ],
+     "template": "Cinematic 3D parallax motion clip from the still reference image, subtle camera drift, layered depth. {notes}"
+    },
+    {
+     "id": "pixel-art",
+     "name": "Pixel Art",
+     "desc": "Retro game sprite version.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "photo",
+       "label": "Photo"
+      }
+     ],
+     "template": "Convert the reference image into detailed 32-bit era pixel art, limited palette, crisp pixels. {notes}"
+    },
+    {
+     "id": "anime-me",
+     "name": "Anime Portrait",
+     "desc": "Anime version of a person.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "face",
+       "label": "Face photo"
+      }
+     ],
+     "template": "High-quality anime portrait of the person from the reference image, faithful hairstyle and features, clean cel shading. {notes}"
+    },
+    {
+     "id": "action-figure",
+     "name": "Action Figure",
+     "desc": "Boxed collectible figure of a person.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "face",
+       "label": "Face photo"
+      }
+     ],
+     "template": "Collectible action figure of the person from the reference image in blister-pack box with accessories and character name, product photography. {notes}"
+    },
+    {
+     "id": "passport",
+     "name": "Passport Photo",
+     "desc": "Compliant ID photo from a selfie.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "face",
+       "label": "Face photo"
+      }
+     ],
+     "template": "Regulation passport photo of the person from the reference image: neutral expression, even lighting, plain background, correct crop. {notes}"
+    },
+    {
+     "id": "storybook",
+     "name": "Storybook Page",
+     "desc": "Children's book illustration of your scene.",
+     "kind": "image",
+     "imageInputs": [],
+     "template": "Charming children's storybook illustration with hand-lettered caption space: {notes}"
+    },
+    {
+     "id": "coloring",
+     "name": "Coloring Page",
+     "desc": "Line-art coloring page from any image.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "photo",
+       "label": "Photo"
+      }
+     ],
+     "template": "Convert the reference image into a clean black-line coloring book page, no shading. {notes}"
+    },
+    {
+     "id": "inpaint",
+     "name": "Inpaint",
+     "desc": "Select-and-describe area edits.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "photo",
+       "label": "Photo"
+      }
+     ],
+     "template": "Edit the reference image: {notes}. Change only the described area, blend seamlessly, keep everything else pixel-faithful."
+    },
+    {
+     "id": "photodump",
+     "name": "Photodump",
+     "desc": "A whole aesthetic photo set of your character.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "face",
+       "label": "Face/character photo"
+      }
+     ],
+     "template": "Photodump set: 6 candid aesthetic photos of the person from the reference image across one day — consistent identity, varied scenes, authentic feel. Vibe: {notes}"
+    },
+    {
+     "id": "moodboard-app",
+     "name": "Moodboard",
+     "desc": "Turn references into a focused moodboard.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "photo",
+       "label": "Photo"
+      }
+     ],
+     "template": "Focused moodboard built from the reference image's aesthetic: palette chips, textures, typography direction, scene references. Theme: {notes}"
+    },
+    {
+     "id": "layerlab",
+     "name": "LayerLab",
+     "desc": "Decompose an image into editable layers.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "photo",
+       "label": "Photo"
+      }
+     ],
+     "template": "Layer decomposition sheet of the reference image: subject cutout, midground, background and shadow layers presented separately on neutral grid. {notes}"
+    },
+    {
+     "id": "magic-mirror",
+     "name": "Magic Mirror",
+     "desc": "Fantasy mirror transformation portrait.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "face",
+       "label": "Face/character photo"
+      }
+     ],
+     "template": "Ornate magic-mirror portrait: the person from the reference image reflected as {notes}, identity recognizable, enchanted atmosphere."
+    },
+    {
+     "id": "relight-pos",
+     "name": "Relight Pro",
+     "desc": "Reposition light source, color and brightness.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "photo",
+       "label": "Photo"
+      }
+     ],
+     "template": "Relight the reference image: light position {notes}. Physically plausible shadows, subject unchanged."
+    },
+    {
+     "id": "storyboard",
+     "name": "Popcorn Storyboard",
+     "desc": "Story → 6-panel storyboard.",
+     "kind": "image",
+     "imageInputs": [],
+     "template": "6-panel cinematic storyboard with captions for this story: {notes}. Consistent characters across panels, varied shot sizes."
+    }
+   ]
+  },
+  {
+   "id": "marketing",
+   "name": "Marketing Studio",
+   "icon": "📣",
+   "subtitle": "Turn any product into a video ad — UGC, hooks, TikTok, commercials. Locked product + avatar + location.",
+   "tools": [
+    {
+     "id": "url-to-ad",
+     "name": "URL to Ad",
+     "desc": "Paste a product URL in details — get a formatted ad concept + visual.",
+     "kind": "image",
+     "imageInputs": [],
+     "template": "Advertising key visual for the product at this URL: {notes}. Scroll-stopping composition, headline space, platform-ready."
+    },
+    {
+     "id": "ugc-ad",
+     "name": "UGC Ad",
+     "desc": "Authentic creator-style ad with your product.",
+     "kind": "video",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "UGC-style selfie video ad: an authentic creator enthusiastically shows the exact product from the reference image, handheld phone look, casual real-home background. Script/hook: {notes}"
+    },
+    {
+     "id": "hook-ad",
+     "name": "Hook Ad",
+     "desc": "3-second scroll-stopper opening.",
+     "kind": "video",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "High-energy 3-second hook shot for the exact product from the reference image: unexpected visual, fast movement, bold text space. Hook idea: {notes}"
+    },
+    {
+     "id": "tiktok-ad",
+     "name": "TikTok Ad",
+     "desc": "9:16 native-feel ad.",
+     "kind": "video",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "Native TikTok-style 9:16 vertical ad for the exact product from the reference image, trending-format pacing, captions space. {notes}"
+    },
+    {
+     "id": "commercial",
+     "name": "Commercial 30s Frame",
+     "desc": "Broadcast-grade commercial key frames.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "Broadcast commercial key frame for the exact product from the reference image: cinematic lighting, premium set design. {notes}"
+    },
+    {
+     "id": "avatar-spokesperson",
+     "name": "Avatar Spokesperson",
+     "desc": "Your character presents the product.",
+     "kind": "video",
+     "imageInputs": [
+      {
+       "id": "avatar",
+       "label": "Avatar/character"
+      },
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "The person from the first reference image presents the exact product from the second reference image to camera, confident sales energy, saying: \"{notes}\""
+    },
+    {
+     "id": "ad-variations",
+     "name": "Ad A/B Batch",
+     "desc": "Same product, multiple hooks/styles for testing.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "product",
+       "label": "Product photo"
+      }
+     ],
+     "template": "Set of 4 distinct ad visuals for the exact product from the reference image, each a different creative angle: {notes}. Consistent product, varied hooks."
+    },
+    {
+     "id": "click-to-ad",
+     "name": "Click to Ad",
+     "desc": "Product page screenshot → ad creative.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "screenshot",
+       "label": "Product page screenshot"
+      }
+     ],
+     "template": "Transform the product shown in the reference screenshot into a polished ad creative with headline space. {notes}"
+    }
+   ]
+  },
+  {
+   "id": "shorts",
+   "name": "Shorts Studio",
+   "icon": "📱",
+   "subtitle": "Talking-head shorts with preset looks — Bold Urban, Green Contrast, Warm Glow — or presets built from your references.",
+   "tools": [
+    {
+     "id": "talking-short",
+     "name": "Talking Short",
+     "desc": "Your character speaks a script in a styled frame.",
+     "kind": "video",
+     "imageInputs": [
+      {
+       "id": "face",
+       "label": "Face/character photo"
+      }
+     ],
+     "template": "9:16 talking-head short: the person from the reference image speaks to camera with captions style, engaging pacing, saying: \"{notes}\""
+    },
+    {
+     "id": "bold-urban",
+     "name": "Bold Urban Preset",
+     "desc": "Split-color urban podcast look.",
+     "kind": "video",
+     "imageInputs": [
+      {
+       "id": "face",
+       "label": "Face/character photo"
+      }
+     ],
+     "template": "9:16 short of the person from the reference image in a bold split-color urban studio, podcast mic, chat-bubble caption overlays. Script: {notes}"
+    },
+    {
+     "id": "green-contrast",
+     "name": "Green Contrast Preset",
+     "desc": "Desk setup, punchy green backdrop.",
+     "kind": "video",
+     "imageInputs": [
+      {
+       "id": "face",
+       "label": "Face/character photo"
+      }
+     ],
+     "template": "9:16 short of the person from the reference image at a laptop desk against a high-contrast green backdrop, energetic gestures. Script: {notes}"
+    },
+    {
+     "id": "warm-glow",
+     "name": "Warm Glow Preset",
+     "desc": "Cozy lamp-lit close frame.",
+     "kind": "video",
+     "imageInputs": [
+      {
+       "id": "face",
+       "label": "Face/character photo"
+      }
+     ],
+     "template": "9:16 short of the person from the reference image in warm lamp-lit room, intimate framing, bold keyword captions. Script: {notes}"
+    },
+    {
+     "id": "preset-from-ref",
+     "name": "Preset from Reference",
+     "desc": "Clone the style of any short you like.",
+     "kind": "video",
+     "imageInputs": [
+      {
+       "id": "style_ref",
+       "label": "Reference short frame"
+      },
+      {
+       "id": "face",
+       "label": "Your character"
+      }
+     ],
+     "template": "9:16 short: apply the exact visual style, framing and caption treatment of the first reference image to the person from the second reference image. Script: {notes}"
+    },
+    {
+     "id": "podcast-clip",
+     "name": "Podcast Clip",
+     "desc": "Two-speaker podcast frame.",
+     "kind": "video",
+     "imageInputs": [
+      {
+       "id": "face",
+       "label": "Face/character photo"
+      }
+     ],
+     "template": "9:16 podcast clip: the person from the reference image at a podcast table with mic, waveform captions, discussing: {notes}"
+    }
+   ]
+  },
+  {
+   "id": "explainer",
+   "name": "Explainer",
+   "icon": "🎓",
+   "subtitle": "Any topic → captioned explainer video, up to 10 minutes — pixel art, claymotion, papercraft, whiteboard styles.",
+   "tools": [
+    {
+     "id": "pixel-explainer",
+     "name": "Pixel Art Explainer",
+     "desc": "Retro-game style explainer.",
+     "kind": "video",
+     "imageInputs": [],
+     "template": "Pixel-art style explainer video scene with captions explaining: {notes}. Charming retro-game visuals, clear visual metaphors."
+    },
+    {
+     "id": "claymotion-explainer",
+     "name": "Claymotion Explainer",
+     "desc": "Stop-motion clay style.",
+     "kind": "video",
+     "imageInputs": [],
+     "template": "Claymation stop-motion explainer scene with captions explaining: {notes}. Playful clay characters, tilt-shift miniature sets."
+    },
+    {
+     "id": "papercraft-explainer",
+     "name": "3D Papercraft",
+     "desc": "Layered paper diorama style.",
+     "kind": "video",
+     "imageInputs": [],
+     "template": "3D papercraft diorama explainer scene explaining: {notes}. Layered cut-paper depth, theatrical staging."
+    },
+    {
+     "id": "whiteboard",
+     "name": "Whiteboard Doodle",
+     "desc": "Hand-drawn marker explainer.",
+     "kind": "video",
+     "imageInputs": [],
+     "template": "Whiteboard doodle explainer: a hand draws marker illustrations explaining: {notes}. Clean sketching, keyword callouts."
+    },
+    {
+     "id": "2d-illustrator",
+     "name": "2D Illustrator",
+     "desc": "Flat editorial illustration style.",
+     "kind": "video",
+     "imageInputs": [],
+     "template": "2D flat-illustration explainer scene explaining: {notes}. Editorial character design, smooth motion-graphics feel."
+    },
+    {
+     "id": "mixed-explainer",
+     "name": "Mixed Media Explainer",
+     "desc": "Photo + illustration collage style.",
+     "kind": "video",
+     "imageInputs": [],
+     "template": "Mixed-media collage explainer scene explaining: {notes}. Photography layered with hand-drawn annotations and paper textures."
+    }
+   ]
+  },
+  {
+   "id": "influencer",
+   "name": "AI Influencer",
+   "icon": "🌟",
+   "subtitle": "Design a permanent virtual persona — human or creature — then deploy it across posts, reels and ads with locked identity.",
+   "tools": [
+    {
+     "id": "create-influencer",
+     "name": "Create Influencer",
+     "desc": "Design a new persona from a brief (human, alien, octopus… anything).",
+     "kind": "image",
+     "imageInputs": [],
+     "template": "Character sheet for a new AI influencer: {notes}. Front portrait, 3/4 view and full body, consistent identity, studio lighting, distinctive memorable design."
+    },
+    {
+     "id": "influencer-post",
+     "name": "Lifestyle Post",
+     "desc": "Feed post in any scene — pairs with Location Lock.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "face",
+       "label": "Face/character photo"
+      }
+     ],
+     "template": "Instagram lifestyle post of the exact character from the reference image in a natural candid moment. {notes}"
+    },
+    {
+     "id": "influencer-reel",
+     "name": "Talking Reel",
+     "desc": "Character speaks to camera.",
+     "kind": "video",
+     "imageInputs": [
+      {
+       "id": "face",
+       "label": "Face/character photo"
+      }
+     ],
+     "template": "9:16 reel: the exact character from the reference image talks to camera with natural gestures, saying: \"{notes}\""
+    },
+    {
+     "id": "influencer-collab",
+     "name": "Brand Collab",
+     "desc": "Character promotes a product.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "face",
+       "label": "Character"
+      },
+      {
+       "id": "product",
+       "label": "Product"
+      }
+     ],
+     "template": "Sponsored-post visual: the exact character from the first reference image naturally featuring the exact product from the second reference image. {notes}"
+    },
+    {
+     "id": "influencer-outfits",
+     "name": "Outfit Set",
+     "desc": "Same persona, new looks.",
+     "kind": "image",
+     "imageInputs": [
+      {
+       "id": "face",
+       "label": "Face/character photo"
+      }
+     ],
+     "template": "Fashion set of the exact character from the reference image in 4 different outfits: {notes}. Identity perfectly consistent."
+    },
+    {
+     "id": "character-types",
+     "name": "Creature Persona",
+     "desc": "Non-human persona: ant, bee, octopus, lizard, alien…",
+     "kind": "image",
+     "imageInputs": [],
+     "template": "Photorealistic anthropomorphic influencer persona: {notes}. Wearing fashionable human clothing, expressive face, portrait-grade lighting."
+    }
+   ]
+  },
+  {
+   "id": "voice",
+   "name": "Voice & Audio",
+   "icon": "🎙",
+   "subtitle": "Voiceover, sound design, music beds — via ElevenLabs, FAL audio models or local open-source (MusicGen, Bark, XTTS).",
+   "tools": [
+    {
+     "id": "voiceover",
+     "name": "Voiceover",
+     "desc": "Narration from a script.",
+     "kind": "audio",
+     "imageInputs": [],
+     "template": "{notes}"
+    },
+    {
+     "id": "character-voice",
+     "name": "Character Voice",
+     "desc": "Stylized character read.",
+     "kind": "audio",
+     "imageInputs": [],
+     "template": "[Read in a distinctive character voice matching this description] {notes}"
+    },
+    {
+     "id": "sound-fx",
+     "name": "Sound Design",
+     "desc": "Ambience & effects from a description.",
+     "kind": "audio",
+     "imageInputs": [],
+     "template": "Sound design: {notes}"
+    },
+    {
+     "id": "music-bed",
+     "name": "Music Bed",
+     "desc": "Loopable background track.",
+     "kind": "audio",
+     "imageInputs": [],
+     "template": "Instrumental music bed, loop-friendly, for: {notes}"
+    },
+    {
+     "id": "podcast-intro",
+     "name": "Podcast Intro",
+     "desc": "Voiced show intro with energy.",
+     "kind": "audio",
+     "imageInputs": [],
+     "template": "Energetic podcast intro narration: {notes}"
+    },
+    {
+     "id": "audio-story",
+     "name": "Audio Story",
+     "desc": "Narrated scene for shorts/explainers.",
+     "kind": "audio",
+     "imageInputs": [],
+     "template": "Narrated audio story with natural pacing and emotion: {notes}"
+    }
+   ]
+  },
+  {
+   "id": "appbuild",
+   "name": "App Building",
+   "icon": "🛠",
+   "subtitle": "Full apps, websites, games and automations — generated by Claude/LLM APIs or local code models (Qwen-Coder, DeepSeek-Coder).",
+   "tools": [
+    {
+     "id": "web-app",
+     "name": "Web App",
+     "desc": "Full single-file web app from a description.",
+     "kind": "llm",
+     "imageInputs": [],
+     "template": "Build a complete, polished single-file HTML web application: {notes}. Inline CSS+JS, dark UI, fully working."
+    },
+    {
+     "id": "game",
+     "name": "Game Builder",
+     "desc": "Playable browser game.",
+     "kind": "llm",
+     "imageInputs": [],
+     "template": "Build a complete playable browser game as a single HTML file: {notes}. Keyboard + touch controls, score, restart."
+    },
+    {
+     "id": "landing",
+     "name": "Landing Page",
+     "desc": "Conversion-focused landing page.",
+     "kind": "llm",
+     "imageInputs": [],
+     "template": "Build a stunning single-file landing page: {notes}. Hero, features, social proof, CTA sections, responsive."
+    },
+    {
+     "id": "dashboard",
+     "name": "Dashboard",
+     "desc": "Data dashboard with charts.",
+     "kind": "llm",
+     "imageInputs": [],
+     "template": "Build a single-file analytics dashboard with charts (use Chart.js CDN): {notes}."
+    },
+    {
+     "id": "chrome-ext",
+     "name": "Browser Extension",
+     "desc": "Manifest V3 extension scaffold.",
+     "kind": "llm",
+     "imageInputs": [],
+     "template": "Generate a complete Chrome extension (manifest.json + popup + scripts, shown as labeled code blocks): {notes}"
+    },
+    {
+     "id": "api-server",
+     "name": "API Server",
+     "desc": "REST API backend scaffold.",
+     "kind": "llm",
+     "imageInputs": [],
+     "template": "Generate a complete Node.js Express (or FastAPI) REST API with routes, validation and comments: {notes}"
+    },
+    {
+     "id": "automation",
+     "name": "Automation Script",
+     "desc": "Task automation in Python/JS.",
+     "kind": "llm",
+     "imageInputs": [],
+     "template": "Write a robust, commented automation script for: {notes}. Include setup instructions."
+    },
+    {
+     "id": "screenshot-to-app",
+     "name": "Screenshot → App",
+     "desc": "Rebuild any UI from a screenshot.",
+     "kind": "llm",
+     "imageInputs": [
+      {
+       "id": "screenshot",
+       "label": "Screenshot / sketch"
+      }
+     ],
+     "template": "Recreate the interface shown in the reference image as a working single-file HTML app, matching layout, colors and typography. {notes}"
+    }
+   ]
+  },
+  {
+   "id": "designdocs",
+   "name": "Design Docs",
+   "icon": "📐",
+   "subtitle": "Specs, PRDs, wireframes, brand guides, pitch decks — the paperwork of product, AI-written and AI-drawn.",
+   "tools": [
+    {
+     "id": "prd",
+     "name": "PRD / Spec",
+     "desc": "Full product requirements document.",
+     "kind": "llm",
+     "imageInputs": [],
+     "template": "Write a complete PRD: problem, goals/non-goals, user stories, functional requirements, success metrics, milestones, risks. Product: {notes}"
+    },
+    {
+     "id": "wireframe",
+     "name": "Wireframe Set",
+     "desc": "Low-fi screens of a product flow.",
+     "kind": "image",
+     "imageInputs": [],
+     "template": "Clean low-fidelity wireframe sheet: 6 key screens of {notes}, grey boxes, annotation labels, UX-flow arrows."
+    },
+    {
+     "id": "brand-guide",
+     "name": "Brand Guide",
+     "desc": "Logo directions, palette, typography rules.",
+     "kind": "llm",
+     "imageInputs": [],
+     "template": "Write a concise brand guideline document: positioning, voice, logo usage rules, color palette (with hex), typography, do/don't list. Brand: {notes}"
+    },
+    {
+     "id": "pitch-deck",
+     "name": "Pitch Deck Outline",
+     "desc": "Investor deck, slide by slide.",
+     "kind": "llm",
+     "imageInputs": [],
+     "template": "Write a 12-slide investor pitch deck: per-slide headline, content bullets and visual direction. Startup: {notes}"
+    },
+    {
+     "id": "user-journey",
+     "name": "User Journey Map",
+     "desc": "Personas + journey stages visual.",
+     "kind": "image",
+     "imageInputs": [],
+     "template": "User journey map infographic for {notes}: persona, stages, actions, emotions curve, pain points, opportunities."
+    },
+    {
+     "id": "design-system",
+     "name": "Design System Doc",
+     "desc": "Tokens, components, states.",
+     "kind": "llm",
+     "imageInputs": [],
+     "template": "Draft a design-system doc: color tokens, type scale, spacing, core components with variants/states/accessibility notes. Product: {notes}"
+    },
+    {
+     "id": "api-docs",
+     "name": "API Docs",
+     "desc": "Developer documentation from a spec.",
+     "kind": "llm",
+     "imageInputs": [],
+     "template": "Write clean developer documentation with endpoints, params, examples and error codes for: {notes}"
+    },
+    {
+     "id": "ui-mockup",
+     "name": "Hi-Fi Mockup",
+     "desc": "Polished UI mockup image.",
+     "kind": "image",
+     "imageInputs": [],
+     "template": "High-fidelity UI mockup, dribbble-quality, dark elegant theme: {notes}"
+    }
+   ]
+  },
+  {
+   "id": "digiproduct",
+   "name": "Digital Product Maker",
+   "icon": "📦",
+   "subtitle": "Sellable digital goods — ebooks, courses, templates, packs — written, designed and packaged.",
+   "tools": [
+    {
+     "id": "ebook",
+     "name": "eBook Writer",
+     "desc": "Complete ebook with chapters.",
+     "kind": "llm",
+     "imageInputs": [],
+     "template": "Write a complete, well-structured ebook with title, TOC and full chapters on: {notes}"
+    },
+    {
+     "id": "course",
+     "name": "Course Curriculum",
+     "desc": "Module-by-module online course.",
+     "kind": "llm",
+     "imageInputs": [],
+     "template": "Design a complete online course: modules, lessons with summaries, exercises, quizzes and completion project. Topic: {notes}"
+    },
+    {
+     "id": "ebook-cover",
+     "name": "eBook Cover",
+     "desc": "Bestseller-grade cover art.",
+     "kind": "image",
+     "imageInputs": [],
+     "template": "Professional ebook cover design, strong typography hierarchy, genre-appropriate: {notes}"
+    },
+    {
+     "id": "notion-template",
+     "name": "Template Pack",
+     "desc": "Notion/planner template blueprint.",
+     "kind": "llm",
+     "imageInputs": [],
+     "template": "Design a sellable productivity template pack: structure, databases/sections, properties, usage guide. Theme: {notes}"
+    },
+    {
+     "id": "sticker-pack",
+     "name": "Digital Sticker Pack",
+     "desc": "Cohesive illustrated sticker sheet.",
+     "kind": "image",
+     "imageInputs": [],
+     "template": "Cohesive digital sticker pack sheet, 12 stickers, consistent style, die-cut borders: {notes}"
+    },
+    {
+     "id": "newsletter",
+     "name": "Newsletter Issue",
+     "desc": "Ready-to-send newsletter.",
+     "kind": "llm",
+     "imageInputs": [],
+     "template": "Write a complete engaging newsletter issue with subject line options, sections and CTA on: {notes}"
+    },
+    {
+     "id": "prompt-pack",
+     "name": "Prompt Pack",
+     "desc": "Sellable AI prompt collection.",
+     "kind": "llm",
+     "imageInputs": [],
+     "template": "Create a sellable pack of 25 expert prompts with usage notes for: {notes}"
+    },
+    {
+     "id": "audiobook",
+     "name": "Audiobook Narration",
+     "desc": "Voice the product (audio).",
+     "kind": "audio",
+     "imageInputs": [],
+     "template": "Warm professional audiobook narration: {notes}"
+    }
+   ]
+  }
+ ]
+}

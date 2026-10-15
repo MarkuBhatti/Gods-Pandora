@@ -1,0 +1,60 @@
+# ── Node ──
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.pnpm-debug.log*
+
+# ── Vite / build output ──
+dist/
+dist-ssr/
+
+# ── Electron-builder output ──
+release/
+
+# ── Python local engine ──
+engine/venv/
+engine/__pycache__/
+engine/*.pyc
+__pycache__/
+*.py[cod]
+
+# ── App user data (generated at runtime, never committed) ──
+userData/
+*.enc.json
+db.json
+
+# ── Logs ──
+*.log
+logs/
+
+# ── OS junk ──
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# ── Editor ──
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# ── Env / secrets ──
+.env
+.env.local
+.env.*.local
+
+# build log
+build-log.txt
+
+# ── Large / unused source art (kept locally, not shipped) ──
+assets-src/
+bg/
+prototype.html
+/logo.jpg
+/logo.png
+
+# code signing secrets
+signing.env.bat
+*.pfx
+*.p12

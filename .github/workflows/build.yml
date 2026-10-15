@@ -1,0 +1,121 @@
+name: Build & Release
+
+on:
+  push:
+    tags:
+      - 'v*'          # triggers on: git tag v1.0.0 && git push --tags
+  workflow_dispatch:   # also allows manual trigger from GitHub Actions UI
+
+jobs:
+  build:
+    name: Build on ${{ matrix.os }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: windows-latest
+            artifact: "release/*.exe"
+            label: Windows
+          - os: macos-latest
+            artifact: "release/*.dmg"
+            label: macOS
+
+    runs-on: ${{ matrix.os }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: 'npm'
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Build UI + package
+        run: npm run build
+        env:
+          # Prevents electron-builder from trying to publish/sign on CI
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          CSC_IDENTITY_AUTO_DISCOVERY: "false"   # macOS stays unsigned until an Apple Developer ID is added
+          # Windows signing (optional) — add these as repository secrets; see SIGNING.md
+          AZURE_TENANT_ID: ${{ secrets.AZURE_TENANT_ID }}
+          AZURE_CLIENT_ID: ${{ secrets.AZURE_CLIENT_ID }}
+          AZURE_CLIENT_SECRET: ${{ secrets.AZURE_CLIENT_SECRET }}
+
+      - name: Upload installer artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gods-pandora-${{ matrix.label }}
+          # latest*.yml + .blockmap are required by the in-app updater (electron-updater)
+          path: |
+            release/*.exe
+            release/*.exe.blockmap
+            release/*.dmg
+            release/*.zip
+            release/*.zip.blockmap
+            release/latest*.yml
+          if-no-files-found: warn
+          retention-days: 30
+
+  release:
+    name: Publish GitHub Release
+    needs: build
+    runs-on: ubuntu-latest
+    # Only create a release when triggered by a version tag
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    permissions:
+      contents: write
+
+    steps:
+      - name: Download Windows artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: gods-pandora-Windows
+          path: artifacts/windows
+
+      - name: Download macOS artifact
+        uses: actions/download-artifact@v4
+        with:
+          name: gods-pandora-macOS
+          path: artifacts/macos
+
+      - name: Create GitHub Release
+        uses: softprops/action-gh-release@v2
+        with:
+          name: "God's Pandora ${{ github.ref_name }}"
+          body: |
+            ## God's Pandora ${{ github.ref_name }}
+
+            ### Download
+
+            | Platform | File |
+            |----------|------|
+            | Windows  | `Gods-Pandora-Setup-*.exe` |
+            | macOS    | `Gods-Pandora-*.dmg` |
+
+            ### Install
+            - **Windows:** run the `.exe` installer, click Install, launch from Desktop shortcut
+            - **macOS:** open the `.dmg`, drag God's Pandora to Applications
+
+            ### First run
+            1. Go to **Settings** → paste your API keys (add a Hugging Face token for gated models)
+            2. Pick a studio and start generating
+
+            ### Updating
+            Already installed? Open **⬆ Update** in the app → *Check for updates* → *Download* → *Restart & install*.
+
+            ---
+            See [CHANGELOG](https://github.com/${{ github.repository }}/blob/main/CHANGELOG.md) for what's new.
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}   # e.g. v1.0.0-beta = prerelease
+          files: |
+            artifacts/windows/*
+            artifacts/macos/*
+          generate_release_notes: true
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}

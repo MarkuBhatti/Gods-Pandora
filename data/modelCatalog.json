@@ -1,0 +1,434 @@
+{
+  "note": "Editable catalog. endpoint = provider-specific model path. refInput = field name for reference images (enables Character + Location Lock). Add/remove entries freely. | params: which optional generation settings each API accepts (seed, steps, guidance, resolution, duration).",
+  "models": [
+    {
+      "id": "soul-fal-flux-lora",
+      "name": "Identity Lock · FLUX LoRA (FAL) — uses trained characters",
+      "provider": "fal",
+      "kind": "image",
+      "endpoint": "fal-ai/flux-lora",
+      "refInput": null,
+      "soul": true,
+      "params": {
+        "seed": true,
+        "stepsKey": "num_inference_steps",
+        "guidanceKey": "guidance_scale",
+        "imageSize": true
+      }
+    },
+    {
+      "id": "flux-pro-ultra",
+      "name": "FLUX 1.1 Pro Ultra",
+      "provider": "fal",
+      "kind": "image",
+      "endpoint": "fal-ai/flux-pro/v1.1-ultra",
+      "refInput": null,
+      "params": {
+        "seed": true
+      }
+    },
+    {
+      "id": "nano-banana-pro",
+      "name": "Nano Banana Pro (edit + refs)",
+      "provider": "fal",
+      "kind": "image",
+      "endpoint": "fal-ai/nano-banana-pro",
+      "refInput": "image_urls",
+      "maxRefs": 6
+    },
+    {
+      "id": "seedream",
+      "name": "Seedream 4.0 (refs)",
+      "provider": "fal",
+      "kind": "image",
+      "endpoint": "fal-ai/bytedance/seedream/v4/edit",
+      "refInput": "image_urls",
+      "maxRefs": 6,
+      "params": {
+        "seed": true
+      }
+    },
+    {
+      "id": "flux-kontext",
+      "name": "FLUX Kontext Pro (refs)",
+      "provider": "fal",
+      "kind": "image",
+      "endpoint": "fal-ai/flux-pro/kontext",
+      "refInput": "image_url",
+      "maxRefs": 1,
+      "params": {
+        "seed": true,
+        "guidanceKey": "guidance_scale"
+      }
+    },
+    {
+      "id": "kling-video",
+      "name": "Kling 2.5 Turbo Pro (video)",
+      "provider": "fal",
+      "kind": "video",
+      "endpoint": "fal-ai/kling-video/v2.5-turbo/pro/image-to-video",
+      "refInput": "image_url",
+      "maxRefs": 1,
+      "params": {
+        "durations": [
+          5,
+          10
+        ],
+        "durationAsString": true
+      }
+    },
+    {
+      "id": "kling-t2v",
+      "name": "Kling 2.5 Text-to-Video",
+      "provider": "fal",
+      "kind": "video",
+      "endpoint": "fal-ai/kling-video/v2.5-turbo/pro/text-to-video",
+      "refInput": null,
+      "params": {
+        "durations": [
+          5,
+          10
+        ],
+        "durationAsString": true
+      }
+    },
+    {
+      "id": "minimax-video",
+      "name": "MiniMax Hailuo 02 (video)",
+      "provider": "fal",
+      "kind": "video",
+      "endpoint": "fal-ai/minimax/hailuo-02/standard/text-to-video",
+      "refInput": null,
+      "params": {
+        "durations": [
+          6,
+          10
+        ],
+        "durationAsString": true
+      }
+    },
+    {
+      "id": "wan-video",
+      "name": "Wan 2.2 (video)",
+      "provider": "fal",
+      "kind": "video",
+      "endpoint": "fal-ai/wan/v2.2-a14b/text-to-video",
+      "refInput": null,
+      "params": {
+        "seed": true,
+        "resolutions": [
+          "480p",
+          "580p",
+          "720p"
+        ],
+        "stepsKey": "num_inference_steps",
+        "guidanceKey": "guidance_scale",
+        "duration": false
+      }
+    },
+    {
+      "id": "mmaudio",
+      "name": "MMAudio (sound design)",
+      "provider": "fal",
+      "kind": "audio",
+      "endpoint": "fal-ai/mmaudio-v2/text-to-audio",
+      "refInput": null
+    },
+    {
+      "id": "rep-flux-dev",
+      "name": "FLUX Dev (Replicate)",
+      "provider": "replicate",
+      "kind": "image",
+      "endpoint": "black-forest-labs/flux-dev",
+      "refInput": null,
+      "params": {
+        "seed": true,
+        "stepsKey": "num_inference_steps",
+        "guidanceKey": "guidance"
+      }
+    },
+    {
+      "id": "rep-sdxl",
+      "name": "SDXL (Replicate)",
+      "provider": "replicate",
+      "kind": "image",
+      "endpoint": "stability-ai/sdxl",
+      "refInput": null,
+      "params": {
+        "seed": true,
+        "size": true,
+        "stepsKey": "num_inference_steps",
+        "guidanceKey": "guidance_scale"
+      }
+    },
+    {
+      "id": "rep-veo",
+      "name": "Veo 3 Fast (Replicate)",
+      "provider": "replicate",
+      "kind": "video",
+      "endpoint": "google/veo-3-fast",
+      "refInput": null
+    },
+    {
+      "id": "gpt-image",
+      "name": "GPT Image 1 (OpenAI)",
+      "provider": "openai",
+      "kind": "image",
+      "endpoint": "gpt-image-1",
+      "refInput": null
+    },
+    {
+      "id": "imagen",
+      "name": "Imagen 4 (Google)",
+      "provider": "google",
+      "kind": "image",
+      "endpoint": "imagen-4.0-generate-001",
+      "refInput": null
+    },
+    {
+      "id": "veo-google",
+      "name": "Veo 3 (Google direct)",
+      "provider": "google",
+      "kind": "video",
+      "endpoint": "veo-3.0-generate-preview",
+      "refInput": null
+    },
+    {
+      "id": "stability-core",
+      "name": "Stable Image Core",
+      "provider": "stability",
+      "kind": "image",
+      "endpoint": "core",
+      "refInput": null
+    },
+    {
+      "id": "eleven-tts",
+      "name": "ElevenLabs TTS (voice)",
+      "provider": "elevenlabs",
+      "kind": "audio",
+      "endpoint": "eleven_multilingual_v2",
+      "refInput": null
+    },
+    {
+      "id": "local-sdxl",
+      "name": "SDXL Base (local, open-source)",
+      "provider": "local",
+      "kind": "image",
+      "endpoint": "stabilityai/stable-diffusion-xl-base-1.0",
+      "refInput": "reference_images",
+      "maxRefs": 4,
+      "defaults": {
+        "steps": 30,
+        "guidance": 6
+      }
+    },
+    {
+      "id": "local-flux-schnell",
+      "name": "FLUX.1 Schnell (local, open-source)",
+      "provider": "local",
+      "kind": "image",
+      "endpoint": "black-forest-labs/FLUX.1-schnell",
+      "refInput": "reference_images",
+      "maxRefs": 4,
+      "defaults": {
+        "steps": 4,
+        "guidance": 0
+      }
+    },
+    {
+      "id": "local-sd15",
+      "name": "SD 1.5 (local, light — runs on most GPUs)",
+      "provider": "local",
+      "kind": "image",
+      "endpoint": "stable-diffusion-v1-5/stable-diffusion-v1-5",
+      "refInput": "reference_images",
+      "maxRefs": 4,
+      "defaults": {
+        "steps": 30,
+        "guidance": 7
+      }
+    },
+    {
+      "id": "upscale-esrgan",
+      "name": "ESRGAN Upscaler",
+      "provider": "fal",
+      "kind": "image",
+      "endpoint": "fal-ai/esrgan",
+      "refInput": "image_url",
+      "maxRefs": 1,
+      "tags": [
+        "upscale"
+      ]
+    },
+    {
+      "id": "upscale-clarity",
+      "name": "Clarity Upscaler",
+      "provider": "fal",
+      "kind": "image",
+      "endpoint": "fal-ai/clarity-upscaler",
+      "refInput": "image_url",
+      "maxRefs": 1,
+      "tags": [
+        "upscale"
+      ]
+    },
+    {
+      "id": "local-flux2-klein",
+      "name": "FLUX.2 [klein] 4B (local, open-source, Apache-2.0)",
+      "provider": "local",
+      "kind": "image",
+      "endpoint": "black-forest-labs/FLUX.2-klein-4B",
+      "refInput": "reference_images",
+      "maxRefs": 4,
+      "defaults": {
+        "steps": 4,
+        "guidance": 1.0
+      }
+    },
+    {
+      "id": "hf-soul",
+      "name": "Higgsfield SOUL (2K/4K)",
+      "provider": "higgsfield",
+      "kind": "image",
+      "endpoint": "higgsfield-ai/soul/standard",
+      "refInput": null
+    },
+    {
+      "id": "hf-soul-v2",
+      "name": "Higgsfield SOUL V2 — uses Identity Lock characters",
+      "provider": "higgsfield",
+      "kind": "image",
+      "endpoint": "higgsfield-ai/soul/v2/standard",
+      "refInput": null,
+      "soul": true,
+      "defaults": {
+        "resolution": "1080p"
+      }
+    },
+    {
+      "id": "hf-kling25-t2v",
+      "name": "Kling 2.5 Turbo Pro — text→video (Higgsfield)",
+      "provider": "higgsfield",
+      "kind": "video",
+      "endpoint": "kling-video/v2.5-turbo/pro/text-to-video",
+      "refInput": null,
+      "params": {
+        "durations": [
+          5,
+          10
+        ],
+        "aspect": false,
+        "negative": true
+      }
+    },
+    {
+      "id": "hf-kling25-i2v",
+      "name": "Kling 2.5 Turbo Pro — image→video (Higgsfield, refs)",
+      "provider": "higgsfield",
+      "kind": "video",
+      "endpoint": "kling-video/v2.5-turbo/pro/image-to-video",
+      "refInput": "image_url",
+      "maxRefs": 1,
+      "requiresImage": true,
+      "params": {
+        "durations": [
+          5,
+          10
+        ],
+        "aspect": false,
+        "negative": true
+      }
+    },
+    {
+      "id": "hf-hailuo23-t2v",
+      "name": "MiniMax Hailuo 2.3 — text→video (Higgsfield)",
+      "provider": "higgsfield",
+      "kind": "video",
+      "endpoint": "minimax/hailuo-2.3/standard/text-to-video",
+      "refInput": null,
+      "params": {
+        "durations": [
+          6,
+          10
+        ],
+        "aspect": false
+      }
+    },
+    {
+      "id": "hf-hailuo23-i2v",
+      "name": "MiniMax Hailuo 2.3 — image→video (Higgsfield, refs)",
+      "provider": "higgsfield",
+      "kind": "video",
+      "endpoint": "minimax/hailuo-2.3/standard/image-to-video",
+      "refInput": "image_url",
+      "maxRefs": 1,
+      "requiresImage": true,
+      "params": {
+        "durations": [
+          6,
+          10
+        ],
+        "aspect": false
+      }
+    },
+    {
+      "id": "hfip-flux2-klein",
+      "name": "FLUX.2 [klein] 9B edit — hosted (Hugging Face, needs a ref image)",
+      "provider": "huggingface",
+      "kind": "image",
+      "endpoint": "black-forest-labs/FLUX.2-klein-9B",
+      "refInput": "image",
+      "maxRefs": 1
+    },
+    {
+      "id": "hfip-flux1-dev",
+      "name": "FLUX.1 [dev] — hosted (Hugging Face)",
+      "provider": "huggingface",
+      "kind": "image",
+      "endpoint": "black-forest-labs/FLUX.1-dev",
+      "refInput": null
+    },
+    {
+      "id": "hfip-qwen-image",
+      "name": "Qwen-Image — hosted (Hugging Face)",
+      "provider": "huggingface",
+      "kind": "image",
+      "endpoint": "Qwen/Qwen-Image",
+      "refInput": null
+    },
+    {
+      "id": "hfip-wan21",
+      "name": "Wan 2.1 T2V 1.3B — hosted (Hugging Face)",
+      "provider": "huggingface",
+      "kind": "video",
+      "endpoint": "Wan-AI/Wan2.1-T2V-1.3B",
+      "refInput": null
+    },
+    {
+      "id": "local-wan22-5b",
+      "name": "Wan 2.2 TI2V 5B (local video, Apache-2.0)",
+      "provider": "local",
+      "kind": "video",
+      "endpoint": "Wan-AI/Wan2.2-TI2V-5B-Diffusers",
+      "refInput": "reference_images",
+      "maxRefs": 1,
+      "defaults": {
+        "steps": 40,
+        "guidance": 5
+      }
+    },
+    {
+      "id": "local-ltx23",
+      "name": "LTX-2.3 (local video + audio model)",
+      "provider": "local",
+      "kind": "video",
+      "endpoint": "Lightricks/LTX-2.3",
+      "refInput": "reference_images",
+      "maxRefs": 1,
+      "defaults": {
+        "steps": 30,
+        "guidance": 3
+      }
+    }
+  ]
+}
