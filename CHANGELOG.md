@@ -13,6 +13,10 @@
   Download incomplete · API key connected · Key missing, with a one-click fix (Download / Resume / Add key /
   Install engine). Generate stays disabled until the model can really run. Create, Studio tools, Film,
   Influencer, Shapeshift and Ad Multiplier.
+- **New installer** in a dark, cinematic style (inspired by DaVinci Resolve): launch splash card, dark pages with
+  the living Pandora box artwork, component choices (desktop / Start menu / start at sign-in), clear install
+  steps, and an uninstaller that can keep or remove your library, keys and models.
+- **Launch card**: a Resolve-style loading card shows while the studio starts.
 - **Lite mode** (sidebar): freezes animated scenes and blur; Auto turns it on for low-end PCs and low battery.
 
 ### Fixed / improved

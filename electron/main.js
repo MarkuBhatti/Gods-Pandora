@@ -499,8 +499,20 @@ function registerIpc() {
 }
 
 function createWindow() {
+  // Resolve-style launch card while the studio loads (closes as soon as the main window is ready)
+  let splash = null;
+  try {
+    splash = new BrowserWindow({ width: 640, height: 360, frame: false, resizable: false, movable: true, center: true,
+      skipTaskbar: true, alwaysOnTop: true, show: false, backgroundColor: '#0e0e12', webPreferences: { sandbox: true } });
+    splash.loadFile(path.join(__dirname, 'splash.html'));
+    splash.once('ready-to-show', () => splash && !splash.isDestroyed() && splash.show());
+  } catch (_) { splash = null; }
+  const closeSplash = () => { if (splash && !splash.isDestroyed()) splash.destroy(); splash = null; };
+  setTimeout(closeSplash, 15000); // never get stuck
+
   win = new BrowserWindow({
     width: 1440, height: 900, minWidth: 900, minHeight: 600,
+    show: false,
     backgroundColor: '#0b0920',
     title: "God's Pandora",
     autoHideMenuBar: true,   // cleaner window; press Alt to show the menu
@@ -523,6 +535,11 @@ function createWindow() {
     return { action: 'deny' };
   });
 
+  const t0 = Date.now();
+  win.once('ready-to-show', () => {
+    // keep the card up at least ~1.2 s so it doesn't flash
+    setTimeout(() => { closeSplash(); if (!win.isDestroyed()) { win.show(); win.focus(); } }, Math.max(0, 1200 - (Date.now() - t0)));
+  });
   if (process.env.VITE_DEV) win.loadURL('http://localhost:5173');
   else win.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
 
