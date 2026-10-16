@@ -1,5 +1,5 @@
 ; God's Pandora installer — dark, cinematic, DaVinci-Resolve-style.
-; Splash → Welcome → License → Components → Folder → Install → Finish. Built from win-unpacked with makensis.
+; One big rounded borderless card: splash → install progress → the app opens with a welcome sheet.
 Unicode true
 ManifestDPIAware true
 !include "MUI2.nsh"
@@ -27,7 +27,8 @@ InstallDirRegKey HKCU "Software\God's Pandora" "InstallDir"
 RequestExecutionLevel user
 SetCompressor /SOLID bzip2
 BrandingText "God's Pandora ${VERSION}  ·  Every model. Every medium. One creative universe."
-ShowInstDetails hide
+ShowInstDetails nevershow
+AutoCloseWindow true
 ShowUninstDetails hide
 
 VIProductVersion "${VERSION}.0"
@@ -60,51 +61,12 @@ VIAddVersionKey "ProductVersion" "${VERSION}"
 !define MUI_COMPONENTSPAGE_SMALLDESC
 !define MUI_ABORTWARNING
 !define MUI_ABORTWARNING_TEXT "Stop installing God's Pandora? Nothing has been changed on your PC yet."
-!define MUI_CUSTOMFUNCTION_GUIINIT DarkGuiInit
+!define MUI_CUSTOMFUNCTION_GUIINIT BigGuiInit
 !define MUI_CUSTOMFUNCTION_UNGUIINIT un.DarkGuiInit
 
-; ── pages ──
-!define MUI_WELCOMEPAGE_TITLE "Welcome to God's Pandora ${VERSION}"
-!define MUI_WELCOMEPAGE_TITLE_3LINES
-!define MUI_WELCOMEPAGE_TEXT "Every model. Every medium. One creative universe.$\r$\n$\r$\nImage, video, audio, 3D, TouchDesigner, marketing and app building — on your own API keys or free and offline on your own GPU.$\r$\n$\r$\nNew in ${VERSION}:$\r$\n  •  Pandora Cut — auto edit to the beat + auto colour grading$\r$\n  •  Live model status in every picker$\r$\n  •  Smaller downloads and a low-VRAM engine$\r$\n$\r$\nYour keys, library and characters carry over automatically.$\r$\n$\r$\nClick Next to continue."
-!define MUI_PAGE_CUSTOMFUNCTION_SHOW DarkWelcome
-!insertmacro MUI_PAGE_WELCOME
-
-!define MUI_PAGE_HEADER_TEXT "License Agreement"
-!define MUI_PAGE_HEADER_SUBTEXT "God's Pandora is free and open-source software (MIT)."
-!define MUI_LICENSEPAGE_TEXT_TOP "Please review the license terms before installing God's Pandora."
-!define MUI_LICENSEPAGE_TEXT_BOTTOM "If you accept the terms, click I Agree to continue."
-!define MUI_PAGE_CUSTOMFUNCTION_SHOW DarkLicense
-!insertmacro MUI_PAGE_LICENSE "${ART}/LICENSE.txt"
-
-!define MUI_PAGE_HEADER_TEXT "Choose Components"
-!define MUI_PAGE_HEADER_SUBTEXT "Pick the shortcuts and options you want."
-!define MUI_COMPONENTSPAGE_TEXT_TOP "God's Pandora core is always installed. AI models download later, only when you choose them."
-!define MUI_PAGE_CUSTOMFUNCTION_SHOW DarkInner
-!insertmacro MUI_PAGE_COMPONENTS
-
-!define MUI_PAGE_HEADER_TEXT "Install Location"
-!define MUI_PAGE_HEADER_SUBTEXT "No administrator rights needed — installs just for you."
-!define MUI_DIRECTORYPAGE_TEXT_TOP "God's Pandora will be installed in the folder below. Downloaded models are stored separately in your user data folder, so you can reinstall or update without downloading them again."
-!define MUI_PAGE_CUSTOMFUNCTION_SHOW DarkInner
-!insertmacro MUI_PAGE_DIRECTORY
-
-!define MUI_PAGE_HEADER_TEXT "Installing God's Pandora"
-!define MUI_PAGE_HEADER_SUBTEXT "Setting up Pandora Core, Studio and the local engine…"
-!define MUI_INSTFILESPAGE_FINISHHEADER_TEXT "Installation complete"
-!define MUI_INSTFILESPAGE_FINISHHEADER_SUBTEXT "God's Pandora is ready."
-!define MUI_PAGE_CUSTOMFUNCTION_SHOW DarkInner
+; ── pages: one big, rounded, borderless card (like Resolve / modern app installers) ──
+!define MUI_PAGE_CUSTOMFUNCTION_SHOW BigShow
 !insertmacro MUI_PAGE_INSTFILES
-
-!define MUI_FINISHPAGE_TITLE "God's Pandora is ready"
-!define MUI_FINISHPAGE_TEXT "God's Pandora ${VERSION} has been installed.$\r$\n$\r$\nFirst launch opens a short setup that checks your PC and recommends the best free models for your GPU. Cloud models just need your own API key.$\r$\n$\r$\nYour library, keys and models live in your user folder and are never removed by updates."
-!define MUI_FINISHPAGE_RUN "$INSTDIR\${EXENAME}"
-!define MUI_FINISHPAGE_RUN_TEXT "Launch God's Pandora"
-!define MUI_FINISHPAGE_LINK "What's new in ${VERSION}"
-!define MUI_FINISHPAGE_LINK_LOCATION "$INSTDIR\resources\CHANGELOG.txt"
-!define MUI_FINISHPAGE_LINK_COLOR "B9A8FF"
-!define MUI_PAGE_CUSTOMFUNCTION_SHOW DarkFinish
-!insertmacro MUI_PAGE_FINISH
 
 ; uninstaller
 !define MUI_PAGE_CUSTOMFUNCTION_SHOW un.DarkWelcome
@@ -204,17 +166,113 @@ FunctionEnd
 !insertmacro DARKEN_CHILDREN ""
 !insertmacro DARKEN_CHILDREN "un."
 
-Function DarkLicense
-  Call DarkInner
-FunctionEnd
 
 ; ── splash (like Resolve's launch card) ──
 Function .onInit
   ${IfNot} ${Silent}
     InitPluginsDir
     File "/oname=$PLUGINSDIR\splash.bmp" "${ART}/splash.bmp"
-    advsplash::show 2400 450 350 -1 "$PLUGINSDIR\splash"
+    advsplash::show 2200 450 350 -1 "$PLUGINSDIR\splash"
     Pop $0
+  ${EndIf}
+FunctionEnd
+
+; ── big card window ──
+Var Dpi
+Var CardW
+Var CardH
+!macro HIDE_ITEM ID
+  GetDlgItem $9 $HWNDPARENT ${ID}
+  ShowWindow $9 ${SW_HIDE}
+!macroend
+!macro SCALE OUT V
+  IntOp ${OUT} ${V} * $Dpi
+  IntOp ${OUT} ${OUT} / 96
+!macroend
+
+Function BigGuiInit
+  Call DarkGuiInit
+  System::Call 'user32::GetDpiForWindow(p $HWNDPARENT) i .r0'
+  ${If} $0 < 96
+    StrCpy $0 96
+  ${EndIf}
+  StrCpy $Dpi $0
+  !insertmacro SCALE $CardW 960
+  !insertmacro SCALE $CardH 600
+  ; pick the sharpest artwork for this display scale
+  InitPluginsDir
+  ${If} $Dpi >= 180
+    File "/oname=$PLUGINSDIR\bg.bmp" "${ART}/bg200.bmp"
+  ${ElseIf} $Dpi >= 132
+    File "/oname=$PLUGINSDIR\bg.bmp" "${ART}/bg150.bmp"
+  ${ElseIf} $Dpi >= 110
+    File "/oname=$PLUGINSDIR\bg.bmp" "${ART}/bg125.bmp"
+  ${Else}
+    File "/oname=$PLUGINSDIR\bg.bmp" "${ART}/bg100.bmp"
+  ${EndIf}
+  ; borderless popup, rounded corners (Windows 11), centred
+  System::Call 'user32::SetWindowLongW(p $HWNDPARENT, i -16, i 0x96000000)'
+  System::Call 'dwmapi::DwmSetWindowAttribute(p $HWNDPARENT, i 33, *i 2, i 4)'
+  System::Call 'user32::GetSystemMetrics(i 0) i .r3'
+  System::Call 'user32::GetSystemMetrics(i 1) i .r4'
+  IntOp $3 $3 - $CardW
+  IntOp $3 $3 / 2
+  IntOp $4 $4 - $CardH
+  IntOp $4 $4 / 2
+  System::Call 'user32::SetWindowPos(p $HWNDPARENT, p 0, i r3, i r4, i $CardW, i $CardH, i 0x0034)'
+  !insertmacro HIDE_ITEM 1
+  !insertmacro HIDE_ITEM 2
+  !insertmacro HIDE_ITEM 3
+  !insertmacro HIDE_ITEM 1028
+  !insertmacro HIDE_ITEM 1256
+  !insertmacro HIDE_ITEM 1035
+  !insertmacro HIDE_ITEM 1034
+  !insertmacro HIDE_ITEM 1036
+  !insertmacro HIDE_ITEM 1037
+  !insertmacro HIDE_ITEM 1038
+  !insertmacro HIDE_ITEM 1039
+  !insertmacro HIDE_ITEM 1045
+FunctionEnd
+
+!macro PLACE ID X Y W H
+  GetDlgItem $8 $5 ${ID}
+  !insertmacro SCALE $R1 ${X}
+  !insertmacro SCALE $R2 ${Y}
+  !insertmacro SCALE $R3 ${W}
+  !insertmacro SCALE $R4 ${H}
+  System::Call 'user32::SetWindowPos(p r8, p 0, i R1, i R2, i R3, i R4, i 0x0010)'
+  System::Call 'user32::GetWindowLongW(p r8, i -16) i .R5'
+  IntOp $R5 $R5 | 0x04000000
+  System::Call 'user32::SetWindowLongW(p r8, i -16, i R5)'
+!macroend
+
+Function BigShow
+  FindWindow $5 "#32770" "" $HWNDPARENT
+  System::Call 'user32::SetWindowPos(p r5, p 0, i 0, i 0, i $CardW, i $CardH, i 0x0014)'
+  SetCtlColors $5 E9E9EF 0D0C14
+  ; artwork behind everything
+  System::Call 'user32::CreateWindowExW(i 0, w "STATIC", w "", i 0x5000000E, i 0, i 0, i $CardW, i $CardH, p r5, p 0, p 0, p 0) p .r6'
+  System::Call 'user32::LoadImageW(p 0, w "$PLUGINSDIR\bg.bmp", i 0, i 0, i 0, i 0x10) p .r7'
+  SendMessage $6 0x0172 0 $7
+  System::Call 'user32::SetWindowPos(p r6, p 1, i 0, i 0, i 0, i 0, i 0x0013)'
+  ; live status line + progress bar sit inside the drawn squircle track
+  !insertmacro PLACE 1006 486 432 398 24
+  SetCtlColors $8 E9E9EF 1B1926
+  CreateFont $9 "Segoe UI" 11 600
+  SendMessage $8 ${WM_SETFONT} $9 1
+  !insertmacro PLACE 1004 489 468 389 6
+  System::Call 'uxtheme::SetWindowTheme(p r8, w " ", w " ")'
+  SendMessage $8 0x2001 0 0x180F10
+  SendMessage $8 0x0409 0 0xFF6B8B
+  GetDlgItem $8 $5 1016
+  ShowWindow $8 ${SW_HIDE}
+  GetDlgItem $8 $5 1027
+  ShowWindow $8 ${SW_HIDE}
+FunctionEnd
+
+Function .onInstSuccess
+  ${IfNot} ${Silent}
+    Exec "$\"$INSTDIR\${EXENAME}$\" --installed=${VERSION}"
   ${EndIf}
 FunctionEnd
 
@@ -281,26 +339,21 @@ Section "God's Pandora (required)" SecMain
   DetailPrint "Done."
 SectionEnd
 
-Section "Desktop shortcut" SecDesktop
+Section "-Desktop shortcut" SecDesktop
   CreateShortCut "$DESKTOP\God's Pandora.lnk" "$INSTDIR\${EXENAME}" "" "$INSTDIR\${EXENAME}" 0
 SectionEnd
 
-Section "Start menu shortcuts" SecStart
+Section "-Start menu shortcuts" SecStart
   CreateDirectory "$SMPROGRAMS\God's Pandora"
   CreateShortCut "$SMPROGRAMS\God's Pandora\God's Pandora.lnk" "$INSTDIR\${EXENAME}" "" "$INSTDIR\${EXENAME}" 0
   CreateShortCut "$SMPROGRAMS\God's Pandora\Uninstall God's Pandora.lnk" "$INSTDIR\Uninstall God's Pandora.exe"
 SectionEnd
 
-Section /o "Start God's Pandora when I sign in" SecLogin
+Section /o "-Start at sign-in" SecLogin
   WriteRegStr HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "God's Pandora" "$\"$INSTDIR\${EXENAME}$\""
 SectionEnd
 
-!insertmacro MUI_FUNCTION_DESCRIPTION_BEGIN
-  !insertmacro MUI_DESCRIPTION_TEXT ${SecMain} "The app: Pandora Core, Studio, Cut, Film, 3D and the local AI engine (~250 MB). Models download later, only when you choose them."
-  !insertmacro MUI_DESCRIPTION_TEXT ${SecDesktop} "Put a God's Pandora icon on your desktop."
-  !insertmacro MUI_DESCRIPTION_TEXT ${SecStart} "Add God's Pandora to the Start menu."
-  !insertmacro MUI_DESCRIPTION_TEXT ${SecLogin} "Open God's Pandora automatically when you sign in to Windows."
-!insertmacro MUI_FUNCTION_DESCRIPTION_END
+
 
 ; ── uninstall ──
 Section "un.God's Pandora (app)" UnSecMain

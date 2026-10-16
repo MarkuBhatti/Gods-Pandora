@@ -419,6 +419,20 @@ function registerIpc() {
   safeHandle('update:download',  ()          => updater.download());
   safeHandle('update:install',   ()          => updater.install());
   safeHandle('update:setConfig', (_e, patch) => updater.setConfig(patch));
+  // First launch after the installer: welcome sheet with install options
+  safeHandle('app:installInfo', () => {
+    const arg = process.argv.find((a) => a.startsWith('--installed'));
+    const lnk = path.join(app.getPath('desktop'), "God's Pandora.lnk");
+    return { justInstalled: !!arg, version: app.getVersion(), desktopShortcut: fs.existsSync(lnk), openAtLogin: app.getLoginItemSettings().openAtLogin };
+  });
+  safeHandle('app:setLoginItem', (_e, on) => { app.setLoginItemSettings({ openAtLogin: !!on }); return true; });
+  safeHandle('app:desktopShortcut', (_e, on) => {
+    if (process.platform !== 'win32') return false;
+    const lnk = path.join(app.getPath('desktop'), "God's Pandora.lnk");
+    if (on) shell.writeShortcutLink(lnk, 'create', { target: process.execPath, icon: process.execPath, iconIndex: 0, description: "God's Pandora" });
+    else if (fs.existsSync(lnk)) fs.unlinkSync(lnk);
+    return true;
+  });
   safeHandle('app:openExternal', (_e, url) => {
     if (/^https:\/\/(huggingface\.co|github\.com)\//.test(String(url))) return shell.openExternal(url);
     return false;
@@ -502,8 +516,8 @@ function createWindow() {
   // Resolve-style launch card while the studio loads (closes as soon as the main window is ready)
   let splash = null;
   try {
-    splash = new BrowserWindow({ width: 640, height: 360, frame: false, resizable: false, movable: true, center: true,
-      skipTaskbar: true, alwaysOnTop: true, show: false, backgroundColor: '#0e0e12', webPreferences: { sandbox: true } });
+    splash = new BrowserWindow({ width: 660, height: 380, frame: false, transparent: true, resizable: false, movable: true, center: true,
+      skipTaskbar: true, alwaysOnTop: true, show: false, hasShadow: false, webPreferences: { sandbox: true } });
     splash.loadFile(path.join(__dirname, 'splash.html'));
     splash.once('ready-to-show', () => splash && !splash.isDestroyed() && splash.show());
   } catch (_) { splash = null; }

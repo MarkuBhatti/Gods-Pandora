@@ -90,6 +90,9 @@ contextBridge.exposeInMainWorld('api', {
     }
   },
   openExternal: (url) => ipcRenderer.invoke('app:openExternal', url),
+  installInfo: () => ipcRenderer.invoke('app:installInfo'),
+  setLoginItem: (on) => ipcRenderer.invoke('app:setLoginItem', on),
+  desktopShortcut: (on) => ipcRenderer.invoke('app:desktopShortcut', on),
   market: {
     hf: (args) => ipcRenderer.invoke('market:hf', args),
     civitai: (args) => ipcRenderer.invoke('market:civitai', args),

@@ -15,6 +15,7 @@ import Studio3D from './pages/Studio3D.jsx';
 import StudioTD from './pages/StudioTD.jsx';
 import Onboarding from './pages/Onboarding.jsx';
 import SetupWizard from './pages/SetupWizard.jsx';
+import InstallWelcome from './lib/InstallWelcome.jsx';
 import Updates from './pages/Updates.jsx';
 import MoodBackdrop from './lib/MoodBackdrop.jsx';
 import PandoraBox from './lib/PandoraBox.jsx';
@@ -191,6 +192,7 @@ export default function App() {
       <StoreProvider>
        <NavProvider setPage={setPage}>
         <SetupWizard />
+        <InstallWelcome />
         <CommandPalette pages={[...TOPNAV, ...SIDENAV.filter((x) => x[1])]} onGo={setPage} />
         <Onboarding />
         <nav className="sidebar">

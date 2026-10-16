@@ -848,3 +848,31 @@ body { background: #050508 !important; }
 .perf-pill { margin: 6px 12px 0; padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05); color: #cfc8ff; font-size: 11px; cursor: pointer; text-align: left; }
 .perf-pill.on { border-color: rgba(255,184,107,.45); color: #ffd6a3; background: rgba(255,184,107,.08); }
 .perf-pill:hover { background: rgba(255,255,255,.1); }
+
+/* ══ Install welcome sheet (the installer's finish page, inside the app) ══ */
+.iw-scrim { position: fixed; inset: 0; z-index: 9000; display: grid; place-items: center; background: rgba(6,5,14,.62); backdrop-filter: blur(14px); animation: iwFade .35s ease-out; }
+.iw-card { width: min(880px, 92vw); display: grid; grid-template-columns: 300px 1fr; border-radius: 34px; overflow: hidden;
+  background: linear-gradient(160deg, rgba(139,107,255,.16), rgba(255,184,107,.06) 60%, transparent), #17151f;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.09), 0 30px 80px rgba(0,0,0,.6); animation: iwPop .55s cubic-bezier(.2,1.35,.4,1); }
+.iw-art { display: grid; place-items: center; min-height: 380px; background: radial-gradient(circle at 50% 45%, rgba(139,107,255,.35), transparent 65%), #0e0d16; }
+.iw-body { padding: 38px 38px 32px; }
+.iw-badge { display: inline-block; padding: 6px 14px; border-radius: 999px; font-size: 12px; font-weight: 700; color: #7dffb2; background: rgba(64,220,140,.12); border: 1px solid rgba(64,220,140,.35); }
+.iw-body h2 { margin: 16px 0 8px; font-size: 32px; line-height: 1.1; }
+.iw-body h2 span { background: linear-gradient(90deg, #b9a8ff, #ffb86b); -webkit-background-clip: text; background-clip: text; color: transparent; }
+.iw-body p { color: #b8b4cc; margin: 0 0 20px; line-height: 1.5; }
+.iw-rows { display: grid; gap: 10px; }
+.iw-row { display: flex; align-items: center; gap: 14px; width: 100%; text-align: left; padding: 14px 16px; border-radius: 20px; cursor: pointer;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); color: inherit; transition: transform .25s cubic-bezier(.2,1.4,.4,1), background .2s; }
+.iw-row:hover { transform: scale(1.015); background: rgba(255,255,255,.07); }
+.iw-row:active { transform: scale(.98); }
+.iw-txt { flex: 1; display: flex; flex-direction: column; }
+.iw-txt small { color: #8f8aa6; font-size: 12px; margin-top: 2px; }
+.iw-switch { width: 50px; height: 30px; border-radius: 999px; background: rgba(255,255,255,.14); position: relative; transition: background .25s; flex-shrink: 0; }
+.iw-switch i { position: absolute; top: 3px; left: 3px; width: 24px; height: 24px; border-radius: 50%; background: #fff; box-shadow: 0 2px 6px rgba(0,0,0,.35); transition: transform .3s cubic-bezier(.2,1.5,.4,1); }
+.iw-row.on .iw-switch { background: linear-gradient(90deg, #8b6bff, #4fd1ff); }
+.iw-row.on .iw-switch i { transform: translateX(20px); }
+.iw-actions { margin-top: 22px; display: flex; justify-content: flex-end; }
+.iw-go { padding: 12px 28px; font-size: 15px; border-radius: 999px; }
+@keyframes iwPop { from { opacity: 0; transform: scale(.9) translateY(14px); } to { opacity: 1; transform: none; } }
+@keyframes iwFade { from { opacity: 0; } }
+@media (max-width: 760px) { .iw-card { grid-template-columns: 1fr; } .iw-art { min-height: 200px; } }
