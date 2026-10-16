@@ -2,7 +2,9 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useJob, RunButton, ErrorBox, friendlyError, runKeys } from '../lib/job.jsx';
 import { useStore, uid } from '../lib/store.jsx';
 import { allEntities } from '../lib/mentions.jsx';
-import { useAllModels, modelLabel } from '../lib/models.jsx';
+import { useAllModels, modelLabel, ModelStatus, useModelGate, useReadiness, useDownloaded } from '../lib/models.jsx';
+
+const WAN_REPO = 'Wan-AI/Wan2.2-Animate-2-14B-Distilled-Diffusers';
 import { videoInfo, frameAt } from '../lib/videoFrames.js';
 import Media from '../lib/Media.jsx';
 import AssetActions from '../lib/AssetActions.jsx';
@@ -21,6 +23,8 @@ const OPEN_STYLES = ['Cel-shaded anime', 'Studio Ghibli watercolor', 'Pixar-styl
 export default function Shapeshift() {
   const { db, update } = useStore();
   const allModels = useAllModels();
+  const dl = useDownloaded();
+  const rdy = useReadiness();
   const [mode, setMode] = useState('motion');
   const [provider, setProvider] = useState('fal');
   const [video, setVideo] = useState(null);
@@ -93,7 +97,12 @@ export default function Shapeshift() {
     setStatus('');
   }
 
-  const ready = video && info && info.duration >= 4 && (
+  // The engine itself is a "model" too: cloud engines need their key, the local one needs Wan-Animate downloaded.
+  const engineModel = provider === 'local'
+    ? { name: 'Wan-Animate-2 14B', provider: 'local', endpoint: WAN_REPO, downloaded: dl.some((d) => d.repo === WAN_REPO && d.complete !== false), partial: dl.some((d) => d.repo === WAN_REPO && d.complete === false) }
+    : { name: provider === 'fal' ? 'Wan 2.2 Animate (FAL)' : 'Higgsfield', provider };
+  const gate = useModelGate(engineModel, mode === 'motion' && provider === 'local' ? null : (provider === 'higgsfield' && mode === 'restyle' ? null : editModel));
+  const ready = gate.ok && video && info && info.duration >= 4 && (
     provider === 'local'
       ? (mode === 'motion' ? refs.length > 0 : !!editModel && (mode === 'restyle' ? !!styleText : refs.length > 0))
       : mode === 'restyle' ? (provider === 'higgsfield' ? !!presetId : !!styleText && !!editModel) : refs.length > 0);
@@ -115,6 +124,7 @@ export default function Shapeshift() {
             <button className={'chip' + (provider === 'fal' ? ' on' : '')} onClick={() => { setProvider('fal'); setRefs((r) => r.slice(0, mode === 'restyle' ? 5 : 1)); }}>Open · Wan 2.2 Animate (FAL key)</button>
             <button className={'chip' + (provider === 'higgsfield' ? ' on' : '')} onClick={() => setProvider('higgsfield')}>☁ Higgsfield (Higgsfield key)</button>
           </div>
+          <ModelStatus model={engineModel} />
 
           {provider === 'local' && (
             <>
@@ -155,8 +165,9 @@ export default function Shapeshift() {
             <>
               <label>Local image-edit model (puts your reference into frame one)</label>
               <select value={editModel?.id || ''} onChange={(e) => setEditId(e.target.value)}>
-                {editModels.map((m) => <option key={m.id} value={m.id}>{modelLabel(m)}</option>)}
+                {editModels.map((m) => <option key={m.id} value={m.id}>{modelLabel(m, rdy)}</option>)}
               </select>
+              <ModelStatus model={editModel} compact />
               <p className="sub" style={{ fontSize: 11 }}>Best: FLUX.2 [klein] or Qwen-Image (multi-reference editing).</p>
             </>
           )}
@@ -167,8 +178,9 @@ export default function Shapeshift() {
               <input style={{ marginTop: 6 }} value={styleText} onChange={(e) => setStyleText(e.target.value)} placeholder="or describe your own style" />
               <label>Image-edit model (restyles the first frame)</label>
               <select value={editModel?.id || ''} onChange={(e) => setEditId(e.target.value)}>
-                {editModels.map((m) => <option key={m.id} value={m.id}>{modelLabel(m)}</option>)}
+                {editModels.map((m) => <option key={m.id} value={m.id}>{modelLabel(m, rdy)}</option>)}
               </select>
+              <ModelStatus model={editModel} compact />
             </>
           )}
 
@@ -182,6 +194,7 @@ export default function Shapeshift() {
 
           <div style={{ marginTop: 14 }}>
             <RunButton job={job} label="🌀 Shapeshift it" busyLabel={'Working… ' + status} onRun={run} disabled={!ready} />
+            {!gate.ok && !busy && <span className="sub" style={{ fontSize: 11, marginLeft: 8 }}>🔒 {gate.reason}</span>}
           </div>
           <ErrorBox error={error} />
           {result && (

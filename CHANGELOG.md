@@ -1,5 +1,31 @@
 # Changelog
 
+## 0.4.0 — 2026-10-16 · Pandora Cut + "never a problem" update
+
+### Added
+- **Pandora Cut** (new tab): DaVinci-Resolve-inspired, free and offline (ffmpeg).
+  - *Auto Edit*: beat detection on your music (cuts land on the beat), scene detection (each shot starts
+    on a fresh moment), smart reframe to 9:16 / 1:1 / 4:5 / 16:9 / 21:9, transitions, Ken-Burns on photos.
+  - *Auto Color*: Auto Balance (white balance + levels), Shot Match to a reference clip, 10 film looks,
+    your own `.cube` LUTs, vignette and grain, before/after preview.
+  - One-click free ffmpeg install if it's missing.
+- **Model status in every model picker**: Ready (downloaded) · Downloading xx% · Not downloaded ·
+  Download incomplete · API key connected · Key missing, with a one-click fix (Download / Resume / Add key /
+  Install engine). Generate stays disabled until the model can really run. Create, Studio tools, Film,
+  Influencer, Shapeshift and Ad Multiplier.
+- **Lite mode** (sidebar): freezes animated scenes and blur; Auto turns it on for low-end PCs and low battery.
+
+### Fixed / improved
+- Model downloads fetch only one fp16 copy of the weights + configs (SD 1.5 ≈ 2 GB instead of ≈ 10 GB;
+  SDXL ≈ 7 GB instead of ≈ 20 GB) and report honest progress. Partial downloads are detected and resumable.
+- Harmless library warnings (symlinks, deprecations, telemetry, "unauthenticated") are silenced.
+- Low-VRAM engine (ComfyUI-style): SD 1.5 stays fully on the GPU on 6 GB+, big models offload,
+  VAE tiling/slicing and attention slicing on ≤ 8 GB, automatic retry in low-memory mode on out-of-memory.
+- Resolution auto-fits each model's native size (SD 1.5 → ~512², SDXL → ~1024²) for sharper results.
+- Engine watchdog restarts the local engine automatically if it stops; helper processes never open
+  console windows; renders run at below-normal priority so the app stays responsive.
+- Clear, friendly messages for gated models, no internet and full disks.
+
 ## 0.3.0 — 2026-10-16 · God's Pandora
 
 **Every model. Every medium. One creative universe.**

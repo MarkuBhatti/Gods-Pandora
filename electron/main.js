@@ -11,6 +11,7 @@ const tdBridge = require('./touchdesigner');
 const updater = require('./updater');
 const hf = require('./hfModels');
 const jutsu = require('./jutsu');
+const cut = require('./cut');
 const market = require('./market');
 
 let win;
@@ -294,6 +295,32 @@ function registerIpc() {
     return { file, kind: 'video' };
   }));
   safeHandle('ad:analyze', (_e, args) => asJob(args && args.jobId, 'Ad breakdown', () => jutsu.analyzeAd(args, getKeys())));
+  // ── Pandora Cut: auto edit + auto colour (ffmpeg, free) ─────────────────────
+  const cutProg = (p) => { if (win && !win.isDestroyed()) win.webContents.send('cut:progress', p); };
+  const cutErr = (e) => { if (String(e && e.message) === 'FFMPEG_MISSING') throw new Error('FFMPEG_MISSING'); throw e; };
+  safeHandle('cut:status', () => ({ ffmpeg: !!cut.findFfmpeg(userData()), looks: cut.LOOKS }));
+  safeHandle('cut:ensure', () => cut.ensureFfmpeg(userData()));
+  safeHandle('cut:autoEdit', (_e, args) => asJob(args && args.jobId, 'Pandora Cut — auto edit', async () => {
+    jobs.onCancel(() => cut.cancelAll());
+    return cut.autoEdit(userData(), { ...args, outDir: libraryDir() }, cutProg).catch(cutErr);
+  }));
+  safeHandle('cut:autoColor', (_e, args) => asJob(args && args.jobId, 'Pandora Cut — auto colour', async () => {
+    jobs.onCancel(() => cut.cancelAll());
+    return cut.autoColor(userData(), { ...args, outDir: libraryDir() }, cutProg).catch(cutErr);
+  }));
+  safeHandle('cut:preview', (_e, args) => cut.previewGrade(userData(), args));
+  safeHandle('media:pickMedia', async () => {
+    const r = await dialog.showOpenDialog(win, { properties: ['openFile', 'multiSelections'], filters: [{ name: 'Video & images', extensions: ['mp4', 'mov', 'webm', 'mkv', 'm4v', 'avi', 'png', 'jpg', 'jpeg', 'webp'] }] });
+    return r.canceled ? [] : r.filePaths;
+  });
+  safeHandle('media:pickAudio', async () => {
+    const r = await dialog.showOpenDialog(win, { properties: ['openFile'], filters: [{ name: 'Music', extensions: ['mp3', 'wav', 'm4a', 'aac', 'flac', 'ogg', 'mp4'] }] });
+    return r.canceled ? null : r.filePaths[0];
+  });
+  safeHandle('media:pickLut', async () => {
+    const r = await dialog.showOpenDialog(win, { properties: ['openFile'], filters: [{ name: '3D LUT', extensions: ['cube'] }] });
+    return r.canceled ? null : r.filePaths[0];
+  });
   safeHandle('media:concat', async (_e, files, aspect) => {
     const out = path.join(libraryDir(), Date.now() + '-ad.mp4');
     await jutsu.concatVideos(files, out, userData(), aspect);

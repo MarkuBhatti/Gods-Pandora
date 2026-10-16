@@ -5,7 +5,7 @@ import { useStore, uid } from '../lib/store.jsx';
 import Media from '../lib/Media.jsx';
 import GuideBook from './GuideBook.jsx';
 import GenSettings, { DEFAULT_GEN, genParams } from '../lib/GenSettings.jsx';
-import { useAllModels, modelLabel, useMarketFiles } from '../lib/models.jsx';
+import { useAllModels, modelLabel, useMarketFiles, ModelStatus, useModelGate, useReadiness } from '../lib/models.jsx';
 import LoraPicker, { loraParams, triggerText } from '../lib/LoraPicker.jsx';
 import { takeIntent, useNav } from '../lib/nav.jsx';
 import { MentionBar, resolveMentions, insertMention } from '../lib/mentions.jsx';
@@ -100,6 +100,8 @@ export default function Create() {
   const location = db.locations.find((l) => l.id === locId) || null;
   const refsSupported = !!model?.refInput;
   const allRefFiles = Object.values(refs).flat();
+  const rdy = useReadiness();
+  const gate = useModelGate(model);
 
   async function pickRef(slotId) {
     try {
@@ -120,6 +122,7 @@ export default function Create() {
 
   async function go() {
     if (!model || !prompt.trim() || busy) return;
+    if (!gate.ok) { setError(gate.reason); return; }
     setError(''); setResults([]); setNote(''); setProgress('');
     addPromptHistory(prompt);
     const mentions = resolveMentions(prompt, db);
@@ -172,7 +175,7 @@ export default function Create() {
       {showGuide && <GuideBook sectionId="create" onClose={() => setShowGuide(false)} />}
 
       <div className="two-col" style={{ marginTop: 16 }}>
-        <div className="card" onKeyDown={runKeys(job, go, !!prompt.trim() && !!model)}>
+        <div className="card" onKeyDown={runKeys(job, go, !!prompt.trim() && !!model && gate.ok)}>
           <div className="row">
             {['cloud', 'local'].map((s) => (
               <button key={s} className={'chip' + (source === s ? ' on' : '')} onClick={() => { setSource(s); setModelId(''); }}>
@@ -188,8 +191,9 @@ export default function Create() {
           <label>Model</label>
           <select value={model?.id || ''} onChange={(e) => setModelId(e.target.value)}>
             <option value="">— Select model —</option>
-            {models.map((m) => <option key={m.id} value={m.id}>{modelLabel(m)}</option>)}
+            {models.map((m) => <option key={m.id} value={m.id}>{modelLabel(m, rdy)}</option>)}
           </select>
+          <ModelStatus model={model} />
           <div className="row" style={{ justifyContent: 'space-between', marginTop: 4 }}>
             <span className="sub" style={{ fontSize: 11 }}>{model?.provider === 'local' && character?.soulId?.provider === 'local' ? (character.soulId.base === model.endpoint ? '🧬 uses ' + character.name + "'s local Identity Lock" : '🧬 ' + character.name + "'s local Identity Lock needs the " + character.soulId.base.split('/').pop() + ' model') : model?.soul ? (character?.soulId ? '🧬 uses ' + character.name + "'s Identity Lock" : '🧬 Identity Lock model — select a character trained in Characters (or @mention one)') : model?.refInput ? '✓ accepts reference images' : 'text-only model'}{model?.requiresImage ? ' · needs a reference image' : ''}</span>
             <button className="btn ghost small" onClick={() => nav('models')}>＋ Add any model</button>
@@ -209,7 +213,8 @@ export default function Create() {
           </>)}
 
           <div className="row" style={{ marginTop: 18, alignItems: 'center' }}>
-            <RunButton job={job} label={`✦ Generate ${kind}${count > 1 && kind !== 'audio' ? ' ×' + count : ''}`} busyLabel={progress ? `Generating ${progress}…` : 'Generating…'} onRun={go} disabled={!prompt.trim() || !model} />
+            <RunButton job={job} label={`✦ Generate ${kind}${count > 1 && kind !== 'audio' ? ' ×' + count : ''}`} busyLabel={progress ? `Generating ${progress}…` : 'Generating…'} onRun={go} disabled={!prompt.trim() || !model || !gate.ok} />
+            {!gate.ok && model && !busy && <span className="sub" style={{ fontSize: 11 }}>🔒 {gate.reason}</span>}
             {kind !== 'audio' && !busy && (
               <span className="row" style={{ gap: 4 }} title="How many to generate in one go">
                 {[1, 2, 4].map((n) => <button key={n} className={'chip mini' + (count === n ? ' on' : '')} onClick={() => setCount(n)}>×{n}</button>)}

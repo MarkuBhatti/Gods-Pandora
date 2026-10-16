@@ -1,7 +1,7 @@
 import ToolArt from '../lib/ToolArt.jsx';
 import React, { useMemo, useState } from 'react';
 import { useJob, RunButton, ErrorBox, friendlyError, runKeys } from '../lib/job.jsx';
-import { useAllModels, modelLabel } from '../lib/models.jsx';
+import { useAllModels, modelLabel, ModelStatus, useModelGate, useReadiness } from '../lib/models.jsx';
 import { MentionBar, resolveMentions, insertMention } from '../lib/mentions.jsx';
 import AssetActions, { lastFrame } from '../lib/AssetActions.jsx';
 import GenSettings, { DEFAULT_GEN, genParams } from '../lib/GenSettings.jsx';
@@ -195,6 +195,8 @@ function ShotCard({ index, shot, prevShot, project, db, patch }) {
   const allModels = useAllModels();
   const models = useMemo(() => allModels.filter((m) => m.kind === shot.kind), [allModels, shot.kind]);
   const model = models.find((m) => m.id === shot.modelId) || models[0];
+  const rdy = useReadiness();
+  const gate = useModelGate(model);
   const setShot = (fields) => patch((p) => { p.shots = p.shots.map((s) => (s.id === shot.id ? { ...s, ...fields } : s)); return p; });
 
   // Compose the full cinematography language for this shot.
@@ -219,6 +221,7 @@ function ShotCard({ index, shot, prevShot, project, db, patch }) {
 
   async function generate() {
     if (busy) return;
+    if (!gate.ok) { setError(gate.reason); return; }
     setError('');
     await job.start(async (jobId) => {
     try {
@@ -268,8 +271,9 @@ function ShotCard({ index, shot, prevShot, project, db, patch }) {
           <label>Model</label>
           <select value={model?.id || ''} onChange={(e) => setShot({ modelId: e.target.value })}>
             <option value="">— Select model —</option>
-            {models.map((m) => <option key={m.id} value={m.id}>{modelLabel(m)}</option>)}
+            {models.map((m) => <option key={m.id} value={m.id}>{modelLabel(m, rdy)}</option>)}
           </select>
+          <ModelStatus model={model} compact />
         </div>
         <div>
           <label>Camera move</label>
@@ -297,7 +301,8 @@ function ShotCard({ index, shot, prevShot, project, db, patch }) {
         </div>
       </div>
       <div className="row" style={{ marginTop: 12 }}>
-        <RunButton small job={job} label={shot.file ? '↻ Regenerate' : '✦ Generate shot'} onRun={generate} disabled={!shot.prompt.trim()} />
+        <RunButton small job={job} label={shot.file ? '↻ Regenerate' : '✦ Generate shot'} onRun={generate} disabled={!shot.prompt.trim() || !model || !gate.ok} />
+        {model && !gate.ok && !busy && <span className="sub" style={{ fontSize: 11 }}>🔒 {gate.reason}</span>}
         {shot.file && <button className="btn ghost small" onClick={() => window.api.reveal(shot.file)}>Open</button>}
         {shot.file && <button className="btn ghost small" onClick={() => window.api.resolveSend([shot.file])}>Send to Resolve</button>}
       </div>

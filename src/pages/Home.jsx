@@ -14,6 +14,7 @@ const GROUPS = [
   ]],
   ['🎬 Video', [
     ['film', '🎬', 'Film Studio', 'Multi-shot films with cameras, lenses, grain'],
+    ['cut', '🎞', 'Pandora Cut', 'Auto edit to the beat + auto colour grade (free)'],
     ['genjutsu', '🌀', 'Shapeshift', 'Motion transfer, swap, restyle any video'],
     ['shorts', '📱', 'Shorts', 'Talking-head vertical videos'],
     ['explainer', '🎓', 'Explainer', 'Topic → captioned explainer video'],

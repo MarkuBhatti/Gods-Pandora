@@ -1,7 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useJob, RunButton, ErrorBox, friendlyError } from '../lib/job.jsx';
 import { useStore, uid } from '../lib/store.jsx';
-import { useAllModels, modelLabel } from '../lib/models.jsx';
+import { useAllModels, modelLabel, ModelStatus, useModelGate, useReadiness } from '../lib/models.jsx';
 import { sampleFrames, videoInfo } from '../lib/videoFrames.js';
 import { resolveMentions } from '../lib/mentions.jsx';
 import Media from '../lib/Media.jsx';
@@ -46,6 +46,8 @@ export default function AdMultiplier() {
   const editModels = useMemo(() => allModels.filter((m) => m.kind === 'image' && m.refInput), [allModels]);
   const vModel = videoModels.find((m) => m.id === videoId) || videoModels[0];
   const eModel = editModels.find((m) => m.id === editId) || editModels[0];
+  const rdy = useReadiness();
+  const gate = useModelGate(vModel, faithful ? eModel : null);
   const product = (db.products || []).find((x) => x.id === productId);
   const cast = db.characters.find((x) => x.id === castId);
   const loc = db.locations.find((x) => x.id === locId);
@@ -286,13 +288,14 @@ export default function AdMultiplier() {
             <button className={'chip' + (!faithful ? ' on' : '')} onClick={() => setFaithful(false)}>Fast — generate shots directly</button>
           </div>
           <div className="builder-grid">
-            {faithful && <div><label>Image-edit model</label><select value={eModel?.id || ''} onChange={(e) => setEditId(e.target.value)}>{editModels.map((m) => <option key={m.id} value={m.id}>{modelLabel(m)}</option>)}</select></div>}
-            <div><label>Video model (image→video)</label><select value={vModel?.id || ''} onChange={(e) => setVideoId(e.target.value)}>{videoModels.map((m) => <option key={m.id} value={m.id}>{modelLabel(m)}</option>)}</select></div>
+            {faithful && <div><label>Image-edit model</label><select value={eModel?.id || ''} onChange={(e) => setEditId(e.target.value)}>{editModels.map((m) => <option key={m.id} value={m.id}>{modelLabel(m, rdy)}</option>)}</select><ModelStatus model={eModel} compact /></div>}
+            <div><label>Video model (image→video)</label><select value={vModel?.id || ''} onChange={(e) => setVideoId(e.target.value)}>{videoModels.map((m) => <option key={m.id} value={m.id}>{modelLabel(m, rdy)}</option>)}</select><ModelStatus model={vModel} compact /></div>
             <div><label>Aspect</label><select value={aspect} onChange={(e) => setAspect(e.target.value)}>{['9:16', '16:9', '1:1', '4:5'].map((a) => <option key={a}>{a}</option>)}</select></div>
           </div>
           <label className="row" style={{ gap: 6 }}><input type="checkbox" style={{ width: 'auto' }} checked={stitch} onChange={(e) => setStitch(e.target.checked)} /> Stitch each variant into one video (uses ffmpeg from the local engine or your PATH)</label>
           <p className="sub" style={{ fontSize: 11 }}>≈ {totalJobs} generations. Body shots are generated once and reused across variants; only hook and CTA shots change.</p>
-          <RunButton job={job} label="📈 Multiply ad" busyLabel="Multiplying…" onRun={generateAll} disabled={ajob.running || !vModel || (faithful && !eModel)} />
+          <RunButton job={job} label="📈 Multiply ad" busyLabel="Multiplying…" onRun={generateAll} disabled={ajob.running || !vModel || (faithful && !eModel) || !gate.ok} />
+          {!gate.ok && !job.running && <span className="sub" style={{ fontSize: 11, marginLeft: 8 }}>🔒 {gate.reason}</span>}
           <ErrorBox error={error} />
           {log.length > 0 && <div className="log" style={{ marginTop: 10, maxHeight: 160 }}>{log.join('\n')}</div>}
           {variants.map((v, i) => (

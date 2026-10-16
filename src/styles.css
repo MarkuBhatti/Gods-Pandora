@@ -648,6 +648,44 @@ option { background: var(--bg2) !important; }
 body { background: #050508 !important; }
 .cb-shape { display: none !important; }
 
+/* ══ Model readiness chip (under every model picker) ══ */
+.mstat { display: flex; align-items: center; flex-wrap: wrap; gap: 8px; margin-top: 6px; padding: 6px 10px; border-radius: 12px; font-size: 12px;
+  background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08); }
+.mstat.compact { padding: 4px 8px; font-size: 11px; gap: 6px; }
+.mstat .btn.small { padding: 3px 10px; font-size: 11px; }
+.mstat-dot { width: 9px; height: 9px; border-radius: 50%; flex-shrink: 0; background: #888; box-shadow: 0 0 8px currentColor; }
+.mstat-txt { flex: 1; min-width: 140px; }
+.mstat-err { width: 100%; color: #ff8f8f; font-size: 11px; }
+.mstat-bar { flex: 1 1 100%; height: 4px; border-radius: 4px; background: rgba(255,255,255,.08); overflow: hidden; }
+.mstat-bar i { display: block; height: 100%; background: linear-gradient(90deg, #8b6bff, #4fd1ff); transition: width .6s; }
+.mstat-ready, .mstat-key { border-color: rgba(64,220,140,.35); background: rgba(64,220,140,.07); }
+.mstat-ready .mstat-dot, .mstat-key .mstat-dot { background: #40dc8c; color: #40dc8c; }
+.mstat-downloading { border-color: rgba(79,209,255,.35); background: rgba(79,209,255,.07); }
+.mstat-downloading .mstat-dot { background: #4fd1ff; color: #4fd1ff; animation: mstatPulse 1.2s ease-in-out infinite; }
+.mstat-missing, .mstat-partial, .mstat-engine { border-color: rgba(255,184,107,.4); background: rgba(255,184,107,.07); }
+.mstat-missing .mstat-dot, .mstat-partial .mstat-dot, .mstat-engine .mstat-dot { background: #ffb86b; color: #ffb86b; }
+.mstat-nokey { border-color: rgba(255,107,129,.4); background: rgba(255,107,129,.07); }
+.mstat-nokey .mstat-dot { background: #ff6b81; color: #ff6b81; }
+@keyframes mstatPulse { 50% { opacity: .35; } }
+
+/* ══ Pandora Cut ══ */
+.cut-list { display: flex; flex-direction: column; gap: 4px; margin-top: 8px; max-height: 220px; overflow: auto; }
+.cut-item { display: flex; align-items: center; gap: 6px; padding: 4px 8px; border-radius: 10px; background: rgba(255,255,255,.04); }
+.cut-item .btn.small { padding: 2px 8px; }
+.cut-n { width: 20px; height: 20px; border-radius: 50%; display: grid; place-items: center; font-size: 11px; background: rgba(139,107,255,.25); flex-shrink: 0; }
+.cut-name { flex: 1; font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.cut-color { padding: 10px 12px; border-radius: 14px; background: rgba(255,184,107,.05); border: 1px solid rgba(255,184,107,.18); }
+.cut-compare { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+.cut-compare img { width: 100%; border-radius: 12px; display: block; margin-top: 4px; }
+.cut-help ol { padding-left: 18px; line-height: 1.7; }
+
+/* ══ Performance mode: no animated scenes / blur — for low-end PCs and laptops on battery ══ */
+/* the scene stays (still picture), only the costly moving/blurred layers go */
+.perf-lite .mb-particles, .perf-lite .mb-grain, .perf-lite .mb-fog, .perf-lite .mb-rays, .perf-lite .pbox-sparks, .perf-lite .pbox-scan { display: none !important; }
+.perf-lite .mood, .perf-lite .mood * { animation: none !important; transition: none !important; filter: none !important; }
+.perf-lite *, .perf-lite *::before, .perf-lite *::after { backdrop-filter: none !important; -webkit-backdrop-filter: none !important; }
+.perf-lite .pbox-spin { animation-duration: 40s !important; }
+
 /* ══ Tool cards with illustrated thumbnails (ToolArt) ══ */
 .tool-card { text-align: left; cursor: pointer; padding: 0 !important; overflow: hidden; display: flex; flex-direction: column; transition: transform .35s var(--spring), box-shadow .25s !important; }
 .tool-card:hover { transform: translateY(-4px) scale(1.015); box-shadow: 0 22px 44px rgba(0,0,0,.42), 0 0 0 1px hsl(var(--th, 260) 90% 70% / .25) !important; }
@@ -807,3 +845,6 @@ body { background: #050508 !important; }
 .tool-card { align-items: stretch !important; } .tool-art { width: 100%; align-self: stretch; flex: none; } .tool-body { width: 100%; box-sizing: border-box; }
 .tool-card-lite { overflow: hidden; } .tool-card-lite .tool-art { margin: -14px -14px 8px; width: calc(100% + 28px); height: 84px; } .tool-card-lite:hover .ta-glyph { transform: rotate(-8deg) scale(1.12) translateY(-2px); }
 .wordmark { justify-content: center; }
+.perf-pill { margin: 6px 12px 0; padding: 6px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.05); color: #cfc8ff; font-size: 11px; cursor: pointer; text-align: left; }
+.perf-pill.on { border-color: rgba(255,184,107,.45); color: #ffd6a3; background: rgba(255,184,107,.08); }
+.perf-pill:hover { background: rgba(255,255,255,.1); }

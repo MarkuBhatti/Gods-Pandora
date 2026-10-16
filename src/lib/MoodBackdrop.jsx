@@ -49,6 +49,9 @@ const SETS = {
   canvas: { lamps: [L(30, 50, '#d8f3ff', .45), L(70, 50, '#d8f3ff', .45)], props: () => <><Skyline seed={21} top={26} h={30} warm={.35} /><Bridge y={44} /><Trails y={60} /></> },
   film: { lamps: [L(8, 44, '#d8f3ff', .55, { cone: true }), L(24, 46, '#d8f3ff', .5, { cone: true }), L(44, 47, '#d8f3ff', .45, { cone: true }), L(90, 45, '#d8f3ff', .55, { cone: true })],
     props: () => <><Billboard x={70} y={42} color="#ff4d4d" text="CINEMA" /><Car x={36} y={70} scale={1.15} /><Car x={66} y={72} scale={.95} dir="l" body="#0e1218" /></> },
+  // a colourist's grading suite at night: dim room, bias-lit monitors, city through the window
+  cut: { lamps: [L(30, 50, '#7ab8ff', .5), L(50, 50, '#ffb36b', .5), L(70, 50, '#7ab8ff', .5)],
+    props: () => <><Interior pendants={[50]} windows={[{ x: 4, w: 30, y: 12, h: 34 }]} desk={66} warm="#ff9d5c" /><Neon text="GRADE" color="#4fd1ff" x={78} y={22} size={2.1} /><Neon text="● REC" color="#ff4d4d" x={20} y={56} size={1.4} box={false} /></> },
   fashion: { lamps: [], props: () => <Interior pendants={[24, 50, 76]} windows={[{ x: 6, w: 18 }, { x: 78, w: 16 }]} warm="#ffd7a1" /> },
   product: { lamps: [], props: () => <><Interior pendants={[]} windows={[]} warm="#fff0d6" /><Spots xs={[18, 38, 62, 82]} /><Plinth x={38} /><Plinth x={62} color="#ffd2a8" /></> },
   marketing: { lamps: [L(12, 42, '#fff1c9', .6, { cone: true })], props: () => <><Skyline seed={5} top={24} h={38} warm={.7} density={.32} /><Neon text="OPEN 24H" color="#ff4fa3" x={30} y={44} size={2.2} /><Neon text="NOODLES" color="#57ffcf" x={78} y={30} size={2} tilt={-4} /><Car x={-14} y={76} scale={1.2} moving dur={30} /><Car x={110} y={73} scale={1} dir="l" moving dur={42} delay={-12} /></> },
@@ -78,7 +81,7 @@ const SETS = {
 };
 
 const PAGE_MOOD = {
-  home: 'dystopia', create: 'neonfog', canvas: 'tealnight', film: 'tealnight', fashion: 'neonfog', product: 'dystopia',
+  home: 'dystopia', create: 'neonfog', canvas: 'tealnight', film: 'tealnight', cut: 'neonfog', fashion: 'neonfog', product: 'dystopia',
   marketing: 'neonfog', admulti: 'dystopia', genjutsu: 'jade', shorts: 'tealnight', explainer: 'cave', influencer: 'firelight',
   voice: 'cave', apps: 'jungle', appbuild: 'tealnight', designdocs: 'dystopia', digiproduct: 'firelight', forge: 'firelight',
   spatial: 'cave', touchdesigner: 'jade', aimarket: 'tealnight', styles: 'jungle', characters: 'firelight', locations: 'jungle',

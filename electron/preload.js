@@ -15,6 +15,17 @@ contextBridge.exposeInMainWorld('api', {
   enhancePrompt: (args) => ipcRenderer.invoke('prompt:enhance', args),
   fileUrl: (file) => ipcRenderer.invoke('media:fileUrl', file),
   concat: (files, aspect) => ipcRenderer.invoke('media:concat', files, aspect),
+  pickMedia: () => ipcRenderer.invoke('media:pickMedia'),
+  pickAudio: () => ipcRenderer.invoke('media:pickAudio'),
+  pickLut: () => ipcRenderer.invoke('media:pickLut'),
+  cut: {
+    status: () => ipcRenderer.invoke('cut:status'),
+    ensure: () => ipcRenderer.invoke('cut:ensure'),
+    autoEdit: (args) => ipcRenderer.invoke('cut:autoEdit', args),
+    autoColor: (args) => ipcRenderer.invoke('cut:autoColor', args),
+    preview: (args) => ipcRenderer.invoke('cut:preview', args),
+    onProgress: (cb) => { const h = (_e, p) => cb(p); ipcRenderer.on('cut:progress', h); return () => ipcRenderer.removeListener('cut:progress', h); },
+  },
   jutsu: {
     trainSoul: (args) => ipcRenderer.invoke('soul:train', args),
     genjutsu: (args) => ipcRenderer.invoke('genjutsu:run', args),

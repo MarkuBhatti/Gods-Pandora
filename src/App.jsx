@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import Create from './pages/Create.jsx';
 import FilmStudio from './pages/FilmStudio.jsx';
+import PandoraCut from './pages/PandoraCut.jsx';
 import Studio from './pages/Studio.jsx';
 import Styles from './pages/Styles.jsx';
 import Library from './pages/Library.jsx';
@@ -32,6 +33,7 @@ const TOPNAV = [
   ['create',     'Pandora Studio',      '✦'],
   ['canvas',     'Pandora Node Canvas', '⚛'],
   ['film',       'Pandora Film',        '🎬'],
+  ['cut',        'Pandora Cut',         '🎞'],
   ['fashion',    'Pandora Fashion',     '✂'],
   ['product',    'Pandora Product',     '◍'],
   ['marketing',  'Pandora Marketing',   '📣'],
@@ -82,6 +84,7 @@ function Page({ page }) {
       {page === 'home'        && <Home />}
       {page === 'create'      && <Create />}
       {page === 'film'        && <FilmStudio />}
+      {page === 'cut'         && <PandoraCut />}
       {page === 'fashion'     && <Studio studioId="fashion" />}
       {page === 'product'     && <Studio studioId="product" />}
       {page === 'apps'        && <Studio studioId="apps" />}
@@ -157,7 +160,9 @@ export default function App() {
     window.addEventListener('keydown', onKey);
     window.addEventListener('mouseup', onMouse);
     const off = window.api?.onNavHistory?.((dir) => (dir === 'back' ? back() : forward()));
-    return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('mouseup', onMouse); off && off(); };
+    const onGo = (e) => e.detail && setPage(e.detail); // any component: window.dispatchEvent(new CustomEvent('pandora:go', { detail: 'settings' }))
+    window.addEventListener('pandora:go', onGo);
+    return () => { window.removeEventListener('keydown', onKey); window.removeEventListener('mouseup', onMouse); window.removeEventListener('pandora:go', onGo); off && off(); };
   }, []);
   useEffect(() => { document.querySelector('.main')?.scrollTo?.(0, 0); }, [page]);
   const [upd, setUpd] = useState(null);
@@ -166,6 +171,20 @@ export default function App() {
     return window.api.updates.onEvent((s) => setUpd(s));
   }, []);
   const updReady = upd && (upd.status === 'available' || upd.status === 'downloaded');
+
+  // Performance mode: 'auto' turns Lite on for low-end PCs (≤4 CPU threads or ≤4 GB RAM) and laptops on battery.
+  const [perf, setPerf] = useState(() => { try { return localStorage.getItem('pandora.perf') || 'auto'; } catch { return 'auto'; } });
+  const [weak, setWeak] = useState(() => (navigator.hardwareConcurrency || 8) <= 4 || (navigator.deviceMemory || 8) <= 4);
+  useEffect(() => {
+    let bat = null; const upd8 = () => bat && setWeak((w) => w || (!bat.charging && bat.level < 0.3));
+    navigator.getBattery?.().then((b) => { bat = b; upd8(); b.addEventListener('chargingchange', upd8); b.addEventListener('levelchange', upd8); }).catch(() => {});
+  }, []);
+  const lite = perf === 'on' || (perf === 'auto' && weak);
+  useEffect(() => { document.body.classList.toggle('perf-lite', lite); }, [lite]);
+  const cyclePerf = () => {
+    const next = perf === 'auto' ? 'on' : perf === 'on' ? 'off' : 'auto';
+    setPerf(next); try { localStorage.setItem('pandora.perf', next); } catch { /* ignore */ }
+  };
 
   return (
     <ErrorBoundary>
@@ -202,6 +221,9 @@ export default function App() {
             </button>
           )}
           <JobsIndicator />
+          <button className={"perf-pill" + (lite ? " on" : "")} onClick={cyclePerf} title="Lite mode freezes the animated backgrounds and blur so the app stays fast on any PC. Auto = on for low-end PCs and low battery.">
+            ⚡ Lite mode: {perf === 'auto' ? 'Auto' + (lite ? ' (on)' : ' (off)') : perf === 'on' ? 'On' : 'Off'}
+          </button>
           <button className="mode-pill kbd-hint" onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))}>⌕ Quick jump <kbd>Ctrl K</kbd></button>
         </nav>
         <div className="wrap">

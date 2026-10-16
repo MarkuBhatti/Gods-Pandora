@@ -2,7 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { useJob, RunButton, ErrorBox, friendlyError, runKeys } from '../lib/job.jsx';
 import { useStore, uid } from '../lib/store.jsx';
 import { useNav } from '../lib/nav.jsx';
-import { useAllModels, modelLabel } from '../lib/models.jsx';
+import { useAllModels, modelLabel, ModelStatus, useModelGate, useReadiness } from '../lib/models.jsx';
 import GenSettings, { DEFAULT_GEN, genParams } from '../lib/GenSettings.jsx';
 import Media from '../lib/Media.jsx';
 
@@ -67,12 +67,15 @@ export default function InfluencerBuilder() {
     return face.length ? [...img.filter((m) => m.refInput), ...img.filter((m) => !m.refInput)] : img;
   }, [allModels, face.length]);
   const model = models.find((m) => m.id === modelId) || models[0];
+  const rdy = useReadiness();
+  const gate = useModelGate(model);
   const desc = traitsToText(traits) + (extra.trim() ? ', ' + extra.trim() : '');
 
   const shuffle = () => setTraits(Object.fromEntries(CATEGORIES.map(([k, , opts]) => [k, pick(opts)])));
 
   async function generate() {
     if (!model || busy) return;
+    if (!gate.ok) { setError(gate.reason); return; }
     setError(''); setResult(null); setSavedId(null);
     await job.start(async (jobId) => {
     try {
@@ -125,11 +128,12 @@ export default function InfluencerBuilder() {
       </div>
       <label>Model</label>
       <select value={model?.id || ''} onChange={(e) => setModelId(e.target.value)}>
-        {models.map((m) => <option key={m.id} value={m.id}>{modelLabel(m)}{m.refInput ? ' · refs' : ''}</option>)}
+        {models.map((m) => <option key={m.id} value={m.id}>{modelLabel(m, rdy)}{m.refInput ? ' · refs' : ''}</option>)}
       </select>
+      <ModelStatus model={model} />
       <GenSettings value={gen} onChange={setGen} kind="image" source={model?.provider === 'local' ? 'local' : 'cloud'} />
       <p className="sub" style={{ fontSize: 11 }}>Prompt preview: {desc}</p>
-      <RunButton job={job} label="✦ Generate influencer" onRun={generate} disabled={!model} />
+      <RunButton job={job} label="✦ Generate influencer" onRun={generate} disabled={!model || !gate.ok} />
       <ErrorBox error={error} />
       {result && (
         <div className="result-box">

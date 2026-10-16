@@ -1,10 +1,26 @@
 // Manages the built-in local inference engine (Python sidecar in ./engine).
 // Models download into <userData>/models and run fully offline — Ollama/ComfyUI style.
-const { spawn, spawnSync } = require('child_process');
+const cp = require('child_process');
 const path = require('path');
 const fs = require('fs');
 
+// Every helper process runs hidden — the user never sees a console window pop up.
+const hide = (o) => ({ windowsHide: true, ...(o || {}) });
+const spawn = (cmd, args, o) => cp.spawn(cmd, args, hide(o));
+const spawnSync = (cmd, args, o) => cp.spawnSync(cmd, args, hide(o));
+
+// Silences harmless library chatter (symlink notices on Windows, telemetry, deprecations).
+const QUIET_ENV = {
+  HF_HUB_DISABLE_SYMLINKS_WARNING: '1', HF_HUB_DISABLE_TELEMETRY: '1', HF_HUB_DISABLE_PROGRESS_BARS: '1',
+  TRANSFORMERS_VERBOSITY: 'error', DIFFUSERS_VERBOSITY: 'error', TOKENIZERS_PARALLELISM: 'false',
+  PYTHONWARNINGS: 'ignore', PYTHONUNBUFFERED: '1', PYTHONIOENCODING: 'utf-8',
+  PIP_DISABLE_PIP_VERSION_CHECK: '1',
+};
+
 let proc = null;
+let wantRunning = false;   // watchdog: restart the engine if it exits on its own
+let restarts = 0;
+let lastStart = null;
 const downloads = new Map(); // repo -> { proc, timer, cancelled }
 let state = { installed: false, running: false, log: [] };
 const PORT = 8756;
@@ -74,17 +90,32 @@ module.exports = {
     const venv = path.join(userData, 'engine-venv');
     const py = fs.existsSync(venvPy(venv)) ? venvPy(venv) : python();
     if (!py) return { ok: false, error: 'Python not found.' };
+    wantRunning = true;
+    lastStart = { userData, token };
     proc = spawn(py, [path.join(enginePath(), 'server.py'), '--port', String(PORT), '--models-dir', modelsDir(userData)], {
-      env: { ...process.env, HF_HOME: modelsDir(userData), ...(token ? { HF_TOKEN: token } : {}) }
+      env: { ...process.env, ...QUIET_ENV, HF_HOME: modelsDir(userData), ...(token ? { HF_TOKEN: token } : {}) },
+      windowsHide: true,
     });
+    const started = Date.now();
     proc.stdout.on('data', (d) => log(d.toString()));
     proc.stderr.on('data', (d) => log(d.toString()));
-    proc.on('close', () => { proc = null; state.running = false; });
+    proc.on('error', (e) => log('Engine could not start: ' + e.message + '\n'));
+    proc.on('close', (code) => {
+      proc = null; state.running = false;
+      // Watchdog: if the engine dies unexpectedly (driver hiccup, out of RAM) bring it back quietly.
+      // The app itself never goes down with it — generation just shows a friendly retry message.
+      if (!wantRunning) return;
+      restarts = Date.now() - started > 60000 ? 0 : restarts + 1;
+      if (restarts > 3) { log('Engine stopped repeatedly — open Pandora Models → Engine to repair it.\n'); wantRunning = false; return; }
+      log('Engine stopped (code ' + code + ') — restarting automatically…\n');
+      setTimeout(() => { if (wantRunning && !proc) module.exports.start(lastStart.userData, lastStart.token); }, 1500 * (restarts + 1));
+    });
     state.running = true;
     return { ok: true };
   },
 
   stop() {
+    wantRunning = false;
     if (proc) { proc.kill(); proc = null; }
     state.running = false;
     return { ok: true };
@@ -103,23 +134,25 @@ module.exports = {
       const check = spawnSync(py, ['-c', 'import huggingface_hub']);
       if (check.status !== 0) return resolve({ ok: false, error: 'The local engine is not installed yet. Click "Install engine" (Models or Update page) first — it sets up the Hugging Face downloader.' });
 
-      const env = { ...process.env, HF_HOME: modelsDir(userData), HF_HUB_DISABLE_TELEMETRY: '1' };
+      const env = { ...process.env, ...QUIET_ENV, HF_HOME: modelsDir(userData) };
       if (opts.token) env.HF_TOKEN = opts.token;
-      const code = [
-        'import sys',
-        'from huggingface_hub import snapshot_download',
-        'snapshot_download(sys.argv[1])',
-      ].join('; ');
-      const p = spawn(py, ['-c', code, repo], { env });
+      // engine/hub.py downloads ONE fp16 copy of the weights + configs (not the whole multi-GB repo)
+      const p = spawn(py, [path.join(enginePath(), 'hub.py'), repo], { env, windowsHide: true });
       let errTail = '';
-      p.stdout.on('data', (d) => log(d.toString()));
+      let total = opts.totalBytes || 0;
+      p.stdout.on('data', (d) => {
+        const t = d.toString();
+        const m = t.match(/TOTAL (\d+)/);
+        if (m && +m[1] > 0) total = +m[1];
+        log(t);
+      });
       p.stderr.on('data', (d) => { const t = d.toString(); errTail = (errTail + t).slice(-2000); log(t); });
 
       const report = (extra = {}) => {
         if (!opts.onProgress) return;
         let bytes = 0;
         try { bytes = require('./hfModels').bytesOnDisk(modelsDir(userData), repo); } catch (_) {}
-        opts.onProgress({ repo, bytes, total: opts.totalBytes || 0, ...extra });
+        opts.onProgress({ repo, bytes, total, ...extra });
       };
       const timer = setInterval(() => report(), 1500);
       downloads.set(repo, { proc: p, timer });
@@ -137,6 +170,8 @@ module.exports = {
           error = 'Model not found on Hugging Face: ' + repo;
         } else if (/No space left|ENOSPC|disk/i.test(errTail)) {
           error = 'Not enough disk space for this model.';
+        } else if (/No internet|ConnectionError|resolve|timed out|offline/i.test(errTail)) {
+          error = 'No internet connection. Connect and press Download again — it resumes where it stopped.';
         }
         report({ done: true, error });
         resolve({ ok: false, error });
@@ -227,7 +262,9 @@ module.exports = {
       } catch { /* incomplete download */ }
       let kind = 'other';
       if (className) kind = /Video|Wan|LTX|CogVideo|Mochi|SkyReels|Animate|I2V|T2V/i.test(className) ? 'video' : 'image';
-      return { repo, className, kind, runnable: !!className };
+      const downloading = downloads.has(repo);
+      const complete = !downloading && isComplete(path.join(hub, d));
+      return { repo, className, kind, runnable: !!className && complete, complete, downloading };
     });
   },
 
@@ -238,6 +275,25 @@ module.exports = {
     } catch { return []; }
   }
 };
+
+// A model is "ready" only when its download finished: hub.py writes a marker; older downloads count
+// as ready when no *.incomplete blobs remain and some weights exist.
+function isComplete(dir) {
+  if (fs.existsSync(path.join(dir, '.pandora-complete'))) return true;
+  let weights = false; let partial = false;
+  const walk = (p, depth) => {
+    if (depth > 6 || partial) return;
+    let es = [];
+    try { es = fs.readdirSync(p, { withFileTypes: true }); } catch { return; }
+    for (const e of es) {
+      if (e.name.endsWith('.incomplete')) { partial = true; return; }
+      if (e.isDirectory()) walk(path.join(p, e.name), depth + 1);
+      else if (/\.(safetensors|bin|ckpt|gguf|pt|pth|onnx)$/i.test(e.name)) weights = true;
+    }
+  };
+  walk(dir, 0);
+  return weights && !partial;
+}
 
 function venvPy(venv) {
   return process.platform === 'win32' ? path.join(venv, 'Scripts', 'python.exe') : path.join(venv, 'bin', 'python');

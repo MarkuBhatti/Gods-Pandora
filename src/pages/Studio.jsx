@@ -2,7 +2,7 @@ import ToolArt from '../lib/ToolArt.jsx';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useJob, RunButton, ErrorBox, friendlyError, runKeys } from '../lib/job.jsx';
 import { PromptTools, DropZone } from '../lib/qol.jsx';
-import { useAllModels, modelLabel } from '../lib/models.jsx';
+import { useAllModels, modelLabel, ModelStatus, useModelGate, useReadiness } from '../lib/models.jsx';
 import { MentionBar, resolveMentions, insertMention } from '../lib/mentions.jsx';
 import AssetActions from '../lib/AssetActions.jsx';
 import GenSettings, { DEFAULT_GEN, genParams } from '../lib/GenSettings.jsx';
@@ -226,7 +226,9 @@ function ToolRunner({ tool, studioId, onBack }) {
   const style = styles.presets.find((s) => s.id === styleId) || (db.styles || []).find((s) => s.id === styleId) || null;
   const character = db.characters.find((c) => c.id === charId) || null;
   const location = db.locations.find((l) => l.id === locId) || null;
-  const ready = model && tool.imageInputs.every((inp) => images[inp.id]?.length);
+  const rdy = useReadiness();
+  const gate = useModelGate(model);
+  const ready = model && gate.ok && tool.imageInputs.every((inp) => images[inp.id]?.length);
   const visual = tool.kind === 'image' || tool.kind === 'video';
 
   async function pick(inpId) {
@@ -327,12 +329,13 @@ function ToolRunner({ tool, studioId, onBack }) {
         <select value={model?.id || ''} onChange={(e) => setModelId(e.target.value)}>
           <option value="">— Select model —</option>
           <optgroup label={'☁ API models (' + models.api.length + ')'}>
-            {models.api.map((m) => <option key={m.id} value={m.id}>{modelLabel(m)}</option>)}
+            {models.api.map((m) => <option key={m.id} value={m.id}>{modelLabel(m, rdy)}</option>)}
           </optgroup>
           <optgroup label={'⬇ Open-source · local (' + models.os.length + ')'}>
-            {models.os.map((m) => <option key={m.id} value={m.id}>{modelLabel(m)}</option>)}
+            {models.os.map((m) => <option key={m.id} value={m.id}>{modelLabel(m, rdy)}</option>)}
           </optgroup>
         </select>
+        <ModelStatus model={model} />
 
         {visual && (
           <div className="cinerow" style={{ marginTop: 4 }}>
@@ -409,6 +412,7 @@ function ToolRunner({ tool, studioId, onBack }) {
 
         <div style={{ marginTop: 16 }}>
           <RunButton job={job} label={tool.kind === 'llm' ? '✦ Build' : '✦ Generate'} busyLabel={tool.kind === 'llm' ? 'Building…' : 'Generating…'} onRun={go} disabled={!ready} />
+          {model && !gate.ok && !busy && <span className="sub" style={{ fontSize: 11 }}>🔒 {gate.reason}</span>}
         </div>
         <ErrorBox error={error} />
         {textResult && (

@@ -11,6 +11,9 @@ import base64
 import io
 import os
 
+import hub
+hub.quiet()  # no scary-but-harmless warnings in the console
+
 import torch
 from fastapi import FastAPI
 from pydantic import BaseModel
@@ -94,19 +97,80 @@ def load_pipeline(model_id: str, base_hint: str = ""):
             dtype = torch.float16  # SD 1.5 / SDXL checkpoints are fp16
         pipe = load_single_file(model_id, base_hint, dtype)
     else:
-        try:
-            pipe = AutoPipelineForText2Image.from_pretrained(model_id, torch_dtype=dtype)
-        except Exception:  # video models and newer families register their own pipeline class
-            pipe = DiffusionPipeline.from_pretrained(model_id, torch_dtype=dtype)
-    if dev == "cuda":
-        try:
-            pipe.enable_model_cpu_offload()  # lets 12-16 GB GPUs run large models
-        except Exception:
-            pipe = pipe.to(dev)
-    else:
-        pipe = pipe.to(dev)
+        path, variant = hub.fetch(model_id, os.environ.get("HF_TOKEN") or None)  # only fp16 weights, not the whole repo
+        if variant == "fp16" and dtype == torch.bfloat16 and "stable-diffusion" in model_id.lower():
+            dtype = torch.float16
+        def _load(cls, v):
+            kw = {"torch_dtype": dtype}
+            if v:
+                kw["variant"] = v
+            return cls.from_pretrained(path, **kw)
+        pipe = None
+        last = None
+        for cls in (AutoPipelineForText2Image, DiffusionPipeline):  # video / newer families use their own class
+            for v in ([variant, None] if variant else [None]):
+                try:
+                    pipe = _load(cls, v)
+                    break
+                except Exception as e:  # noqa: BLE001
+                    last = e
+            if pipe is not None:
+                break
+        if pipe is None:
+            raise last
+    optimize_memory(pipe, dev)
     PIPELINES[model_id] = pipe
     return pipe
+
+
+def vram_gb():
+    try:
+        return torch.cuda.get_device_properties(0).total_memory / 1024**3 if torch.cuda.is_available() else 0
+    except Exception:  # noqa: BLE001
+        return 0
+
+
+def optimize_memory(pipe, dev):
+    """ComfyUI-style memory management: keep small models on the GPU, offload big ones, tile the VAE."""
+    if dev != "cuda":
+        pipe.to(dev)
+        return
+    vram = vram_gb()
+    small = type(pipe).__name__ in ("StableDiffusionPipeline", "StableDiffusionImg2ImgPipeline", "StableDiffusionInpaintPipeline")
+    try:
+        if small and vram >= 6:
+            pipe.to("cuda")                     # SD 1.5 fits fully on 6 GB+ — fastest
+        elif vram and vram < 6:
+            pipe.enable_sequential_cpu_offload()  # 4-6 GB: slowest but never runs out of memory
+        else:
+            pipe.enable_model_cpu_offload()      # SDXL / FLUX / video on 8-16 GB
+    except Exception:  # noqa: BLE001
+        pipe.to("cuda")
+    for fn in ("enable_vae_slicing", "enable_vae_tiling"):
+        try:
+            getattr(pipe, fn)()
+        except Exception:  # noqa: BLE001
+            pass
+    if vram and vram <= 8:
+        try:
+            pipe.enable_attention_slicing("auto")
+        except Exception:  # noqa: BLE001
+            pass
+
+
+# native resolutions: going far above them makes duplicated subjects and wastes VRAM
+NATIVE_AREA = {"StableDiffusionPipeline": 512 * 512, "StableDiffusionXLPipeline": 1024 * 1024}
+
+
+def fit_resolution(pipe, width, height, mult):
+    area = NATIVE_AREA.get(type(pipe).__name__)
+    note = None
+    if area and width * height > area * 1.6:
+        scale = (area / (width * height)) ** 0.5
+        nw, nh = int(width * scale), int(height * scale)
+        note = f"Resized {width}×{height} → {nw // mult * mult}×{nh // mult * mult} (this model's native size) for sharper results."
+        width, height = nw, nh
+    return max(64, width // mult * mult), max(64, height // mult * mult), note
 
 
 SAMPLERS = {
@@ -276,11 +340,10 @@ def generate(req: GenRequest):
                     [(x.get("path"), x.get("scale", 0.8)) for x in (req.loras or []) if isinstance(x, dict)])
         params = call_params(pipe)
         refs = decode_images(req.reference_images)
-        note = None
         # dimensions must be multiples of 8 (latent space); FLUX / video models prefer multiples of 16/32
-        mult = 32 if is_video_pipeline(pipe) else 16
-        width = max(64, (req.width // mult) * mult)
-        height = max(64, (req.height // mult) * mult)
+        mult = 32 if is_video_pipeline(pipe) else (8 if type(pipe).__name__.startswith("StableDiffusion") else 16)
+        width, height, fit_note = fit_resolution(pipe, req.width, req.height, mult)
+        note = fit_note
         seed = req.seed if req.seed is not None else int(torch.randint(0, 2**31 - 1, (1,)).item())
         generator = torch.Generator(device="cpu").manual_seed(seed)
         kwargs = dict(prompt=req.prompt, generator=generator)
@@ -321,7 +384,21 @@ def generate(req: GenRequest):
             os.unlink(tmp.name)
             return {"video": f"data:video/mp4;base64,{b64}", "seed": seed, "width": width, "height": height, "note": note}
 
-        image = pipe(**kwargs).images[0]
+        try:
+            image = pipe(**kwargs).images[0]
+        except torch.cuda.OutOfMemoryError:
+            # recover instead of failing: free memory, switch to the lowest-VRAM mode, retry smaller
+            torch.cuda.empty_cache()
+            try:
+                pipe.enable_sequential_cpu_offload()
+            except Exception:  # noqa: BLE001
+                pass
+            if "width" in kwargs:
+                kwargs["width"] = max(256, int(kwargs["width"] * 0.75) // 8 * 8)
+                kwargs["height"] = max(256, int(kwargs["height"] * 0.75) // 8 * 8)
+            image = pipe(**kwargs).images[0]
+            note = (note + " " if note else "") + "Your GPU ran low on memory, so God's Pandora retried in low-memory mode."
+            width, height = kwargs.get("width", width), kwargs.get("height", height)
         buf = io.BytesIO()
         image.save(buf, format="PNG")
         b64 = base64.b64encode(buf.getvalue()).decode()
@@ -332,8 +409,13 @@ def generate(req: GenRequest):
         return {"error": "Cancelled."}
     except Exception as e:  # noqa: BLE001
         msg = str(e)
-        if "out of memory" in msg.lower():
-            msg = "GPU out of memory — try a lower resolution, fewer frames, or a smaller model."
+        low = msg.lower()
+        if "out of memory" in low:
+            msg = "Not enough GPU memory for this model at this size. Try a smaller resolution, fewer frames, or a lighter model (SD 1.5 / SDXL Turbo)."
+        elif "gated" in low or "401" in low or "access to model" in low:
+            msg = "This model needs a free Hugging Face login: accept its licence on huggingface.co, then paste your Hugging Face token in Settings → API Keys."
+        elif "connection" in low or "resolve host" in low or "timed out" in low:
+            msg = "Couldn't reach Hugging Face to download the model. Check your internet connection and try again."
         return {"error": msg}
 
 
