@@ -149,7 +149,7 @@ function RefPanel({ studioId, secRefs, onChange }) {
   );
 }
 
-export default function Studio({ studioId }) {
+export default function Studio({ studioId, top = null }) {
   const studio = studios.studios.find((s) => s.id === studioId);
   const [tool, setTool] = useState(null);
   const [showGuide, setShowGuide] = useState(false);
@@ -157,8 +157,8 @@ export default function Studio({ studioId }) {
   if (!studio) return null;
   return (
     <div>
-      <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 2 }}>
-        <div>
+      <div className="row" style={{ justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 2, flexWrap: 'nowrap', gap: 16 }}>
+        <div style={{ minWidth: 0 }}>
           <h1 style={{ marginBottom: 2 }}>{studio.icon} Pandora {studio.name}</h1>
           <p className="sub" style={{ marginBottom: 0 }}>{studio.subtitle}</p>
         </div>
@@ -171,6 +171,7 @@ export default function Studio({ studioId }) {
         </button>
       </div>
       {showGuide && <GuideBook sectionId={studioId} onClose={() => setShowGuide(false)} />}
+      {top && !tool && <div style={{ marginTop: 18 }}>{top}</div>}
       <div style={{ marginTop: 18 }}>
         {!tool ? (
           <div className="grid">
@@ -217,7 +218,9 @@ function ToolRunner({ tool, studioId, onBack }) {
   const models = useMemo(() => {
     const api = allModels.filter((m) => m.provider !== 'local' && m.kind === tool.kind && (tool.imageInputs.length === 0 || (m.refInput && (m.maxRefs || 1) >= tool.imageInputs.length)));
     if (tool.kind === 'llm') {
-      return { api: [{ id: 'claude', name: 'Claude (Anthropic)', provider: 'anthropic' }], os: directory.openSource.filter((m) => ['llm', 'code'].includes(m.type)).map((m) => ({ id: 'os-' + m.repo, name: m.name + ' (local runtime)', provider: 'local' })), all: [{ id: 'claude', name: 'Claude', provider: 'anthropic' }] };
+      const api = [{ id: 'claude', name: 'Claude (Anthropic)', provider: 'anthropic' }];
+      const os = [{ id: 'local-llm', name: 'Your local model — Ollama / LM Studio (free)', provider: 'local' }, ...directory.openSource.filter((m) => ['llm', 'code'].includes(m.type)).map((m) => ({ id: 'os-' + m.repo, name: m.name + ' (via Ollama / LM Studio)', provider: 'local' }))];
+      return { api, os, all: [...api, ...os] };
     }
     const os = allModels.filter((m) => m.provider === 'local' && m.kind === tool.kind);
     return { api, os, all: [...api, ...os] };
@@ -244,7 +247,9 @@ function ToolRunner({ tool, studioId, onBack }) {
     await job.start(async (jobId) => {
     try {
       if (tool.kind === 'llm') {
-        const out = await window.api.claude({ jobId, system: 'You are an elite builder. Deliver complete, production-quality output. No preamble.', prompt: tool.template.replace('{notes}', notes || ''), maxTokens: 32000 });
+        const args = { jobId, system: 'You are an elite builder. Deliver complete, production-quality output. No preamble.', prompt: tool.template.replace('{notes}', notes || ''), maxTokens: 32000 };
+        // "local runtime" models run free through Ollama / LM Studio; Claude uses your Anthropic key
+        const out = model?.provider === 'local' ? await window.api.llmLocal({ ...args, maxTokens: 16000, model: model.ollama || '' }) : await window.api.claude(args);
         setTextResult(out); return;
       }
       let prompt = tool.template.replace('{notes}', notes || '').trim();

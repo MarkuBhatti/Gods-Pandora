@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { useDownloads, fmtBytes } from '../lib/downloads.jsx';
 import { useStore } from '../lib/store.jsx';
 
 // First-run wizard: asks once, then auto-installs the open-source engine + starter model
@@ -10,6 +11,7 @@ export default function Onboarding() {
   const [status, setStatus] = useState('');
   const [busy, setBusy] = useState(false);
 
+  const dl = useDownloads()['stable-diffusion-v1-5/stable-diffusion-v1-5'];
   if (!loaded || db.settings?.onboarded || !db.settings?.setupDone) return null; // the Setup Wizard runs first
   const finish = () => update((d) => { d.settings.onboarded = true; return d; });
 
@@ -20,10 +22,13 @@ export default function Onboarding() {
 
   async function setupLocal() {
     setBusy(true);
-    setStatus('Installing local engine (Python venv + PyTorch + diffusers)… this can take several minutes.');
-    const inst = await window.api.engine.install();
-    if (!inst.ok) { setStatus('⚠ ' + inst.error + ' — you can retry later from the Models tab.'); setBusy(false); return; }
-    setStatus('Engine installed. Downloading starter open-source model (SD 1.5, ~4 GB)…');
+    const st = await window.api.engine.status().catch(() => ({}));
+    if (!st.installed) {
+      setStatus('Installing local engine (Python venv + PyTorch + diffusers)… this can take several minutes.');
+      const inst = await window.api.engine.install();
+      if (!inst.ok) { setStatus('⚠ ' + inst.error + ' — you can retry later from Pandora Core & Cloud.'); setBusy(false); return; }
+    }
+    setStatus('Downloading the starter open-source model (SD 1.5, about 2 GB)…');
     const dl = await window.api.engine.downloadModel('stable-diffusion-v1-5/stable-diffusion-v1-5');
     setStatus(dl.ok ? '✓ Local engine ready. Starting it…' : '⚠ ' + dl.error);
     if (dl.ok) await window.api.engine.start();
@@ -37,6 +42,10 @@ export default function Onboarding() {
         <div className="wordmark" style={{ fontSize: 30 }}><b>GOD'S</b> <span className="eye">PANDORA</span></div>
         <div className="tagline" style={{ marginBottom: 16 }}>first-run setup — every model · every medium · one creative universe</div>
 
+        {busy && dl?.total > 0 && (
+          <div className="dl-progress" style={{ margin: '8px 0' }}><div className="bar"><div style={{ width: Math.min(100, Math.floor(dl.bytes / dl.total * 100)) + '%' }} /></div>
+            <span className="sub" style={{ fontSize: 11 }}>{Math.min(100, Math.floor(dl.bytes / dl.total * 100))}% · {fmtBytes(dl.bytes)} / {fmtBytes(dl.total)}</span></div>
+        )}
         {step === 0 && (<>
           <p>God's Pandora can set itself up automatically. It will (with your permission):</p>
           <p className="sub" style={{ margin: '10px 0' }}>1 — Connect your API keys for cloud models (you pay providers directly).<br />2 — Install the local open-source engine and download a starter model so you can also generate fully offline, free.</p>

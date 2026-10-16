@@ -125,7 +125,7 @@ export function readiness(m, r = rd) {
     const downloading = (Array.isArray(r.active) && r.active.includes(repo)) || !!r.progress?.[repo];
     if (downloading) {
       const p = r.progress?.[repo];
-      const pct = p && p.total ? Math.min(99, Math.round((p.bytes / p.total) * 100)) : null;
+      const pct = p && p.total ? Math.min(100, Math.floor((p.bytes / p.total) * 100)) : null;
       return { state: 'downloading', ok: false, pct, label: 'Downloading' + (pct != null ? ` ${pct}%` : '…') + ' — you can generate once it finishes', short: '⏳' + (pct != null ? pct + '%' : '') };
     }
     if (r.engine && r.engine.installed === false) {

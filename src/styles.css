@@ -876,3 +876,6 @@ body { background: #050508 !important; }
 @keyframes iwPop { from { opacity: 0; transform: scale(.9) translateY(14px); } to { opacity: 1; transform: none; } }
 @keyframes iwFade { from { opacity: 0; } }
 @media (max-width: 760px) { .iw-card { grid-template-columns: 1fr; } .iw-art { min-height: 200px; } }
+.side-foot { display: flex; gap: 6px; align-items: center; padding: 6px 10px 2px; }
+.side-foot .perf-pill { margin: 0; flex: 1; text-align: center; white-space: nowrap; }
+.side-foot .mode-pill { margin: 0; white-space: nowrap; font-size: 11px; padding: 6px 10px; }

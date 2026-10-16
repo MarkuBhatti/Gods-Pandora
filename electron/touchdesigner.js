@@ -83,7 +83,7 @@ class TouchDesignerBridge extends EventEmitter {
   }
 
   sendParams(paramMap) {
-    // paramMap: { '/godsEye/speed': 0.5, '/godsEye/color/r': 1.0, ... }
+    // paramMap: { '/pandora/speed': 0.5, '/pandora/color/r': 1.0, ... }
     for (const [addr, val] of Object.entries(paramMap)) {
       this.sendOSC(addr, val);
     }

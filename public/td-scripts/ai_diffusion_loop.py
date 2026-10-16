@@ -20,10 +20,10 @@ def buildDiffusionLoop(parent=None):
 import requests, base64, io, json
 
 def onCook(dat):
-    params_op = op("/project1/godsEyeBridge/params")
-    strength = params_op["godsEye/ai/strength"][0] if params_op else 0.4
-    cfg = params_op["godsEye/ai/cfgScale"][0] * 14 + 1 if params_op else 7
-    steps = max(1, int(params_op["godsEye/ai/steps"][0] * 20)) if params_op else 4
+    params_op = op("/project1/pandoraBridge/params")
+    strength = params_op["pandora/ai/strength"][0] if params_op else 0.4
+    cfg = params_op["pandora/ai/cfgScale"][0] * 14 + 1 if params_op else 7
+    steps = max(1, int(params_op["pandora/ai/steps"][0] * 20)) if params_op else 4
 
     prompt_op = op("../promptStr")
     prompt = prompt_op.text if prompt_op else "cinematic generative art, neon glow"

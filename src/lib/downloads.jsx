@@ -42,10 +42,11 @@ export async function startDownload(repo) {
   }
   if (info) {
     const size = info.sizeBytes ? fmtBytes(info.sizeBytes) : 'unknown size';
+    const saved = info.repoBytes && info.repoBytes > info.sizeBytes * 1.2 ? ` (the full repository is ${fmtBytes(info.repoBytes)} — only the files the engine needs are downloaded)` : '';
     const gated = info.gated ? '\n\n⚠ This model is GATED: accept its license on huggingface.co and add your Hugging Face token in Settings → API Keys ("huggingface") first.' : '';
-    const engineNote = info.engine ? '' : '\n\nNote: this model downloads into app storage but runs in external tools (ComfyUI, Ollama, LM Studio…), not in God\'s Eye\'s built-in image engine.';
+    const engineNote = info.engine ? '' : '\n\nNote: this model downloads into app storage but runs in external tools (ComfyUI, Ollama, LM Studio…), not in God\'s Pandora\'s built-in image engine.';
     const big = info.sizeBytes > 200 * 1024 ** 3 ? '\n\n⚠ This is a very large model meant for multi-GPU servers.' : '';
-    if (!window.confirm(`Download ${repo}?\n\nApprox. size on Hugging Face: ${size}${gated}${engineNote}${big}`)) return { ok: false, cancelled: true };
+    if (!window.confirm(`Download ${repo}?\n\nDownload size: ${size}${saved}${gated}${engineNote}${big}`)) return { ok: false, cancelled: true };
   }
   patch(repo, { active: true, done: false, error: null, bytes: 0, total: info?.sizeBytes || 0 });
   const r = await window.api.engine.downloadModel(repo, info?.sizeBytes || 0);
@@ -60,7 +61,7 @@ export function DownloadButton({ repo, installed, small = true, label = '⬇ Ins
   const d = all[repo];
   const [msg, setMsg] = React.useState('');
   if (d?.active) {
-    const pct = d.total ? Math.min(99, Math.round((d.bytes / d.total) * 100)) : null;
+    const pct = d.total ? Math.min(100, Math.floor((d.bytes / d.total) * 100)) : null;
     return (
       <div className="dl-progress">
         <div className="bar"><div style={{ width: (pct ?? 5) + '%' }} /></div>

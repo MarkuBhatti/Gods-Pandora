@@ -9,7 +9,7 @@ export default function AiMarket() {
   return (
     <div>
       <h1>🌐 Pandora AI Market</h1>
-      <p className="sub">The whole landscape in one place — {total} models across {market.categories.length} categories, from chat to robotics to protein folding. Filter by access, click through to docs or weights. This is the eye that sees everything.</p>
+      <p className="sub">The whole landscape in one place — {total} models across {market.categories.length} categories, from chat to robotics to protein folding. Filter by access, click through to docs or weights. Every model. Every medium. One creative universe.</p>
       <div className="row" style={{ marginBottom: 14 }}>
         {[['all', 'All'], ['api', '☁ API'], ['open', '⬇ Open-source']].map(([v, l]) => (
           <button key={v} className={'chip' + (access === v ? ' on' : '')} onClick={() => setAccess(v)}>{l}</button>

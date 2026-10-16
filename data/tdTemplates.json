@@ -9,20 +9,20 @@
       "desc": "GPU-accelerated particle system with up to 10 million particles. Control mass, gravity, wind, turbulence, and color over life.",
       "preview": null,
       "oscParams": [
-        { "address": "/godsEye/particles/count",      "label": "Particle Count",  "type": "float", "min": 0, "max": 1,    "default": 0.5,  "unit": "M" },
-        { "address": "/godsEye/particles/speed",      "label": "Speed",           "type": "float", "min": 0, "max": 1,    "default": 0.4 },
-        { "address": "/godsEye/particles/gravity",    "label": "Gravity",         "type": "float", "min": 0, "max": 1,    "default": 0.3 },
-        { "address": "/godsEye/particles/turbulence", "label": "Turbulence",      "type": "float", "min": 0, "max": 1,    "default": 0.5 },
-        { "address": "/godsEye/particles/spread",     "label": "Spread",          "type": "float", "min": 0, "max": 1,    "default": 0.6 },
-        { "address": "/godsEye/particles/life",       "label": "Particle Life",   "type": "float", "min": 0, "max": 1,    "default": 0.5 },
-        { "address": "/godsEye/particles/colorR",     "label": "Color R",         "type": "float", "min": 0, "max": 1,    "default": 0.0 },
-        { "address": "/godsEye/particles/colorG",     "label": "Color G",         "type": "float", "min": 0, "max": 1,    "default": 0.8 },
-        { "address": "/godsEye/particles/colorB",     "label": "Color B",         "type": "float", "min": 0, "max": 1,    "default": 1.0 },
-        { "address": "/godsEye/particles/size",       "label": "Particle Size",   "type": "float", "min": 0, "max": 1,    "default": 0.2 }
+        { "address": "/pandora/particles/count",      "label": "Particle Count",  "type": "float", "min": 0, "max": 1,    "default": 0.5,  "unit": "M" },
+        { "address": "/pandora/particles/speed",      "label": "Speed",           "type": "float", "min": 0, "max": 1,    "default": 0.4 },
+        { "address": "/pandora/particles/gravity",    "label": "Gravity",         "type": "float", "min": 0, "max": 1,    "default": 0.3 },
+        { "address": "/pandora/particles/turbulence", "label": "Turbulence",      "type": "float", "min": 0, "max": 1,    "default": 0.5 },
+        { "address": "/pandora/particles/spread",     "label": "Spread",          "type": "float", "min": 0, "max": 1,    "default": 0.6 },
+        { "address": "/pandora/particles/life",       "label": "Particle Life",   "type": "float", "min": 0, "max": 1,    "default": 0.5 },
+        { "address": "/pandora/particles/colorR",     "label": "Color R",         "type": "float", "min": 0, "max": 1,    "default": 0.0 },
+        { "address": "/pandora/particles/colorG",     "label": "Color G",         "type": "float", "min": 0, "max": 1,    "default": 0.8 },
+        { "address": "/pandora/particles/colorB",     "label": "Color B",         "type": "float", "min": 0, "max": 1,    "default": 1.0 },
+        { "address": "/pandora/particles/size",       "label": "Particle Size",   "type": "float", "min": 0, "max": 1,    "default": 0.2 }
       ],
       "triggers": [
-        { "address": "/godsEye/particles/burst",  "label": "Burst",    "color": "#00d4ff" },
-        { "address": "/godsEye/particles/reset",  "label": "Reset",    "color": "#ff4455" }
+        { "address": "/pandora/particles/burst",  "label": "Burst",    "color": "#00d4ff" },
+        { "address": "/pandora/particles/reset",  "label": "Reset",    "color": "#ff4455" }
       ],
       "wsCommands": ["setForce", "setAttractor", "setBurst"],
       "script": "particle_storm.py"
@@ -36,18 +36,18 @@
       "desc": "Real-time audio analysis driving visual geometry. Frequency bands control shape extrusion, rotation, and color. Works with live mic or audio file.",
       "preview": null,
       "oscParams": [
-        { "address": "/godsEye/audio/sensitivity", "label": "Sensitivity",   "type": "float", "min": 0, "max": 1, "default": 0.7 },
-        { "address": "/godsEye/audio/bassBoost",   "label": "Bass Boost",    "type": "float", "min": 0, "max": 1, "default": 0.5 },
-        { "address": "/godsEye/audio/smooth",      "label": "Smoothing",     "type": "float", "min": 0, "max": 1, "default": 0.4 },
-        { "address": "/godsEye/audio/geometry",    "label": "Geometry Type", "type": "int",   "min": 0, "max": 5, "default": 0, "options": ["Bars","Circle","Sphere","Terrain","Ribbons","Waveform"] },
-        { "address": "/godsEye/audio/scale",       "label": "React Scale",   "type": "float", "min": 0, "max": 1, "default": 0.6 },
-        { "address": "/godsEye/audio/colorMode",   "label": "Color Mode",    "type": "int",   "min": 0, "max": 3, "default": 0, "options": ["Frequency","RMS","Spectrum","Custom"] },
-        { "address": "/godsEye/audio/colorR",      "label": "Custom Color R","type": "float", "min": 0, "max": 1, "default": 1.0 },
-        { "address": "/godsEye/audio/colorG",      "label": "Custom Color G","type": "float", "min": 0, "max": 1, "default": 0.3 },
-        { "address": "/godsEye/audio/colorB",      "label": "Custom Color B","type": "float", "min": 0, "max": 1, "default": 0.8 }
+        { "address": "/pandora/audio/sensitivity", "label": "Sensitivity",   "type": "float", "min": 0, "max": 1, "default": 0.7 },
+        { "address": "/pandora/audio/bassBoost",   "label": "Bass Boost",    "type": "float", "min": 0, "max": 1, "default": 0.5 },
+        { "address": "/pandora/audio/smooth",      "label": "Smoothing",     "type": "float", "min": 0, "max": 1, "default": 0.4 },
+        { "address": "/pandora/audio/geometry",    "label": "Geometry Type", "type": "int",   "min": 0, "max": 5, "default": 0, "options": ["Bars","Circle","Sphere","Terrain","Ribbons","Waveform"] },
+        { "address": "/pandora/audio/scale",       "label": "React Scale",   "type": "float", "min": 0, "max": 1, "default": 0.6 },
+        { "address": "/pandora/audio/colorMode",   "label": "Color Mode",    "type": "int",   "min": 0, "max": 3, "default": 0, "options": ["Frequency","RMS","Spectrum","Custom"] },
+        { "address": "/pandora/audio/colorR",      "label": "Custom Color R","type": "float", "min": 0, "max": 1, "default": 1.0 },
+        { "address": "/pandora/audio/colorG",      "label": "Custom Color G","type": "float", "min": 0, "max": 1, "default": 0.3 },
+        { "address": "/pandora/audio/colorB",      "label": "Custom Color B","type": "float", "min": 0, "max": 1, "default": 0.8 }
       ],
       "triggers": [
-        { "address": "/godsEye/audio/beat", "label": "Manual Beat", "color": "#ff8c00" }
+        { "address": "/pandora/audio/beat", "label": "Manual Beat", "color": "#ff8c00" }
       ],
       "wsCommands": ["setAudioFile", "setMicInput"],
       "script": "audio_reactor.py"
@@ -61,18 +61,18 @@
       "desc": "Multi-layered GLSL noise fields — Perlin, Simplex, Voronoi, Worley — composited in real-time. Supports domain warping and feedback loops.",
       "preview": null,
       "oscParams": [
-        { "address": "/godsEye/noise/type",      "label": "Noise Type",   "type": "int",   "min": 0, "max": 4, "default": 1, "options": ["Perlin","Simplex","Voronoi","Worley","FBM"] },
-        { "address": "/godsEye/noise/scale",     "label": "Scale",        "type": "float", "min": 0, "max": 1, "default": 0.5 },
-        { "address": "/godsEye/noise/speed",     "label": "Speed",        "type": "float", "min": 0, "max": 1, "default": 0.3 },
-        { "address": "/godsEye/noise/octaves",   "label": "Octaves",      "type": "float", "min": 0, "max": 1, "default": 0.5 },
-        { "address": "/godsEye/noise/warp",      "label": "Domain Warp",  "type": "float", "min": 0, "max": 1, "default": 0.4 },
-        { "address": "/godsEye/noise/feedback",  "label": "Feedback",     "type": "float", "min": 0, "max": 1, "default": 0.0 },
-        { "address": "/godsEye/noise/colormap",  "label": "Color Map",    "type": "int",   "min": 0, "max": 5, "default": 2, "options": ["Grayscale","Viridis","Plasma","Inferno","Cyan","Custom"] },
-        { "address": "/godsEye/noise/contrast",  "label": "Contrast",     "type": "float", "min": 0, "max": 1, "default": 0.6 },
-        { "address": "/godsEye/noise/brightness","label": "Brightness",   "type": "float", "min": 0, "max": 1, "default": 0.5 }
+        { "address": "/pandora/noise/type",      "label": "Noise Type",   "type": "int",   "min": 0, "max": 4, "default": 1, "options": ["Perlin","Simplex","Voronoi","Worley","FBM"] },
+        { "address": "/pandora/noise/scale",     "label": "Scale",        "type": "float", "min": 0, "max": 1, "default": 0.5 },
+        { "address": "/pandora/noise/speed",     "label": "Speed",        "type": "float", "min": 0, "max": 1, "default": 0.3 },
+        { "address": "/pandora/noise/octaves",   "label": "Octaves",      "type": "float", "min": 0, "max": 1, "default": 0.5 },
+        { "address": "/pandora/noise/warp",      "label": "Domain Warp",  "type": "float", "min": 0, "max": 1, "default": 0.4 },
+        { "address": "/pandora/noise/feedback",  "label": "Feedback",     "type": "float", "min": 0, "max": 1, "default": 0.0 },
+        { "address": "/pandora/noise/colormap",  "label": "Color Map",    "type": "int",   "min": 0, "max": 5, "default": 2, "options": ["Grayscale","Viridis","Plasma","Inferno","Cyan","Custom"] },
+        { "address": "/pandora/noise/contrast",  "label": "Contrast",     "type": "float", "min": 0, "max": 1, "default": 0.6 },
+        { "address": "/pandora/noise/brightness","label": "Brightness",   "type": "float", "min": 0, "max": 1, "default": 0.5 }
       ],
       "triggers": [
-        { "address": "/godsEye/noise/randomize", "label": "Randomize Seed", "color": "#9b59b6" }
+        { "address": "/pandora/noise/randomize", "label": "Randomize Seed", "color": "#9b59b6" }
       ],
       "wsCommands": ["setShaderCode", "setColormap"],
       "script": "glsl_noise_fields.py"
@@ -86,16 +86,16 @@
       "desc": "Real-time Stable Diffusion loop via StreamDiffusion. TD renders geometry → sends to SD img2img → outputs stylized frames back into TD. Requires local SD (AUTOMATIC1111) or Hosted StreamDiffusion.",
       "preview": null,
       "oscParams": [
-        { "address": "/godsEye/ai/strength",    "label": "Denoising Strength","type": "float", "min": 0, "max": 1, "default": 0.4 },
-        { "address": "/godsEye/ai/cfgScale",    "label": "CFG Scale",         "type": "float", "min": 0, "max": 1, "default": 0.5 },
-        { "address": "/godsEye/ai/steps",       "label": "Steps (1-20)",      "type": "float", "min": 0, "max": 1, "default": 0.2 },
-        { "address": "/godsEye/ai/blend",       "label": "TD/AI Blend",       "type": "float", "min": 0, "max": 1, "default": 0.6 },
-        { "address": "/godsEye/ai/feedbackAmt", "label": "Feedback Amount",   "type": "float", "min": 0, "max": 1, "default": 0.3 },
-        { "address": "/godsEye/ai/sdPort",      "label": "SD WebUI Port",     "type": "int",   "min": 7860, "max": 7870, "default": 7860 }
+        { "address": "/pandora/ai/strength",    "label": "Denoising Strength","type": "float", "min": 0, "max": 1, "default": 0.4 },
+        { "address": "/pandora/ai/cfgScale",    "label": "CFG Scale",         "type": "float", "min": 0, "max": 1, "default": 0.5 },
+        { "address": "/pandora/ai/steps",       "label": "Steps (1-20)",      "type": "float", "min": 0, "max": 1, "default": 0.2 },
+        { "address": "/pandora/ai/blend",       "label": "TD/AI Blend",       "type": "float", "min": 0, "max": 1, "default": 0.6 },
+        { "address": "/pandora/ai/feedbackAmt", "label": "Feedback Amount",   "type": "float", "min": 0, "max": 1, "default": 0.3 },
+        { "address": "/pandora/ai/sdPort",      "label": "SD WebUI Port",     "type": "int",   "min": 7860, "max": 7870, "default": 7860 }
       ],
       "triggers": [
-        { "address": "/godsEye/ai/sendPrompt", "label": "Send New Prompt", "color": "#e74c3c" },
-        { "address": "/godsEye/ai/freeze",     "label": "Freeze Frame",    "color": "#3498db" }
+        { "address": "/pandora/ai/sendPrompt", "label": "Send New Prompt", "color": "#e74c3c" },
+        { "address": "/pandora/ai/freeze",     "label": "Freeze Frame",    "color": "#3498db" }
       ],
       "wsCommands": ["setPrompt", "setNegativePrompt", "setModel", "setLora"],
       "script": "ai_diffusion_loop.py"
@@ -109,19 +109,19 @@
       "desc": "GPU-accelerated 2D fluid (Navier-Stokes) with viscosity, vorticity, pressure, and dye injection. Control forces with OSC for fully interactive fluid art.",
       "preview": null,
       "oscParams": [
-        { "address": "/godsEye/fluid/viscosity",   "label": "Viscosity",      "type": "float", "min": 0, "max": 1, "default": 0.1 },
-        { "address": "/godsEye/fluid/vorticity",   "label": "Vorticity",      "type": "float", "min": 0, "max": 1, "default": 0.7 },
-        { "address": "/godsEye/fluid/pressure",    "label": "Pressure Iter",  "type": "float", "min": 0, "max": 1, "default": 0.5 },
-        { "address": "/godsEye/fluid/dyeDecay",    "label": "Dye Decay",      "type": "float", "min": 0, "max": 1, "default": 0.3 },
-        { "address": "/godsEye/fluid/dyeR",        "label": "Dye Color R",    "type": "float", "min": 0, "max": 1, "default": 0.0 },
-        { "address": "/godsEye/fluid/dyeG",        "label": "Dye Color G",    "type": "float", "min": 0, "max": 1, "default": 0.9 },
-        { "address": "/godsEye/fluid/dyeB",        "label": "Dye Color B",    "type": "float", "min": 0, "max": 1, "default": 1.0 },
-        { "address": "/godsEye/fluid/forceX",      "label": "Force X",        "type": "float", "min": 0, "max": 1, "default": 0.5 },
-        { "address": "/godsEye/fluid/forceY",      "label": "Force Y",        "type": "float", "min": 0, "max": 1, "default": 0.5 }
+        { "address": "/pandora/fluid/viscosity",   "label": "Viscosity",      "type": "float", "min": 0, "max": 1, "default": 0.1 },
+        { "address": "/pandora/fluid/vorticity",   "label": "Vorticity",      "type": "float", "min": 0, "max": 1, "default": 0.7 },
+        { "address": "/pandora/fluid/pressure",    "label": "Pressure Iter",  "type": "float", "min": 0, "max": 1, "default": 0.5 },
+        { "address": "/pandora/fluid/dyeDecay",    "label": "Dye Decay",      "type": "float", "min": 0, "max": 1, "default": 0.3 },
+        { "address": "/pandora/fluid/dyeR",        "label": "Dye Color R",    "type": "float", "min": 0, "max": 1, "default": 0.0 },
+        { "address": "/pandora/fluid/dyeG",        "label": "Dye Color G",    "type": "float", "min": 0, "max": 1, "default": 0.9 },
+        { "address": "/pandora/fluid/dyeB",        "label": "Dye Color B",    "type": "float", "min": 0, "max": 1, "default": 1.0 },
+        { "address": "/pandora/fluid/forceX",      "label": "Force X",        "type": "float", "min": 0, "max": 1, "default": 0.5 },
+        { "address": "/pandora/fluid/forceY",      "label": "Force Y",        "type": "float", "min": 0, "max": 1, "default": 0.5 }
       ],
       "triggers": [
-        { "address": "/godsEye/fluid/splat",  "label": "Random Splat", "color": "#00d4ff" },
-        { "address": "/godsEye/fluid/clear",  "label": "Clear",        "color": "#ff4455" }
+        { "address": "/pandora/fluid/splat",  "label": "Random Splat", "color": "#00d4ff" },
+        { "address": "/pandora/fluid/clear",  "label": "Clear",        "color": "#ff4455" }
       ],
       "wsCommands": ["setSplatForce", "setDyeColor"],
       "script": "fluid_simulation.py"
@@ -135,19 +135,19 @@
       "desc": "Real-time fractal explorer — Mandelbrot, Julia, Burning Ship, Tricorn. GPU-accelerated with infinite zoom, smooth coloring, and orbit traps.",
       "preview": null,
       "oscParams": [
-        { "address": "/godsEye/fractal/type",       "label": "Fractal Type",   "type": "int",   "min": 0, "max": 4, "default": 0, "options": ["Mandelbrot","Julia","Burning Ship","Tricorn","Newton"] },
-        { "address": "/godsEye/fractal/zoom",       "label": "Zoom Level",     "type": "float", "min": 0, "max": 1, "default": 0.0 },
-        { "address": "/godsEye/fractal/cx",         "label": "Center X",       "type": "float", "min": 0, "max": 1, "default": 0.5 },
-        { "address": "/godsEye/fractal/cy",         "label": "Center Y",       "type": "float", "min": 0, "max": 1, "default": 0.5 },
-        { "address": "/godsEye/fractal/maxIter",    "label": "Max Iterations", "type": "float", "min": 0, "max": 1, "default": 0.3 },
-        { "address": "/godsEye/fractal/juliaX",     "label": "Julia C Real",   "type": "float", "min": 0, "max": 1, "default": 0.35 },
-        { "address": "/godsEye/fractal/juliaY",     "label": "Julia C Imag",   "type": "float", "min": 0, "max": 1, "default": 0.35 },
-        { "address": "/godsEye/fractal/colorCycle", "label": "Color Cycle",    "type": "float", "min": 0, "max": 1, "default": 0.3 },
-        { "address": "/godsEye/fractal/colormap",   "label": "Color Map",      "type": "int",   "min": 0, "max": 4, "default": 1, "options": ["Fire","Ice","Rainbow","Purple","Gold"] }
+        { "address": "/pandora/fractal/type",       "label": "Fractal Type",   "type": "int",   "min": 0, "max": 4, "default": 0, "options": ["Mandelbrot","Julia","Burning Ship","Tricorn","Newton"] },
+        { "address": "/pandora/fractal/zoom",       "label": "Zoom Level",     "type": "float", "min": 0, "max": 1, "default": 0.0 },
+        { "address": "/pandora/fractal/cx",         "label": "Center X",       "type": "float", "min": 0, "max": 1, "default": 0.5 },
+        { "address": "/pandora/fractal/cy",         "label": "Center Y",       "type": "float", "min": 0, "max": 1, "default": 0.5 },
+        { "address": "/pandora/fractal/maxIter",    "label": "Max Iterations", "type": "float", "min": 0, "max": 1, "default": 0.3 },
+        { "address": "/pandora/fractal/juliaX",     "label": "Julia C Real",   "type": "float", "min": 0, "max": 1, "default": 0.35 },
+        { "address": "/pandora/fractal/juliaY",     "label": "Julia C Imag",   "type": "float", "min": 0, "max": 1, "default": 0.35 },
+        { "address": "/pandora/fractal/colorCycle", "label": "Color Cycle",    "type": "float", "min": 0, "max": 1, "default": 0.3 },
+        { "address": "/pandora/fractal/colormap",   "label": "Color Map",      "type": "int",   "min": 0, "max": 4, "default": 1, "options": ["Fire","Ice","Rainbow","Purple","Gold"] }
       ],
       "triggers": [
-        { "address": "/godsEye/fractal/autoZoom",  "label": "Auto Zoom",      "color": "#9b59b6" },
-        { "address": "/godsEye/fractal/randomJulia","label": "Random Julia C", "color": "#e67e22" }
+        { "address": "/pandora/fractal/autoZoom",  "label": "Auto Zoom",      "color": "#9b59b6" },
+        { "address": "/pandora/fractal/randomJulia","label": "Random Julia C", "color": "#e67e22" }
       ],
       "wsCommands": ["zoomTo", "setJuliaC", "setColorPalette"],
       "script": "fractal_depth.py"
@@ -161,19 +161,19 @@
       "desc": "GPU-simulated cellular automata: Conway's Life, Brian's Brain, Langton's Ant, SmoothLife, Lenia (continuous CA). Emergent complexity from simple rules.",
       "preview": null,
       "oscParams": [
-        { "address": "/godsEye/ca/rule",       "label": "Ruleset",        "type": "int",   "min": 0, "max": 5, "default": 0, "options": ["Game of Life","Brian's Brain","SmoothLife","Lenia","Seeds","Daynight"] },
-        { "address": "/godsEye/ca/speed",      "label": "Simulation Speed","type": "float", "min": 0, "max": 1, "default": 0.5 },
-        { "address": "/godsEye/ca/cellSize",   "label": "Cell Size",       "type": "float", "min": 0, "max": 1, "default": 0.2 },
-        { "address": "/godsEye/ca/birthR",     "label": "Birth Range",     "type": "float", "min": 0, "max": 1, "default": 0.5 },
-        { "address": "/godsEye/ca/survivalR",  "label": "Survival Range",  "type": "float", "min": 0, "max": 1, "default": 0.5 },
-        { "address": "/godsEye/ca/colorAlive", "label": "Color Alive",     "type": "float", "min": 0, "max": 1, "default": 0.0 },
-        { "address": "/godsEye/ca/colorDead",  "label": "Color Dead",      "type": "float", "min": 0, "max": 1, "default": 0.0 },
-        { "address": "/godsEye/ca/fade",       "label": "Trail Fade",      "type": "float", "min": 0, "max": 1, "default": 0.0 }
+        { "address": "/pandora/ca/rule",       "label": "Ruleset",        "type": "int",   "min": 0, "max": 5, "default": 0, "options": ["Game of Life","Brian's Brain","SmoothLife","Lenia","Seeds","Daynight"] },
+        { "address": "/pandora/ca/speed",      "label": "Simulation Speed","type": "float", "min": 0, "max": 1, "default": 0.5 },
+        { "address": "/pandora/ca/cellSize",   "label": "Cell Size",       "type": "float", "min": 0, "max": 1, "default": 0.2 },
+        { "address": "/pandora/ca/birthR",     "label": "Birth Range",     "type": "float", "min": 0, "max": 1, "default": 0.5 },
+        { "address": "/pandora/ca/survivalR",  "label": "Survival Range",  "type": "float", "min": 0, "max": 1, "default": 0.5 },
+        { "address": "/pandora/ca/colorAlive", "label": "Color Alive",     "type": "float", "min": 0, "max": 1, "default": 0.0 },
+        { "address": "/pandora/ca/colorDead",  "label": "Color Dead",      "type": "float", "min": 0, "max": 1, "default": 0.0 },
+        { "address": "/pandora/ca/fade",       "label": "Trail Fade",      "type": "float", "min": 0, "max": 1, "default": 0.0 }
       ],
       "triggers": [
-        { "address": "/godsEye/ca/randomize", "label": "Randomize",    "color": "#2ecc71" },
-        { "address": "/godsEye/ca/clear",     "label": "Clear",        "color": "#e74c3c" },
-        { "address": "/godsEye/ca/glider",    "label": "Add Glider",   "color": "#3498db" }
+        { "address": "/pandora/ca/randomize", "label": "Randomize",    "color": "#2ecc71" },
+        { "address": "/pandora/ca/clear",     "label": "Clear",        "color": "#e74c3c" },
+        { "address": "/pandora/ca/glider",    "label": "Add Glider",   "color": "#3498db" }
       ],
       "wsCommands": ["setRuleString", "paintCell", "setKernel"],
       "script": "cellular_automata.py"
@@ -187,19 +187,19 @@
       "desc": "Procedurally generated 3D geometry with SDF operations — union, subtraction, smooth blend. Supports instancing, displacement, and PBR materials.",
       "preview": null,
       "oscParams": [
-        { "address": "/godsEye/geo/shape",       "label": "Base Shape",     "type": "int",   "min": 0, "max": 5, "default": 0, "options": ["Sphere","Torus","Box","Cylinder","Cone","Capsule"] },
-        { "address": "/godsEye/geo/instances",   "label": "Instances",      "type": "float", "min": 0, "max": 1, "default": 0.3 },
-        { "address": "/godsEye/geo/displacement","label": "Displacement",   "type": "float", "min": 0, "max": 1, "default": 0.3 },
-        { "address": "/godsEye/geo/noiseFreq",   "label": "Noise Freq",     "type": "float", "min": 0, "max": 1, "default": 0.4 },
-        { "address": "/godsEye/geo/rotSpeed",    "label": "Rotation Speed", "type": "float", "min": 0, "max": 1, "default": 0.3 },
-        { "address": "/godsEye/geo/metallic",    "label": "Metallic",       "type": "float", "min": 0, "max": 1, "default": 0.8 },
-        { "address": "/godsEye/geo/roughness",   "label": "Roughness",      "type": "float", "min": 0, "max": 1, "default": 0.2 },
-        { "address": "/godsEye/geo/emission",    "label": "Emission",       "type": "float", "min": 0, "max": 1, "default": 0.5 },
-        { "address": "/godsEye/geo/envMap",      "label": "Environment",    "type": "int",   "min": 0, "max": 3, "default": 0, "options": ["Studio","Outdoor","Night","Neon"] }
+        { "address": "/pandora/geo/shape",       "label": "Base Shape",     "type": "int",   "min": 0, "max": 5, "default": 0, "options": ["Sphere","Torus","Box","Cylinder","Cone","Capsule"] },
+        { "address": "/pandora/geo/instances",   "label": "Instances",      "type": "float", "min": 0, "max": 1, "default": 0.3 },
+        { "address": "/pandora/geo/displacement","label": "Displacement",   "type": "float", "min": 0, "max": 1, "default": 0.3 },
+        { "address": "/pandora/geo/noiseFreq",   "label": "Noise Freq",     "type": "float", "min": 0, "max": 1, "default": 0.4 },
+        { "address": "/pandora/geo/rotSpeed",    "label": "Rotation Speed", "type": "float", "min": 0, "max": 1, "default": 0.3 },
+        { "address": "/pandora/geo/metallic",    "label": "Metallic",       "type": "float", "min": 0, "max": 1, "default": 0.8 },
+        { "address": "/pandora/geo/roughness",   "label": "Roughness",      "type": "float", "min": 0, "max": 1, "default": 0.2 },
+        { "address": "/pandora/geo/emission",    "label": "Emission",       "type": "float", "min": 0, "max": 1, "default": 0.5 },
+        { "address": "/pandora/geo/envMap",      "label": "Environment",    "type": "int",   "min": 0, "max": 3, "default": 0, "options": ["Studio","Outdoor","Night","Neon"] }
       ],
       "triggers": [
-        { "address": "/godsEye/geo/explode",    "label": "Explode",        "color": "#e74c3c" },
-        { "address": "/godsEye/geo/randomize",  "label": "Randomize",      "color": "#9b59b6" }
+        { "address": "/pandora/geo/explode",    "label": "Explode",        "color": "#e74c3c" },
+        { "address": "/pandora/geo/randomize",  "label": "Randomize",      "color": "#9b59b6" }
       ],
       "wsCommands": ["setSDFOp", "setMaterial", "setCameraPos"],
       "script": "generative_geometry.py"
@@ -213,18 +213,18 @@
       "desc": "Real-time 3D terrain driven by any data source. Feed CSV, JSON, audio, or live sensor data to sculpt mountains, valleys, and flowing landscapes.",
       "preview": null,
       "oscParams": [
-        { "address": "/godsEye/terrain/scale",     "label": "Height Scale",   "type": "float", "min": 0, "max": 1, "default": 0.5 },
-        { "address": "/godsEye/terrain/freq",      "label": "Frequency",      "type": "float", "min": 0, "max": 1, "default": 0.4 },
-        { "address": "/godsEye/terrain/speed",     "label": "Flow Speed",     "type": "float", "min": 0, "max": 1, "default": 0.3 },
-        { "address": "/godsEye/terrain/subdiv",    "label": "Subdivision",    "type": "float", "min": 0, "max": 1, "default": 0.6 },
-        { "address": "/godsEye/terrain/waterLine", "label": "Water Level",    "type": "float", "min": 0, "max": 1, "default": 0.3 },
-        { "address": "/godsEye/terrain/snowLine",  "label": "Snow Line",      "type": "float", "min": 0, "max": 1, "default": 0.8 },
-        { "address": "/godsEye/terrain/camElev",   "label": "Camera Elevation","type": "float","min": 0, "max": 1, "default": 0.5 },
-        { "address": "/godsEye/terrain/fog",       "label": "Fog Density",    "type": "float", "min": 0, "max": 1, "default": 0.3 }
+        { "address": "/pandora/terrain/scale",     "label": "Height Scale",   "type": "float", "min": 0, "max": 1, "default": 0.5 },
+        { "address": "/pandora/terrain/freq",      "label": "Frequency",      "type": "float", "min": 0, "max": 1, "default": 0.4 },
+        { "address": "/pandora/terrain/speed",     "label": "Flow Speed",     "type": "float", "min": 0, "max": 1, "default": 0.3 },
+        { "address": "/pandora/terrain/subdiv",    "label": "Subdivision",    "type": "float", "min": 0, "max": 1, "default": 0.6 },
+        { "address": "/pandora/terrain/waterLine", "label": "Water Level",    "type": "float", "min": 0, "max": 1, "default": 0.3 },
+        { "address": "/pandora/terrain/snowLine",  "label": "Snow Line",      "type": "float", "min": 0, "max": 1, "default": 0.8 },
+        { "address": "/pandora/terrain/camElev",   "label": "Camera Elevation","type": "float","min": 0, "max": 1, "default": 0.5 },
+        { "address": "/pandora/terrain/fog",       "label": "Fog Density",    "type": "float", "min": 0, "max": 1, "default": 0.3 }
       ],
       "triggers": [
-        { "address": "/godsEye/terrain/newSeed",   "label": "New Seed",      "color": "#2ecc71" },
-        { "address": "/godsEye/terrain/erode",     "label": "Erode",         "color": "#e67e22" }
+        { "address": "/pandora/terrain/newSeed",   "label": "New Seed",      "color": "#2ecc71" },
+        { "address": "/pandora/terrain/erode",     "label": "Erode",         "color": "#e67e22" }
       ],
       "wsCommands": ["loadCSV", "setDataRange", "setColorGradient"],
       "script": "data_terrain.py"
@@ -238,16 +238,16 @@
       "desc": "Real-time neural style transfer running through TD → PyTorch → TD feedback loop. Upload a style image from God's Pandora, watch TD output transform live.",
       "preview": null,
       "oscParams": [
-        { "address": "/godsEye/neural/contentWeight", "label": "Content Weight",  "type": "float", "min": 0, "max": 1, "default": 0.5 },
-        { "address": "/godsEye/neural/styleWeight",   "label": "Style Weight",    "type": "float", "min": 0, "max": 1, "default": 0.7 },
-        { "address": "/godsEye/neural/steps",         "label": "Steps/Frame",     "type": "float", "min": 0, "max": 1, "default": 0.2 },
-        { "address": "/godsEye/neural/blend",         "label": "Style Blend",     "type": "float", "min": 0, "max": 1, "default": 0.6 },
-        { "address": "/godsEye/neural/temporal",      "label": "Temporal Smooth", "type": "float", "min": 0, "max": 1, "default": 0.5 },
-        { "address": "/godsEye/neural/saturation",    "label": "Output Sat",      "type": "float", "min": 0, "max": 1, "default": 0.7 }
+        { "address": "/pandora/neural/contentWeight", "label": "Content Weight",  "type": "float", "min": 0, "max": 1, "default": 0.5 },
+        { "address": "/pandora/neural/styleWeight",   "label": "Style Weight",    "type": "float", "min": 0, "max": 1, "default": 0.7 },
+        { "address": "/pandora/neural/steps",         "label": "Steps/Frame",     "type": "float", "min": 0, "max": 1, "default": 0.2 },
+        { "address": "/pandora/neural/blend",         "label": "Style Blend",     "type": "float", "min": 0, "max": 1, "default": 0.6 },
+        { "address": "/pandora/neural/temporal",      "label": "Temporal Smooth", "type": "float", "min": 0, "max": 1, "default": 0.5 },
+        { "address": "/pandora/neural/saturation",    "label": "Output Sat",      "type": "float", "min": 0, "max": 1, "default": 0.7 }
       ],
       "triggers": [
-        { "address": "/godsEye/neural/loadStyle", "label": "Load Style Image", "color": "#9b59b6" },
-        { "address": "/godsEye/neural/reset",     "label": "Reset",            "color": "#e74c3c" }
+        { "address": "/pandora/neural/loadStyle", "label": "Load Style Image", "color": "#9b59b6" },
+        { "address": "/pandora/neural/reset",     "label": "Reset",            "color": "#e74c3c" }
       ],
       "wsCommands": ["setStyleImage", "setModel", "setDevice"],
       "script": "neural_style_live.py"

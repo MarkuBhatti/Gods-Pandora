@@ -125,7 +125,7 @@ export default function PandoraCut() {
   if (ff === false) {
     return (
       <div>
-        <h1>✂ Pandora Cut</h1>
+        <h1>🎞 Pandora Cut</h1>
         <div className="card" style={{ maxWidth: 620 }}>
           <h3 style={{ marginTop: 0 }}>One small free add-on first</h3>
           <p className="sub">Pandora Cut edits and grades with <b>ffmpeg</b> — the free engine behind most video tools. It's a one-time ~30 MB download and works offline after that.</p>
@@ -138,7 +138,7 @@ export default function PandoraCut() {
 
   return (
     <div>
-      <h1>✂ Pandora Cut</h1>
+      <h1>🎞 Pandora Cut</h1>
       <p className="sub">Auto edit to the beat and auto colour grade — inspired by DaVinci Resolve's smartest tools, free and offline. Drop in clips, pick music, press one button.</p>
       <div className="row" style={{ marginBottom: 12 }}>
         <button className={'chip' + (tab === 'edit' ? ' on' : '')} onClick={() => { setTab('edit'); setResult(null); }}>🎬 Auto Edit</button>

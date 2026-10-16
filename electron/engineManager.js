@@ -140,21 +140,26 @@ module.exports = {
       const p = spawn(py, [path.join(enginePath(), 'hub.py'), repo], { env, windowsHide: true });
       let errTail = '';
       let total = opts.totalBytes || 0;
+      let live = null; // real byte counts reported by hub.py (PROGRESS done total)
       p.stdout.on('data', (d) => {
         const t = d.toString();
         const m = t.match(/TOTAL (\d+)/);
         if (m && +m[1] > 0) total = +m[1];
-        log(t);
+        const all = [...t.matchAll(/PROGRESS (\d+) (\d+)/g)];
+        if (all.length) { const last = all[all.length - 1]; live = { bytes: +last[1], total: +last[2] }; if (live.total) total = live.total; }
+        else log(t);
       });
       p.stderr.on('data', (d) => { const t = d.toString(); errTail = (errTail + t).slice(-2000); log(t); });
 
       const report = (extra = {}) => {
         if (!opts.onProgress) return;
         let bytes = 0;
-        try { bytes = require('./hfModels').bytesOnDisk(modelsDir(userData), repo); } catch (_) {}
-        opts.onProgress({ repo, bytes, total, ...extra });
+        if (live) bytes = live.bytes;
+        else if (!total) { try { bytes = require('./hfModels').bytesOnDisk(modelsDir(userData), repo); } catch (_) {} }
+        if (extra.done && !extra.error && total) bytes = total;
+        opts.onProgress({ repo, bytes: total ? Math.min(bytes, total) : bytes, total, ...extra });
       };
-      const timer = setInterval(() => report(), 1500);
+      const timer = setInterval(() => report(), 700);
       downloads.set(repo, { proc: p, timer });
 
       p.on('close', (code, signal) => {

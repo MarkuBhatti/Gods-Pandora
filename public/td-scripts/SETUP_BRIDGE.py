@@ -18,7 +18,7 @@ def buildBridge(parent=None):
     root = parent or op('/project1')
 
     # ── Create a base container for the bridge ──────────────────────────────────
-    bridge = root.create(baseCOMP, 'godsEyeBridge')
+    bridge = root.create(baseCOMP, 'pandoraBridge')
     bridge.nodeX, bridge.nodeY = 0, 0
     bridge.par.externaltox = ''
     bridge.comment = "GOD'S PANDORA Bridge — do not delete"
@@ -66,10 +66,10 @@ def buildBridge(parent=None):
 
     print('=' * 50)
     print("GOD'S PANDORA BRIDGE BUILT!")
-    print('  OSC In  : port 7000 (God\'s Eye → TD)')
-    print('  OSC Out : port 7001 (TD → God\'s Eye)')
+    print('  OSC In  : port 7000 (God\'s Pandora → TD)')
+    print('  OSC Out : port 7001 (TD → God\'s Pandora)')
     print('  WebSocket: port 9980')
-    print('  Params CHOP: /project1/godsEyeBridge/params')
+    print('  Params CHOP: /project1/pandoraBridge/params')
     print('')
     print("  Wire 'params' CHOP channels to your network.")
     print("  Click 'Connect' in God's Pandora to go live!")

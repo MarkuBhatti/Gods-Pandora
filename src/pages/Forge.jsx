@@ -11,18 +11,23 @@ export default function Forge() {
   const [html, setHtml] = useState('');
   const [saved, setSaved] = useState([]);
 
+  const [localModels, setLocalModels] = useState([]);
+  const [localModel, setLocalModel] = useState('');
   const refresh = () => window.api.forge.list().then(setSaved);
-  useEffect(() => { refresh(); }, []);
+  useEffect(() => { refresh(); window.api.llmLocalModels?.().then((l) => { const a = Array.isArray(l) ? l : []; setLocalModels(a); setLocalModel(a.find((m) => /coder|code/i.test(m)) || a[0] || ''); }).catch(() => {}); }, []);
 
   async function build() {
     setBusy(true); setError(''); setHtml('');
     try {
-      const out = await window.api.claude({
+      const call = engine === 'local' ? (a) => window.api.llmLocal({ ...a, model: localModel }) : window.api.claude;
+      const out = await call({
         system: 'You are an expert app and game developer. Return ONLY a complete, self-contained single-file HTML document (inline CSS + JS, no external dependencies except public CDNs). No explanations, no markdown fences — just the raw HTML starting with <!doctype html>.',
         prompt: `Build this ${desc.length < 200 ? 'app/game' : 'application'}:\n\n${desc}\n\nPolished dark UI, fully working, keyboard + mouse support where relevant.`,
         maxTokens: 32000
       });
-      const clean = out.replace(/^```html?\s*/i, '').replace(/```\s*$/, '').trim();
+      // local models often wrap the page in prose or ``` fences — keep just the HTML document
+      const m = String(out).match(/<!doctype html[\s\S]*<\/html>|<html[\s\S]*<\/html>/i);
+      const clean = (m ? m[0] : out.replace(/^```html?\s*/i, '').replace(/```\s*$/, '')).trim();
       if (!/^<!doctype html>/i.test(clean) && !/^<html/i.test(clean)) throw new Error('Model did not return an HTML document — try again or refine the description.');
       setHtml(clean);
     } catch (e) { setError(String(e.message || e)); }
@@ -42,7 +47,7 @@ export default function Forge() {
   return (
     <div>
       <h1>⚒ Pandora App Forge</h1>
-      <p className="sub">Describe an app or game — God's Pandora builds it as a runnable single-file app using Claude (your Anthropic key) with live preview. Games, tools, calculators, dashboards, prototypes.</p>
+      <p className="sub">Describe an app or game — God's Pandora builds it as a runnable single-file app using Claude (your Anthropic key) or a free local model (Ollama / LM Studio), with live preview. Games, tools, calculators, dashboards, prototypes.</p>
 
       <div className="two-col">
         <div className="card">
@@ -54,10 +59,13 @@ export default function Forge() {
           <label>Engine</label>
           <div className="row">
             <button className={'chip' + (engine === 'claude' ? ' on' : '')} onClick={() => setEngine('claude')}>Claude API</button>
-            <button className="chip" title="Roadmap: local code models (Ollama / llama.cpp)" disabled>Local model (soon)</button>
+            <button className={'chip' + (engine === 'local' ? ' on' : '')} onClick={() => setEngine('local')} title="Free: Ollama or LM Studio on your PC">Local model (free)</button>
           </div>
+          {engine === 'local' && (localModels.length
+            ? <select style={{ marginTop: 6 }} value={localModel} onChange={(e) => setLocalModel(e.target.value)}>{localModels.map((m) => <option key={m} value={m}>{m}</option>)}</select>
+            : <p className="sub" style={{ fontSize: 11 }}>No local model server found. Install <b>Ollama</b> (ollama.com) and run <code>ollama pull qwen2.5-coder</code>, then reopen this page.</p>)}
           <div style={{ marginTop: 14 }} className="row">
-            <button className="btn" disabled={busy || !desc.trim()} onClick={build}>{busy ? 'Forging…' : 'Forge it'}</button>
+            <button className="btn" disabled={busy || !desc.trim() || (engine === 'local' && !localModels.length)} onClick={build}>{busy ? 'Forging…' : 'Forge it'}</button>
             {html && <button className="btn ghost" onClick={save}>Save app</button>}
           </div>
           {error && <div className="err">{error}</div>}

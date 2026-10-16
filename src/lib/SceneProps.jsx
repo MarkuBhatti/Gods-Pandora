@@ -138,8 +138,10 @@ export function Bridge({ y = 52 }) {
   );
 }
 
-export function Moon({ x = 80, y = 14, size = 7, color = '#e9f1ff' }) {
-  return <div className="sp-moon" style={{ left: x + '%', top: y + '%', width: size + 'vmin', height: size + 'vmin', '--mc': color }} />;
+// The moon always sits in the top-right corner of the sky, clear of page titles and text.
+export function Moon({ size = 7, color = '#e9f1ff' }) {
+  const s = Math.min(size, 4.5);
+  return <div className="sp-moon" style={{ left: 'calc(100% - ' + (s + 16) + 'vmin)', top: '1.2vmin', width: s + 'vmin', height: s + 'vmin', '--mc': color, opacity: 0.7 }} />;
 }
 
 /* Pine forest silhouettes */

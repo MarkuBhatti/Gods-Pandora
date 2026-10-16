@@ -309,7 +309,7 @@ export default function StudioTD() {
               ['1', 'Open TouchDesigner', 'Download free from derivative.ca if needed'],
               ['2', 'Add OSC In CHOP', 'Right-click → Add Operator → CHOP → OSC In. Set port to ' + config.oscSendPort],
               ['3', 'Optional: Web Server DAT', 'Operator → DAT → Web Server DAT. Set port to ' + config.wsPort + ' for bi-directional JSON.'],
-              ['4', 'Click Connect', 'Press Connect in God\'s Eye — parameters send to TD instantly.'],
+              ['4', 'Click Connect', 'Press Connect in God\'s Pandora — parameters send to TD instantly.'],
             ].map(([n, title, desc]) => (
               <div key={n} style={{ display: 'flex', gap: 10 }}>
                 <div style={{ width: 24, height: 24, borderRadius: '50%', background: 'rgba(139,107,255,.15)', color: '#8b6bff', fontSize: 12, fontWeight: 900, display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>{n}</div>

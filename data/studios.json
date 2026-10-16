@@ -681,7 +681,7 @@
    "id": "apps",
    "name": "Apps",
    "icon": "⊞",
-   "subtitle": "One-click creative tools, Higgsfield-style — all running through your own keys or local models.",
+   "subtitle": "One-click creative tools — all running through your own keys or local models.",
    "tools": [
     {
      "id": "headshot",
@@ -1199,7 +1199,7 @@
     },
     {
      "id": "storyboard",
-     "name": "Popcorn Storyboard",
+     "name": "Continuity Storyboard",
      "desc": "Story → 6-panel storyboard.",
      "kind": "image",
      "imageInputs": [],

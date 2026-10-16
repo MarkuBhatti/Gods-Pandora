@@ -47,6 +47,8 @@ contextBridge.exposeInMainWorld('api', {
     list: () => ipcRenderer.invoke('job:list'),
   },
   claude: (args) => ipcRenderer.invoke('claude:complete', args),
+  llmLocal: (args) => ipcRenderer.invoke('llm:local', args),
+  llmLocalModels: () => ipcRenderer.invoke('llm:localModels'),
   resolveSend: (files) => ipcRenderer.invoke('resolve:send', files),
   forge: {
     save: (name, html) => ipcRenderer.invoke('forge:save', name, html),

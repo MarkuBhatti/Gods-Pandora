@@ -93,7 +93,7 @@ function Page({ page }) {
       {page === 'marketing'   && <Studio studioId="marketing" />}
       {page === 'shorts'      && <Studio studioId="shorts" />}
       {page === 'explainer'   && <Studio studioId="explainer" />}
-      {page === 'influencer'  && <><InfluencerBuilder /><Studio studioId="influencer" /></>}
+      {page === 'influencer'  && <Studio studioId="influencer" top={<InfluencerBuilder />} />}
       {page === 'voice'       && <Studio studioId="voice" />}
       {page === 'appbuild'    && <Studio studioId="appbuild" />}
       {page === 'designdocs'  && <Studio studioId="designdocs" />}
@@ -107,7 +107,7 @@ function Page({ page }) {
         <EntityLibrary
           kind="characters"
           title="Pandora Characters"
-          subtitle="Soul-style consistent identities. Save reference images once, reuse the same face everywhere."
+          subtitle="Consistent identities. Save reference images once, reuse the same face everywhere."
         />
       )}
       {page === 'locations' && (
@@ -223,10 +223,12 @@ export default function App() {
             </button>
           )}
           <JobsIndicator />
-          <button className={"perf-pill" + (lite ? " on" : "")} onClick={cyclePerf} title="Lite mode freezes the animated backgrounds and blur so the app stays fast on any PC. Auto = on for low-end PCs and low battery.">
-            ⚡ Lite mode: {perf === 'auto' ? 'Auto' + (lite ? ' (on)' : ' (off)') : perf === 'on' ? 'On' : 'Off'}
-          </button>
-          <button className="mode-pill kbd-hint" onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))}>⌕ Quick jump <kbd>Ctrl K</kbd></button>
+          <div className="side-foot">
+            <button className={"perf-pill" + (lite ? " on" : "")} onClick={cyclePerf} title="Lite mode freezes the animated backgrounds and blur so the app stays fast on any PC. Auto = on for low-end PCs and low battery.">
+              ⚡ Lite · {perf === 'auto' ? 'Auto' : perf === 'on' ? 'On' : 'Off'}
+            </button>
+            <button className="mode-pill kbd-hint" onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))} title="Quick jump (Ctrl K)">⌕ Jump <kbd>Ctrl K</kbd></button>
+          </div>
         </nav>
         <div className="wrap">
           <header className="topbar">

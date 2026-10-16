@@ -68,11 +68,39 @@ async function feed({ token, perLab = 12 } = {}) {
   return { items: items.slice(0, 80), fetchedAt: new Date().toISOString(), failedLabs: failed };
 }
 
+// Same plan as engine/hub.py: config files + ONE copy of the weights per component (fp16 safetensors
+// when available). Returns the bytes that will really be downloaded.
+function plannedBytes(files) {
+  const names = files.map((f) => f.path);
+  const size = Object.fromEntries(files.map((f) => [f.path, f.size || 0]));
+  const sum = (list) => list.reduce((a, f) => a + (size[f] || 0), 0);
+  if (!names.includes('model_index.json')) {
+    const st = names.filter((f) => f.endsWith('.safetensors'));
+    if (st.length) return sum(st) + sum(names.filter((f) => /\.(json|txt|model)$/.test(f)));
+    return sum(names.filter((f) => !/\.(onnx|onnx_data|msgpack|h5)$/i.test(f)));
+  }
+  let total = size['model_index.json'] || 0;
+  const folders = [...new Set(names.filter((f) => f.includes('/')).map((f) => f.split('/')[0]))];
+  for (const d of folders) {
+    const inside = names.filter((f) => f.startsWith(d + '/'));
+    total += sum(inside.filter((f) => /\.(json|txt|model|jinja)$/.test(f) || /vocab|merges/.test(f)));
+    const st = inside.filter((f) => f.endsWith('.safetensors'));
+    const fp16 = st.filter((f) => /\.fp16\.|fp16-/.test(f));
+    total += fp16.length ? sum(fp16) : st.length ? sum(st) : sum(inside.filter((f) => f.endsWith('.bin')));
+  }
+  return total;
+}
+
 async function info(repo, token) {
   const q = ['gated', 'usedStorage', 'sha', 'lastModified', 'pipeline_tag', 'tags'].map((e) => 'expand[]=' + e).join('&');
   const j = await getJSON(`${API}/${repo}?${q}`, token);
+  let download = 0;
+  try {
+    const tree = await getJSON(`${API}/${repo}/tree/main?recursive=true`, token);
+    if (Array.isArray(tree)) download = plannedBytes(tree.filter((f) => f.type === 'file'));
+  } catch (_) { /* fall back to full repo size */ }
   return {
-    id: j.id || repo, gated: j.gated || false, sizeBytes: j.usedStorage || 0,
+    id: j.id || repo, gated: j.gated || false, sizeBytes: download || j.usedStorage || 0, repoBytes: j.usedStorage || 0,
     sha: j.sha || null, lastModified: j.lastModified || null,
     engine: (j.tags || []).includes('diffusers') && /image/.test(j.pipeline_tag || ''),
   };
@@ -119,4 +147,4 @@ function bytesOnDisk(modelsDir, repo) {
   return total;
 }
 
-module.exports = { feed, info, localRevision, checkInstalled, bytesOnDisk, repoDir };
+module.exports = { plannedBytes, feed, info, localRevision, checkInstalled, bytesOnDisk, repoDir };

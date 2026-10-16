@@ -118,7 +118,7 @@ function EverywhereTab({ go }) {
       cat === 'all' || cat === 'image' ? safe('OpenModelDB', window.api.market.omdb({ q, scale: 0 })) : Promise.resolve(null),
       safe('Pinokio', window.api.market.pinokio({ q, category: pkCat, page: 1 })),
     ]);
-    setRes({ hf: hf || [], civ: (civ && civ.items) || [], omdb: (omdb || []).slice(0, 6), pk: ((pk && pk.items) || []).slice(0, 12), errors });
+    setRes({ hf: Array.isArray(hf) ? hf : [], civ: Array.isArray(civ?.items) ? civ.items : [], omdb: Array.isArray(omdb) ? omdb.slice(0, 6) : [], pk: Array.isArray(pk?.items) ? pk.items.slice(0, 12) : [], errors });
     setBusy(false);
   };
   useEffect(() => { search(); window.api.engine.listModels().then(setInstalled).catch(() => {}); }, [cat]);
@@ -402,7 +402,7 @@ export function FileDownload({ id, url, source, type, meta, label = '⬇ Install
     setJobId(null); setState(null);
   };
   if (jobId) {
-    const pct = state?.total ? Math.min(99, Math.round((state.bytes / state.total) * 100)) : null;
+    const pct = state?.total ? Math.min(100, Math.floor((state.bytes / state.total) * 100)) : null;
     return (
       <div className="dl-progress">
         <div className="bar"><div style={{ width: (pct ?? 5) + '%' }} /></div>

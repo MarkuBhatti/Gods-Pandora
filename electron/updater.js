@@ -38,7 +38,7 @@ function configure() {
   if (!autoUpdater) throw new Error('electron-updater is not installed. Run "npm install" and rebuild.');
   const cfg = getConfig();
   if (!cfg.owner || cfg.owner === PLACEHOLDER) {
-    throw new Error('Set your GitHub username / repo below (where you publish God\'s Eye releases), then check again.');
+    throw new Error('Set your GitHub username / repo below (where you publish God\'s Pandora releases), then check again.');
   }
   autoUpdater.autoDownload = false;
   autoUpdater.autoInstallOnAppQuit = true;

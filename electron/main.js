@@ -356,6 +356,29 @@ function registerIpc() {
     return anthropic.complete({ key: keys.anthropic, system, prompt, maxTokens });
   }));
 
+  // Local LLM (Ollama / LM Studio / any OpenAI-compatible server) — free alternative to Claude for text & code
+  safeHandle('llm:local', async (_e, args) => asJob(args && args.jobId, 'Local model build', async () => {
+    const { system, prompt, model, baseUrl, maxTokens } = args || {};
+    const bases = baseUrl ? [baseUrl] : ['http://localhost:11434/v1', 'http://localhost:1234/v1'];
+    let base = null; let models = [];
+    for (const b of bases) { try { models = await jutsu.listLocalLLMs(b); base = b; break; } catch (_) { /* try next */ } }
+    if (!base) throw new Error('No local model server found. Install Ollama (ollama.com) and run e.g. "ollama pull qwen2.5-coder", or start LM Studio\'s local server.');
+    const pick = model && models.includes(model) ? model
+      : (models.find((m) => /coder|code|deepseek|qwen/i.test(m)) || models[0]);
+    if (!pick) throw new Error('Your local model server has no models yet. In Ollama run: ollama pull qwen2.5-coder');
+    const { requestJSON } = require('./net');
+    const { status, json } = await requestJSON(base.replace(/\/+$/, '') + '/chat/completions', {
+      method: 'POST', timeoutMs: 30 * 60 * 1000,
+      body: { model: pick, temperature: 0.4, max_tokens: maxTokens || 16000, messages: [...(system ? [{ role: 'system', content: system }] : []), { role: 'user', content: prompt }] },
+    });
+    if (status !== 200) throw new Error('Local model error ' + status + ': ' + JSON.stringify(json).slice(0, 200));
+    return String(json.choices?.[0]?.message?.content || '');
+  }));
+  safeHandle('llm:localModels', async () => {
+    for (const b of ['http://localhost:11434/v1', 'http://localhost:1234/v1']) { try { return await jutsu.listLocalLLMs(b); } catch (_) { /* next */ } }
+    return [];
+  });
+
   safeHandle('resolve:send', async (_e, files) => {
     const r = await resolveBridge.sendToResolve('python3', files);
     return r.ok ? r : resolveBridge.sendToResolve('python', files);
@@ -585,7 +608,9 @@ function createWindow() {
 process.on('uncaughtException',  (err)    => console.error('[Process] uncaughtException:', err));
 process.on('unhandledRejection', (reason) => console.error('[Process] unhandledRejection:', reason));
 
+const gotLock = app.requestSingleInstanceLock();
 app.whenReady().then(() => {
+  if (!gotLock) return;
   protocol.registerFileProtocol('media', (request, cb) => {
     try { cb({ path: decodeURIComponent(request.url.replace('media://', '')) }); }
     catch (_) { cb({ error: -2 }); }
@@ -596,6 +621,17 @@ app.whenReady().then(() => {
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) createWindow();
   });
+});
+
+// One God's Pandora at a time: a second launch focuses the open window (avoids two engines on one port)
+if (!gotLock) { app.quit(); }
+else {
+  app.on('second-instance', () => { if (win && !win.isDestroyed()) { if (win.isMinimized()) win.restore(); win.show(); win.focus(); } });
+}
+app.on('before-quit', () => {
+  try { engine.stop(); } catch (_) {}
+  try { for (const r of engine.activeDownloads()) engine.cancelDownload(r); } catch (_) {}
+  try { cut.cancelAll(); } catch (_) {}
 });
 
 app.on('window-all-closed', () => {

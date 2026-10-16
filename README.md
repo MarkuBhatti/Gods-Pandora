@@ -76,6 +76,7 @@ living Pandora box revolves on the home screen.
 | **🧊 3D & Spatial** | Text / image → 3D, Gaussian splats, NeRF capture — 22 tools, cloud and open-source |
 | **⬡ TouchDesigner** | Real-time generative visuals controlled over OSC + WebSocket, 10 templates, AI-written parameters |
 | **📈 Ad Multiplier** | Rebuild a winning video ad with your own product, cast and location |
+| **🎞 Pandora Cut** | Auto edit to the beat (beat + scene detection, smart reframe, transitions) and auto colour grading (Auto Balance, Shot Match, film looks, .cube LUTs) — free, offline, ffmpeg |
 | **🌀 Shapeshift** | Motion transfer, object swap and restyle for any video |
 
 ---

@@ -223,7 +223,7 @@ function ModelFeed() {
       <div className="row" style={{ justifyContent: 'space-between' }}>
         <h3 style={{ margin: 0 }}>🔬 Newest open-source releases {newCount > 0 && <span className="badge" style={{ marginLeft: 6 }}>{newCount} new since last visit</span>}</h3>
         <div className="row">
-          {feed && <span className="sub" style={{ fontSize: 11 }}>fetched {new Date(feed.fetchedAt).toLocaleString()}</span>}
+          {feed?.fetchedAt && !isNaN(new Date(feed.fetchedAt)) && <span className="sub" style={{ fontSize: 11 }}>updated {new Date(feed.fetchedAt).toLocaleString()}</span>}
           <button className="btn ghost small" onClick={markSeen}>Mark all seen</button>
           <button className="btn small" disabled={busy} onClick={load}>{busy ? 'Loading…' : '↻ Refresh'}</button>
         </div>
@@ -256,7 +256,7 @@ function ModelFeed() {
                   <td><span className="badge">{m.type}</span></td>
                   <td className="sub">{String(m.createdAt).slice(0, 10)}</td>
                   <td className="sub">{m.license}</td>
-                  <td className="sub">{m.downloads.toLocaleString()}</td>
+                  <td className="sub">{(m.downloads || 0).toLocaleString()}</td>
                   <td><DownloadButton repo={m.id} installed={installed.includes(m.id)} onDone={() => window.api.engine.listModels().then(setInstalled)} /></td>
                 </tr>
               ))}

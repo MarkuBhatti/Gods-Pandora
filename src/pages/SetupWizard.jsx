@@ -1,6 +1,7 @@
 import PandoraBox from '../lib/PandoraBox.jsx';
 import React, { useEffect, useState } from 'react';
 import { useStore } from '../lib/store.jsx';
+import { useDownloads, fmtBytes } from '../lib/downloads.jsx';
 
 // First-run setup wizard — detects hardware, recommends models, saves keys, offers downloads
 // Shows automatically on first launch until dismissed or completed.
@@ -13,6 +14,7 @@ export default function SetupWizard() {
   const [savingKeys, setSavingKeys] = useState(false);
   const [downloading, setDownloading] = useState('');
   const [dlStatus, setDlStatus] = useState('');
+  const dls = useDownloads();
   const [selectedModels, setSelectedModels] = useState([]);
 
   // Only show if not already set up AND store loaded
@@ -44,11 +46,14 @@ export default function SetupWizard() {
 
   async function downloadModel(repo, name) {
     setDownloading(repo);
-    setDlStatus('Installing local engine…');
     try {
-      const inst = await window.api.engine.install();
-      if (!inst.ok) { setDlStatus('⚠ Engine install failed: ' + inst.error); setDownloading(''); return; }
-      setDlStatus('Downloading ' + name + '… (this may take several minutes)');
+      const st = await window.api.engine.status().catch(() => ({}));
+      if (!st.installed) {
+        setDlStatus('Installing the local engine (one time, a few minutes)…');
+        const inst = await window.api.engine.install();
+        if (!inst.ok) { setDlStatus('⚠ Engine install failed: ' + inst.error); setDownloading(''); return; }
+      }
+      setDlStatus('Downloading ' + name + '…');
       const dl = await window.api.engine.downloadModel(repo);
       if (dl.ok) {
         setDlStatus('✓ ' + name + ' downloaded successfully!');
@@ -186,6 +191,10 @@ export default function SetupWizard() {
             {dlStatus && (
               <div style={{ fontSize: 12, color: dlStatus.startsWith('⚠') ? 'var(--danger)' : 'var(--accent)', marginBottom: 14, padding: '8px 12px', background: 'rgba(139,107,255,.05)', borderRadius: 6 }}>
                 {dlStatus}
+                {downloading && dls[downloading]?.total > 0 && (() => {
+                  const d = dls[downloading]; const pct = Math.min(100, Math.floor((d.bytes / d.total) * 100));
+                  return <div className="dl-progress" style={{ marginTop: 8 }}><div className="bar"><div style={{ width: pct + '%' }} /></div><span className="sub" style={{ fontSize: 11 }}>{pct}% · {fmtBytes(d.bytes)} / {fmtBytes(d.total)}</span></div>;
+                })()}
               </div>
             )}
             <div className="row" style={{ gap: 10 }}>

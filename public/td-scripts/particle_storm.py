@@ -25,12 +25,12 @@ def buildParticleStorm(parent=None):
     noise.par.roughness = 0.7
 
     # Reference bridge params
-    params_path = '/project1/godsEyeBridge/params'
+    params_path = '/project1/pandoraBridge/params'
     print("ParticleStorm built! Wire " + params_path + " channels to particle parameters.")
     print("OSC channels to map:")
-    print("  /godsEye/particles/speed      -> Particle speed")
-    print("  /godsEye/particles/gravity    -> Gravity force")
-    print("  /godsEye/particles/turbulence -> Noise amplitude")
-    print("  /godsEye/particles/colorR/G/B -> Particle color")
+    print("  /pandora/particles/speed      -> Particle speed")
+    print("  /pandora/particles/gravity    -> Gravity force")
+    print("  /pandora/particles/turbulence -> Noise amplitude")
+    print("  /pandora/particles/colorR/G/B -> Particle color")
 
 buildParticleStorm()

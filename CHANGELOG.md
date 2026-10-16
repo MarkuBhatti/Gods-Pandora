@@ -20,6 +20,18 @@
 - **Lite mode** (sidebar): freezes animated scenes and blur; Auto turns it on for low-end PCs and low battery.
 
 ### Fixed / improved
+- **Download progress is now real**: the % and bar follow the actual bytes downloaded (no more stuck at 99 %),
+  the confirm dialog shows the real download size, and the Setup Wizard / first-run screen show a live bar.
+  Re-syncing a model counts files you already have; partially downloaded models are never shown as installed.
+- Last "God's Eye" leftovers renamed (TouchDesigner OSC addresses are now `/pandora/...`, bridge `pandoraBridge`,
+  setup steps, update messages, AI Market text).
+- App Forge and Studio text/code tools can now use a **free local model** (Ollama / LM Studio) — the "local runtime"
+  choice really runs locally instead of falling back to Claude.
+- Only one God's Pandora runs at a time (a second launch focuses the open window); quitting stops the engine,
+  downloads and renders cleanly.
+- Moons in the backgrounds no longer sit on top of page titles; sidebar footer no longer hides the last tab.
+- Influencer page has its proper title; Guide Book button stays on the right; Cut has its own icon.
+- Setup no longer reinstalls the engine every time you download a model.
 - Model downloads fetch only one fp16 copy of the weights + configs (SD 1.5 ≈ 2 GB instead of ≈ 10 GB;
   SDXL ≈ 7 GB instead of ≈ 20 GB) and report honest progress. Partial downloads are detected and resumable.
 - Harmless library warnings (symlinks, deprecations, telemetry, "unauthenticated") are silenced.

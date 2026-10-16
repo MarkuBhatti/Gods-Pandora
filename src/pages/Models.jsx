@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import catalog from '../../data/modelCatalog.json';
 import directory from '../../data/modelDirectory.json';
-import { DownloadButton } from '../lib/downloads.jsx';
+import { DownloadButton, useDownloads, fmtBytes } from '../lib/downloads.jsx';
 import { useStore, uid } from '../lib/store.jsx';
 
 export default function Models() {
@@ -45,7 +45,7 @@ function LocalEngine({ localModels }) {
 
   const refresh = async () => {
     setStatus(await window.api.engine.status());
-    setInstalled(await window.api.engine.listModels());
+    setInstalled(await (window.api.engine.listModelsDetailed ? window.api.engine.listModelsDetailed() : window.api.engine.listModels().then((l) => l.map((r) => ({ repo: r, complete: true })))));
   };
   useEffect(() => { refresh(); const t = setInterval(refresh, 4000); return () => clearInterval(t); }, []);
 
@@ -71,9 +71,9 @@ function LocalEngine({ localModels }) {
       <label>Download an open-source model (Hugging Face repo id)</label>
       <div className="row">
         <input style={{ flex: 1 }} value={repo} onChange={(e) => setRepo(e.target.value)} placeholder="e.g. stabilityai/stable-diffusion-xl-base-1.0" />
-        <button className="btn small" disabled={!repo.trim() || !!busy} onClick={() => act('download', () => window.api.engine.downloadModel(repo.trim()))}>
-          {busy === 'download' ? 'Downloading…' : 'Download'}
-        </button>
+        {/^[\w.-]+\/[\w.-]+$/.test(repo.trim())
+          ? <DownloadButton repo={repo.trim()} label="⬇ Download" small onDone={refresh} />
+          : <button className="btn small" disabled>⬇ Download</button>}
       </div>
       <div className="row" style={{ marginTop: 8 }}>
         {localModels.map((m) => (
@@ -81,7 +81,10 @@ function LocalEngine({ localModels }) {
         ))}
       </div>
 
-      {installed.length > 0 && (<><label>In storage</label><div className="row">{installed.map((m) => <span key={m} className="badge">{m}</span>)}</div></>)}
+      {installed.length > 0 && (<><label>In storage</label><div className="row" style={{ flexWrap: 'wrap' }}>{installed.map((m) => (
+        <span key={m.repo} className="badge" title={m.downloading ? 'Downloading' : m.complete === false ? 'Download incomplete — press Download to resume' : 'Ready'}>
+          {m.downloading ? '⏳ ' : m.complete === false ? '⚠ ' : '✅ '}{m.repo}
+        </span>))}</div></>)}
       {msg && <div className={msg.startsWith('⚠') ? 'err' : 'ok'}>{msg}</div>}
       {status?.log?.length > 0 && <div className="log" style={{ marginTop: 10 }}>{status.log.slice(-30).join('')}</div>}
     </div>
@@ -91,7 +94,10 @@ function LocalEngine({ localModels }) {
 function Directory() {
   const [type, setType] = React.useState('all');
   const [installed, setInstalled] = React.useState([]);
-  const reload = () => window.api.engine.listModels().then(setInstalled);
+  // only fully downloaded models count as installed (partial downloads show the Install button to resume)
+  const reload = () => (window.api.engine.listModelsDetailed
+    ? window.api.engine.listModelsDetailed().then((l) => setInstalled((l || []).filter((m) => m.complete !== false).map((m) => m.repo)))
+    : window.api.engine.listModels().then(setInstalled)).catch(() => {});
   React.useEffect(() => { reload(); }, []);
   const types = ['all', ...new Set(directory.openSource.map((m) => m.type))];
   const list = directory.openSource.filter((m) => type === 'all' || m.type === type);
