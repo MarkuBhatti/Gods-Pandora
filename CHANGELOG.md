@@ -3,6 +3,11 @@
 ## 0.4.0 — 2026-10-16 · Pandora Cut + "never a problem" update
 
 ### Added
+- **Pandora Agent** (new tab): tell it the job ("launch my clothing brand…") and it plans, then uses every tool —
+  writes the brand bible, scripts and captions, generates images and video shots with the models you've connected,
+  records a voice-over, auto-edits and colour-grades the promo video, builds a presentation (HTML + PDF) and
+  hands back a complete launch package folder (index page + README). Claude (your key) or a free local model,
+  plan approval before any paid generation, hard budgets for images / videos / voice-overs, live progress, stop anytime.
 - **Pandora Color** (new tab) — a colourist's toolkit inspired by DaVinci Resolve, Colourlab AI and Retouch4Me:
   Auto Balance with six "auto grade" directions shown as real previews, 16 film looks + **My Looks**
   (save your own, Imagen-style), reference **colour match** with strength, primaries (exposure, contrast,
@@ -35,6 +40,7 @@
 - **Lite mode** (sidebar): freezes animated scenes and blur; Auto turns it on for low-end PCs and low battery.
 
 ### Fixed / improved
+- Claude model id updated to `claude-sonnet-5-5` (App Forge, prompt enhance, ad analysis).
 - **Download progress is now real**: the % and bar follow the actual bytes downloaded (no more stuck at 99 %),
   the confirm dialog shows the real download size, and the Setup Wizard / first-run screen show a live bar.
   Re-syncing a model counts files you already have; partially downloaded models are never shown as installed.

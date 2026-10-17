@@ -268,7 +268,7 @@ async function analyzeAd({ frames, duration, notes, engine, baseUrl, model }, ke
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'claude-sonnet-5', max_tokens: 4000, messages: [{ role: 'user', content }] }),
+    body: JSON.stringify({ model: 'claude-sonnet-5-5', max_tokens: 4000, messages: [{ role: 'user', content }] }),
   });
   const json = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(`Claude error ${res.status}: ${JSON.stringify(json).slice(0, 300)}`);

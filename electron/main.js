@@ -12,6 +12,7 @@ const updater = require('./updater');
 const hf = require('./hfModels');
 const jutsu = require('./jutsu');
 const cut = require('./cut');
+const agent = require('./agent');
 const market = require('./market');
 
 let win;
@@ -403,6 +404,42 @@ function registerIpc() {
     for (const b of ['http://localhost:11434/v1', 'http://localhost:1234/v1']) { try { return await jutsu.listLocalLLMs(b); } catch (_) { /* next */ } }
     return [];
   });
+
+  // ── Pandora Agent: give it a job, it plans and uses every tool to deliver a finished package ──
+  const agentDeps = {
+    keys: () => getKeys(),
+    userData,
+    catalog: () => JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'modelCatalog.json'), 'utf8')),
+    downloaded: async () => { try { return (engine.listModelsDetailed(userData()) || []).filter((m) => m.complete !== false).map((m) => m.repo); } catch (_) { return []; } },
+    engineInstalled: () => { try { return !!engine.status(userData()).installed; } catch (_) { return false; } },
+    generate: async (payload) => {
+      const keys = getKeys();
+      if (payload.provider === 'local') await ensureEngine(keys.huggingface);
+      const r = await generate(payload, keys, { fileToDataUrl });
+      const src = r.url || r.dataUrl; if (!src) throw new Error('The model returned no output.');
+      return saveFromUrl(src, r.mime);
+    },
+    cut,
+    emit: (ev) => { if (win && !win.isDestroyed()) win.webContents.send('agent:event', ev); },
+    toPdf: async (htmlFile, pdfFile) => {
+      const w = new BrowserWindow({ show: false, width: 1280, height: 720, webPreferences: { sandbox: true } });
+      try {
+        await w.loadFile(htmlFile);
+        await new Promise((r) => setTimeout(r, 600));
+        const data = await w.webContents.printToPDF({ printBackground: true, pageSize: { width: 13.333, height: 7.5 }, margins: { marginType: 'none' }, landscape: false });
+        fs.writeFileSync(pdfFile, data); return pdfFile;
+      } finally { w.destroy(); }
+    },
+  };
+  safeHandle('agent:run', (_e, args) => asJob(args && args.jobId, 'Pandora Agent', async () => {
+    jobs.onCancel(() => agent.cancel());
+    return agent.run(agentDeps, args || {});
+  }));
+  safeHandle('agent:approve', (_e, ok, note) => agent.approve(!!ok, note || ''));
+  safeHandle('agent:cancel', () => { cut.cancelAll(); return agent.cancel(); });
+  safeHandle('agent:status', () => agent.status());
+  safeHandle('agent:models', async () => agent.readyModels({ catalog: agentDeps.catalog(), keys: getKeys(), downloaded: await agentDeps.downloaded(), engineInstalled: agentDeps.engineInstalled() }).map((m) => ({ id: m.id, name: m.name, kind: m.kind, provider: m.provider })));
+  safeHandle('agent:open', (_e, p) => { const f = String(p || ''); if (f && f.startsWith(path.join(userData(), 'agent-projects'))) return shell.openPath(f); return false; });
 
   safeHandle('resolve:send', async (_e, files) => {
     const r = await resolveBridge.sendToResolve('python3', files);

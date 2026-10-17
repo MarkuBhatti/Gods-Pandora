@@ -7,6 +7,7 @@ import Media from '../lib/Media.jsx';
 // ⌂ Home — the start screen: everything God's Pandora can make, grouped by what you want to create.
 const GROUPS = [
   ['🖼 Image', [
+    ['agent', '🤖', 'Pandora Agent', 'Tell it the job — it delivers the whole launch package'],
     ['create', '✦', 'Create', 'Any image model — cloud keys or your own GPU'],
     ['styles', '❖', 'Visual Styles', 'Looks you can apply to anything'],
     ['fashion', '✂', 'Fashion', 'Outfit swap, lookbooks, flat lays'],

@@ -1,5 +1,5 @@
 // Anthropic Claude — powers App Forge (app/game generation), prompt enhancement and the AI Director.
-async function complete({ key, system, prompt, model = 'claude-sonnet-5', maxTokens = 16000 }) {
+async function complete({ key, system, prompt, model = 'claude-sonnet-5-5', maxTokens = 16000 }) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST',
     headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },

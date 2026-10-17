@@ -3,6 +3,7 @@ import Create from './pages/Create.jsx';
 import FilmStudio from './pages/FilmStudio.jsx';
 import PandoraCut from './pages/PandoraCut.jsx';
 import PandoraColor from './pages/PandoraColor.jsx';
+import PandoraAgent from './pages/PandoraAgent.jsx';
 import PandoraPhoto from './pages/PandoraPhoto.jsx';
 import Studio from './pages/Studio.jsx';
 import Styles from './pages/Styles.jsx';
@@ -34,6 +35,7 @@ import ErrorBoundary from './ErrorBoundary.jsx';
 
 const TOPNAV = [
   ['create',     'Pandora Studio',      '✦'],
+  ['agent',      'Pandora Agent',       '🤖'],
   ['canvas',     'Pandora Node Canvas', '⚛'],
   ['film',       'Pandora Film',        '🎬'],
   ['cut',        'Pandora AutoEdit',    '🎞'],
@@ -91,6 +93,7 @@ function Page({ page }) {
       {page === 'film'        && <FilmStudio />}
       {page === 'cut'         && <PandoraCut />}
       {page === 'color'       && <PandoraColor />}
+      {page === 'agent'       && <PandoraAgent />}
       {page === 'photo'       && <PandoraPhoto />}
       {page === 'fashion'     && <Studio studioId="fashion" />}
       {page === 'product'     && <Studio studioId="product" />}
