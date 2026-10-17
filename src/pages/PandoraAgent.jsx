@@ -23,6 +23,9 @@ export default function PandoraAgent() {
   const [videos, setVideos] = useState(3);
   const [audio, setAudio] = useState(1);
   const [review, setReview] = useState(true);
+  const [mode, setMode] = useState('hybrid');
+  const [allowDl, setAllowDl] = useState(true);
+  const [routes, setRoutes] = useState(null);
   const [events, setEvents] = useState([]);
   const [plan, setPlan] = useState(null);
   const [feedback, setFeedback] = useState('');
@@ -46,13 +49,19 @@ export default function PandoraAgent() {
   }, []);
   useEffect(() => { if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight; }, [events]);
   useEffect(() => { if (hasClaude === false) setBrain('local'); }, [hasClaude]);
+  const brainUsed = mode === 'free' ? 'local' : brain;
+  useEffect(() => {
+    let ok = true;
+    window.api.agent?.routes?.({ mode, allowDownloads: allowDl, brain: brainUsed }).then((r) => ok && setRoutes(r)).catch(() => ok && setRoutes(null));
+    return () => { ok = false; };
+  }, [mode, allowDl, brainUsed]);
 
   const kinds = (k) => models.filter((m) => m.kind === k);
   async function start() {
     setError(''); setEvents([]); setAssets([]); setResult(null); setPlan(null); setProgress(null);
     await job.start(async (jobId) => {
       try {
-        const r = await window.api.agent.run({ jobId, goal: goal.trim(), brain, images, videos, audio, reviewPlan: review });
+        const r = await window.api.agent.run({ jobId, goal: goal.trim(), brain: brainUsed, mode, allowDownloads: allowDl, images, videos, audio, reviewPlan: review });
         if (r && !r.cancelled) {
           setResult(r);
         }
@@ -79,34 +88,46 @@ export default function PandoraAgent() {
             {TEMPLATES.map(([t, g]) => <button key={t} className="chip mini" onClick={() => setGoal(g)}>{t}</button>)}
           </div>
 
-          <label>Brain</label>
-          <div className="row">
-            <button className={'chip' + (brain === 'claude' ? ' on' : '')} disabled={hasClaude === false} onClick={() => setBrain('claude')}>Claude {hasClaude === false ? '(add key in Settings)' : '· best'}</button>
-            <button className={'chip' + (brain === 'local' ? ' on' : '')} onClick={() => setBrain('local')}>Local model · free (Ollama / LM Studio)</button>
-          </div>
-          {brain === 'local' && <p className="sub" style={{ fontSize: 11 }}>Needs a tool-calling model, e.g. <code>ollama pull qwen2.5</code>. Claude plans and writes noticeably better.</p>}
-
-          <label>What it can use right now</label>
-          <div className="ag-caps">
-            {[['image', '🖼 Images'], ['video', '🎬 Video'], ['audio', '🎙 Voice']].map(([k, l]) => (
-              <span key={k} className={'ag-cap ' + (kinds(k).length ? 'ok' : 'no')} title={kinds(k).map((m) => m.name).join(', ') || 'Connect an API key in Settings or download a local model'}>
-                {l}: {kinds(k).length ? kinds(k).length + ' model' + (kinds(k).length > 1 ? 's' : '') : 'not connected'}
-              </span>
+          <label>How should it run?</label>
+          <div className="ag-modes">
+            {[['free', '🆓 Free', 'Open-source models on your PC — no API costs. Downloads free models on first use.'],
+              ['hybrid', '⚖ Hybrid', 'Free local models first, cloud APIs only when your PC can\'t do a step.'],
+              ['cloud', '☁ Cloud', 'Your API keys first (fastest, best quality), local models as backup.']].map(([id, t, d]) => (
+              <button key={id} type="button" className={'ag-mode' + (mode === id ? ' on' : '')} onClick={() => setMode(id)}><b>{t}</b><small>{d}</small></button>
             ))}
-            <span className="ag-cap ok">✂ Edit · 🎨 Colour · 📊 Slides · 📝 Docs: built in</span>
           </div>
-          {!kinds('image').length && <p className="sub" style={{ fontSize: 11 }}>Connect an image provider (FAL, OpenAI, Google, Replicate…) in <a style={{ cursor: 'pointer', color: 'var(--accent)' }} onClick={() => window.dispatchEvent(new CustomEvent('pandora:go', { detail: 'settings' }))}>Settings</a> or download a local model so the agent can make visuals.</p>}
+          <label className="row" style={{ gap: 8, cursor: 'pointer', marginTop: 6 }}><input type="checkbox" style={{ width: 'auto' }} checked={allowDl} onChange={(e) => setAllowDl(e.target.checked)} /><span>Allow downloading free models when needed (one time, several GB)</span></label>
 
-          <label>Budget (protects your API credits)</label>
+          <label>Brain (plans & writes)</label>
+          <div className="row">
+            <button className={'chip' + (brainUsed === 'claude' ? ' on' : '')} disabled={hasClaude === false || mode === 'free'} onClick={() => setBrain('claude')}>Claude {hasClaude === false ? '(add key in Settings)' : mode === 'free' ? '(paid — off in Free mode)' : '· best'}</button>
+            <button className={'chip' + (brainUsed === 'local' ? ' on' : '')} onClick={() => setBrain('local')}>Local model · free (Ollama / LM Studio)</button>
+          </div>
+          {brainUsed === 'local' && <p className="sub" style={{ fontSize: 11 }}>Install <b>Ollama</b> (ollama.com) and run <code>ollama pull qwen2.5</code> (or <code>qwen2.5:14b</code> on a strong PC). Claude plans and writes better, but this is completely free.</p>}
+
+          <label>Each step will run with</label>
+          <div className="ag-routes">
+            {routes ? [['🖼 Images', routes.image], ['🎬 Video shots', routes.video], ['🎙 Voice-over', routes.voice]].map(([l, r]) => (
+              <div key={l} className={'ag-route ' + (r.length ? 'ok' : 'no')}>
+                <b>{l}</b>
+                <span>{r.length ? r[0] : 'Not available — connect an API key or allow free downloads'}</span>
+                {r.length > 1 && <small>fallback: {r.slice(1).join(' → ')}</small>}
+              </div>
+            )) : <span className="sub">Checking your PC…</span>}
+            <div className="ag-route ok"><b>✂ Edit · 🎨 Colour · 📊 Slides · 📝 Docs</b><span>Built in · free</span></div>
+            {routes?.gpu && <small className="sub">Detected GPU: {routes.gpu}{routes.vram ? ` · ${routes.vram} GB VRAM` : ''}</small>}
+          </div>
+
+          <label>{mode === 'free' ? 'Amount (local generation takes time)' : 'Budget (protects your API credits)'}</label>
           <div className="cinerow">
             <div><label>Max images: {images}</label><input type="range" min="0" max="20" value={images} onChange={(e) => setImages(+e.target.value)} /></div>
             <div><label>Max video shots: {videos}</label><input type="range" min="0" max="8" value={videos} onChange={(e) => setVideos(+e.target.value)} /></div>
             <div><label>Max voice-overs: {audio}</label><input type="range" min="0" max="3" value={audio} onChange={(e) => setAudio(+e.target.value)} /></div>
           </div>
-          <label className="row" style={{ gap: 8, cursor: 'pointer' }}><input type="checkbox" style={{ width: 'auto' }} checked={review} onChange={(e) => setReview(e.target.checked)} /><span>Show me the plan before it spends any credits</span></label>
+          <label className="row" style={{ gap: 8, cursor: 'pointer' }}><input type="checkbox" style={{ width: 'auto' }} checked={review} onChange={(e) => setReview(e.target.checked)} /><span>Show me the plan before it starts generating</span></label>
 
           <div className="row" style={{ marginTop: 14 }}>
-            <RunButton job={job} label="🤖 Start the job" busyLabel={progress ? `${progress.stage} ${progress.pct ?? ''}%` : 'Working…'} onRun={start} disabled={goal.trim().length < 10 || (brain === 'claude' && !hasClaude)} />
+            <RunButton job={job} label="🤖 Start the job" busyLabel={progress ? `${progress.stage} ${progress.pct ?? ''}%` : 'Working…'} onRun={start} disabled={goal.trim().length < 10 || (brainUsed === 'claude' && !hasClaude)} />
             {job.running && <button className="btn ghost" onClick={stop}>Stop</button>}
           </div>
           <ErrorBox error={error} />

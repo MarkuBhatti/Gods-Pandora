@@ -58,6 +58,7 @@ contextBridge.exposeInMainWorld('api', {
     cancel: () => ipcRenderer.invoke('agent:cancel'),
     status: () => ipcRenderer.invoke('agent:status'),
     models: () => ipcRenderer.invoke('agent:models'),
+    routes: (opts) => ipcRenderer.invoke('agent:routes', opts),
     open: (p) => ipcRenderer.invoke('agent:open', p),
     onEvent: (cb) => { const h = (_e, p) => cb(p); ipcRenderer.on('agent:event', h); return () => ipcRenderer.removeListener('agent:event', h); },
   },

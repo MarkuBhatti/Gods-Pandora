@@ -317,7 +317,7 @@ async function autoEdit(userData, opts, onProgress = () => {}) {
   const XF = ['fade', 'fadeblack', 'fadewhite', 'dissolve', 'smoothleft', 'smoothright', 'slideup', 'slideleft', 'radial', 'circleopen', 'circleclose', 'wipeleft', 'wiperight', 'pixelize'];
   const pickedMix = (opts.mixSet || []).filter((x) => XF.includes(x));
   const MIX = pickedMix.length ? pickedMix : ['fade', 'smoothleft', 'circleopen', 'slideup', 'radial', 'fadeblack', 'dissolve', 'wipeleft']; // all exist since ffmpeg 4.3
-  const T = trans === 'cut' ? 0 : clamp(segLen * 0.3, 0.12, 0.6);
+  let T = trans === 'cut' ? 0 : clamp(segLen * 0.3, 0.12, 0.6);
 
   // build the segment list: round-robin through clips, each segment starts on a fresh shot when possible
   const segs = []; const cursor = new Map(); let t = 0; let k = 0; let guard = 0;
@@ -349,6 +349,10 @@ async function autoEdit(userData, opts, onProgress = () => {}) {
     t = end;
   }
 
+  // never leave a sliver at the end: a segment shorter than the transition would stall xfade
+  while (segs.length > 1 && segs[segs.length - 1].d < Math.max(0.6, T * 1.6)) { const tail = segs.pop(); segs[segs.length - 1].d += tail.d; }
+  const minLen = Math.min(...segs.map((x) => x.d));
+  if (T > minLen * 0.45) T = Math.max(0, +(minLen * 0.45).toFixed(3));
   onProgress({ stage: `Cutting ${segs.length} shots${beat ? ' to ' + beat.bpm + ' BPM' : ''}`, pct: 32 });
 
   const args = ['-y'];
@@ -411,6 +415,7 @@ async function autoEdit(userData, opts, onProgress = () => {}) {
     '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-t', outLen.toFixed(3), out);
 
   const r = await run(ff, args, {
+    timeout: Math.max(180000, outLen * 90000), // safety net: never hang forever
     onStderr: (s) => {
       const m = s.match(/time=(\d+):(\d+):([\d.]+)/);
       if (m) { const sec = (+m[1]) * 3600 + (+m[2]) * 60 + parseFloat(m[3]); onProgress({ stage: 'Rendering', pct: Math.min(99, 35 + Math.round((sec / outLen) * 64)) }); }
@@ -419,6 +424,21 @@ async function autoEdit(userData, opts, onProgress = () => {}) {
   if (r.code !== 0 || !fs.existsSync(out)) throw new Error(friendly(r.stderr));
   onProgress({ stage: 'Done', pct: 100 });
   return { file: out, shots: segs.length, bpm: beat ? beat.bpm : null, duration: +outLen.toFixed(2) };
+}
+
+/* ───────────── ANIMATE A STILL (free video shot on any PC: slow cinematic push-in / pan) ───────────── */
+async function animateStill(userData, { image, seconds = 5, aspect = '16:9', move = 'push', outFile }) {
+  const ff = findFfmpeg(userData);
+  if (!ff) throw new Error('FFMPEG_MISSING');
+  if (!image || !fs.existsSync(image)) throw new Error('Image not found.');
+  const [W, H] = SIZES[aspect] || SIZES['16:9'];
+  const frames = Math.round(seconds * 30);
+  const z = { push: `min(1+0.0009*on,1.25)`, pull: `max(1.25-0.0009*on,1)`, pan: '1.15' }[move] || 'min(1+0.0009*on,1.25)';
+  const x = move === 'pan' ? `(iw-iw/zoom)*on/${frames}` : 'iw/2-(iw/zoom/2)';
+  const out = outFile || path.join(outDirFor(userData), Date.now() + '-still-motion.mp4');
+  const r = await run(ff, ['-y', '-i', image, '-vf', `${reframe(Math.round(W * 1.5 / 2) * 2, Math.round(H * 1.5 / 2) * 2)},zoompan=z='${z}':x='${x}':y='ih/2-(ih/zoom/2)':d=${frames}:s=${W}x${H}:fps=30,format=yuv420p`, '-frames:v', String(frames), '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-movflags', '+faststart', out], { timeout: 300000 });
+  if (r.code !== 0 || !fs.existsSync(out)) throw new Error(friendly(r.stderr));
+  return out;
 }
 
 /* ───────────── JUMP CUT (talking videos: remove silences, keep the speech) ───────────── */
@@ -533,4 +553,4 @@ function friendly(stderr) {
   return 'Rendering failed' + (tail ? ': ' + tail.slice(0, 220) : '. Try fewer clips or a different transition.');
 }
 
-module.exports = { findFfmpeg, ensureFfmpeg, autoEdit, autoColor, previewGrade, beats, cancelAll, frame, jumpCut, renderGrade, LOOKS: Object.keys(LOOKS) };
+module.exports = { animateStill, findFfmpeg, ensureFfmpeg, autoEdit, autoColor, previewGrade, beats, cancelAll, frame, jumpCut, renderGrade, LOOKS: Object.keys(LOOKS) };

@@ -8,6 +8,11 @@
   records a voice-over, auto-edits and colour-grades the promo video, builds a presentation (HTML + PDF) and
   hands back a complete launch package folder (index page + README). Claude (your key) or a free local model,
   plan approval before any paid generation, hard budgets for images / videos / voice-overs, live progress, stop anytime.
+  - **Free / Hybrid / Cloud modes**: every step can run on open-source models on your PC at zero cost — the agent
+    picks the best local model your GPU can handle (FLUX.2 klein / SDXL / SD 1.5 for images, Wan 2.2 for video on
+    16 GB+ GPUs), installs the engine and downloads models on first use, falls back to free animated stills for
+    video and the built-in system voice for voice-overs, and uses a local LLM (Ollama / LM Studio) as the brain.
+    Hybrid uses free local models first and cloud APIs only when needed; Cloud does the opposite.
 - **Pandora Color** (new tab) — a colourist's toolkit inspired by DaVinci Resolve, Colourlab AI and Retouch4Me:
   Auto Balance with six "auto grade" directions shown as real previews, 16 film looks + **My Looks**
   (save your own, Imagen-style), reference **colour match** with strength, primaries (exposure, contrast,
@@ -40,6 +45,7 @@
 - **Lite mode** (sidebar): freezes animated scenes and blur; Auto turns it on for low-end PCs and low battery.
 
 ### Fixed / improved
+- AutoEdit could hang forever when the last cut was shorter than the transition — fixed, plus a render safety timeout.
 - Claude model id updated to `claude-sonnet-5-5` (App Forge, prompt enhance, ad analysis).
 - **Download progress is now real**: the % and bar follow the actual bytes downloaded (no more stuck at 99 %),
   the confirm dialog shows the real download size, and the Setup Wizard / first-run screen show a live bar.

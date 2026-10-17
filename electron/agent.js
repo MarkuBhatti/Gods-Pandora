@@ -42,12 +42,54 @@ function readyModels({ catalog, keys, downloaded, engineInstalled }) {
     .map((m) => ({ id: m.id, name: m.name, kind: m.kind, provider: m.provider, acceptsImage: !!m.refInput, model: m }));
 }
 
+// ── Free vs paid routing ──
+// mode: 'free'  → only open-source models on this PC (+ free fallbacks: animated stills, system voice)
+//       'hybrid'→ open-source first, cloud API only when no local option works
+//       'cloud' → cloud APIs first, open-source as fallback
+const LOCAL_IMAGE = [ // best first, with rough VRAM need and first-time download size
+  { id: 'local-flux2-klein', vram: 12, gb: 16, label: 'FLUX.2 [klein] 4B' },
+  { id: 'local-sdxl', vram: 8, gb: 7, label: 'SDXL' },
+  { id: 'local-sd15', vram: 0, gb: 2, label: 'SD 1.5' },
+];
+const LOCAL_VIDEO = [{ id: 'local-wan22-5b', vram: 16, gb: 22, label: 'Wan 2.2 5B' }, { id: 'local-ltx23', vram: 16, gb: 30, label: 'LTX-2.3' }];
+
+async function planRoutes(deps, opts = {}) {
+  const mode = ['free', 'hybrid', 'cloud'].includes(opts.mode) ? opts.mode : 'hybrid';
+  const allowDl = opts.allowDownloads !== false;
+  const keys = deps.keys(); const catalog = deps.catalog(); const downloaded = await deps.downloaded();
+  const engineInstalled = deps.engineInstalled();
+  let hw = {}; try { hw = (await deps.hardware()) || {}; } catch (_) {}
+  const vram = hw.cuda ? hw.vram_gb || 0 : (hw.mps ? 12 : 0);
+  const byId = Object.fromEntries((catalog.models || []).map((m) => [m.id, m]));
+  const cloud = readyModels({ catalog, keys, downloaded: [], engineInstalled: false });
+  const localReady = readyModels({ catalog, keys: {}, downloaded, engineInstalled });
+  const pickLocal = (list, kind) => {
+    const have = list.find((c) => byId[c.id] && downloaded.includes(byId[c.id].endpoint) && (vram >= c.vram || !hw.cuda && c.vram === 0));
+    if (have) return { type: 'local', model: byId[have.id], label: have.label + ' (on this PC · free)', download: 0 };
+    if (!allowDl || !hw.cuda && kind === 'video') return null;
+    const fit = list.find((c) => byId[c.id] && (hw.cuda ? vram >= c.vram : c.vram === 0));
+    return fit ? { type: 'local', model: byId[fit.id], label: `${fit.label} (free · first use downloads ≈${fit.gb} GB${engineInstalled ? '' : ' + installs the engine'})`, download: fit.gb, needsEngine: !engineInstalled } : null;
+  };
+  const cloudPick = (kind, re) => { const m = cloud.find((x) => x.kind === kind && (!re || re.test(x.id + x.name))); return m ? { type: 'cloud', model: m.model, label: m.name + ' (API · paid)' } : null; };
+  const order = (local, cl, free) => (mode === 'free' ? [local, free] : mode === 'hybrid' ? [local, cl, free] : [cl, local, free]).filter(Boolean);
+  const anyLocalImage = localReady.find((m) => m.kind === 'image');
+  const imgLocal = pickLocal(LOCAL_IMAGE, 'image') || (anyLocalImage ? { type: 'local', model: anyLocalImage.model, label: anyLocalImage.name + ' (on this PC · free)' } : null);
+  return {
+    mode, vram, gpu: hw.gpu || null,
+    image: order(imgLocal, cloudPick('image'), null),
+    video: order(pickLocal(LOCAL_VIDEO, 'video'), cloudPick('video'), { type: 'still', label: 'Animated stills (free on any PC — slow cinematic push-ins)' }),
+    voice: order({ type: 'system', label: 'System voice (free, offline)' }, cloudPick('audio', /tts|voice|eleven/i), null),
+    brain: opts.brain === 'local' || mode === 'free' ? 'local' : 'claude',
+  };
+}
+const routeText = (r) => (r && r.length ? r.map((x) => x.label).join('  →  fallback: ') : 'not available');
+
 const TOOLS = [
   { name: 'propose_plan', description: 'Propose the production plan before doing paid work. List the concrete steps and the final deliverables.', input_schema: { type: 'object', properties: { steps: { type: 'array', items: { type: 'string' } }, deliverables: { type: 'array', items: { type: 'string' } } }, required: ['steps', 'deliverables'] } },
   { name: 'write_document', description: 'Write a text deliverable (brand strategy, video script, shot list, captions, ad copy, press release, prompts…) as Markdown. Saved as .md and .html in the package.', input_schema: { type: 'object', properties: { filename: { type: 'string', description: 'short-file-name without extension' }, title: { type: 'string' }, content: { type: 'string', description: 'Markdown' } }, required: ['filename', 'title', 'content'] } },
-  { name: 'generate_image', description: 'Generate one image (product shot, campaign key visual, social post, storyboard frame, slide visual…). Write a rich, specific prompt.', input_schema: { type: 'object', properties: { prompt: { type: 'string' }, aspect_ratio: { type: 'string', enum: ['1:1', '16:9', '9:16', '4:5', '3:2', '21:9'] }, purpose: { type: 'string' }, model_id: { type: 'string' }, reference_file: { type: 'string', description: 'optional path of an earlier image to keep the same product/character' } }, required: ['prompt'] } },
-  { name: 'generate_video', description: 'Generate one short video shot (about 5 s). Give a cinematic prompt with camera movement. Optionally animate an earlier image (start_image).', input_schema: { type: 'object', properties: { prompt: { type: 'string' }, start_image: { type: 'string' }, aspect_ratio: { type: 'string', enum: ['16:9', '9:16', '1:1'] }, model_id: { type: 'string' } }, required: ['prompt'] } },
-  { name: 'generate_voiceover', description: 'Turn a script into a spoken voice-over audio file.', input_schema: { type: 'object', properties: { script: { type: 'string' }, model_id: { type: 'string' } }, required: ['script'] } },
+  { name: 'generate_image', description: 'Generate one image (product shot, campaign key visual, social post, storyboard frame, slide visual…). Write a rich, specific prompt.', input_schema: { type: 'object', properties: { prompt: { type: 'string' }, aspect_ratio: { type: 'string', enum: ['1:1', '16:9', '9:16', '4:5', '3:2', '21:9'] }, purpose: { type: 'string' }, reference_file: { type: 'string', description: 'optional path of an earlier image to keep the same product/character' } }, required: ['prompt'] } },
+  { name: 'generate_video', description: 'Generate one short video shot (about 5 s). Give a cinematic prompt with camera movement. Optionally animate an earlier image (start_image).', input_schema: { type: 'object', properties: { prompt: { type: 'string' }, start_image: { type: 'string' }, aspect_ratio: { type: 'string', enum: ['16:9', '9:16', '1:1'] } }, required: ['prompt'] } },
+  { name: 'generate_voiceover', description: 'Turn a script into a spoken voice-over audio file.', input_schema: { type: 'object', properties: { script: { type: 'string' } }, required: ['script'] } },
   { name: 'auto_edit', description: 'Edit video shots and images into one finished promo video, cut to the music or voice-over, with a style.', input_schema: { type: 'object', properties: { clips: { type: 'array', items: { type: 'string' } }, audio_file: { type: 'string' }, style: { type: 'string', enum: ['vlog', 'cinematic', 'hype', 'luxury', 'product', 'documentary'] }, aspect_ratio: { type: 'string', enum: ['16:9', '9:16', '1:1', '4:5'] }, title: { type: 'string' }, length_seconds: { type: 'number' } }, required: ['clips'] } },
   { name: 'color_grade', description: 'Colour-grade a finished video or image with auto balance and a look.', input_schema: { type: 'object', properties: { file: { type: 'string' }, look: { type: 'string', enum: ['Natural pop', 'Teal & Orange', 'Warm film', 'Cool night', 'Golden hour', 'Bleach bypass', 'Vintage', 'Black & white', 'Moody matte'] } }, required: ['file'] } },
   { name: 'make_presentation', description: 'Build a polished slide deck (HTML + PDF). Use generated images as slide visuals.', input_schema: { type: 'object', properties: { title: { type: 'string' }, accent_color: { type: 'string', description: 'hex like #8b6bff' }, slides: { type: 'array', items: { type: 'object', properties: { title: { type: 'string' }, subtitle: { type: 'string' }, bullets: { type: 'array', items: { type: 'string' } }, image_file: { type: 'string' }, notes: { type: 'string' } }, required: ['title'] } } }, required: ['title', 'slides'] } },
@@ -56,8 +98,6 @@ const TOOLS = [
 ];
 
 function systemPrompt(ctx) {
-  const m = ctx.models;
-  const fmt = (k) => m.filter((x) => x.kind === k).map((x) => `${x.id} (${x.name}${x.acceptsImage ? ', accepts a reference image' : ''})`).join('; ') || 'NONE available';
   return `You are Pandora Agent, an autonomous creative director and producer inside the God's Pandora desktop studio.
 The user gives you a job; you deliver a complete, launch-ready package by calling tools. Work like a top agency team:
 strategy → copy & scripts → visuals → video → edit → colour → presentation → package.
@@ -67,14 +107,16 @@ Rules:
 - Keep brand consistency: define the brand name, palette, tone and visual style in a brand document early and reuse it in every prompt.
 - Image prompts: specific subject, setting, composition, lens, lighting, mood, palette, "photorealistic commercial photography" when relevant. No text in images unless needed.
 - Budgets (hard limits): at most ${ctx.budget.images} images and ${ctx.budget.videos} video shots and ${ctx.budget.audio} voice-overs. Plan within them.
-- If a capability has no model available, skip it gracefully and say how to enable it in the summary (connect an API key in Settings or download a local model).
+- If a tool reports that a capability is unavailable, skip it gracefully and explain in the summary how to enable it.
 - Use file paths returned by tools when referencing assets (reference_file, start_image, clips, image_file).
 - Always end by calling finish with a short summary and next steps.
 
-Available models right now —
-image: ${fmt('image')}
-video: ${fmt('video')}
-audio: ${fmt('audio')}
+Production mode: ${ctx.routes.mode.toUpperCase()}${ctx.routes.mode === 'free' ? ' — everything runs free on the user\'s PC; never suggest paid APIs as required' : ''}.
+How each process will run (the tools choose automatically, you just call them) —
+images: ${routeText(ctx.routes.image)}
+video shots: ${routeText(ctx.routes.video)}
+voice-over: ${routeText(ctx.routes.voice)}
+Local open-source generation is slower than cloud APIs; prefer fewer, stronger shots. Animated stills are made from images, so write image prompts that work as cinematic frames.
 Today is ${new Date().toISOString().slice(0, 10)}.`;
 }
 
@@ -82,7 +124,8 @@ Today is ${new Date().toISOString().slice(0, 10)}.`;
 async function run(deps, opts) {
   if (current && !current.done) throw new Error('The agent is already working on a job. Cancel it first.');
   const keys = deps.keys();
-  const brain = opts.brain === 'local' ? 'local' : 'claude';
+  const routes = await planRoutes(deps, opts);
+  const brain = routes.brain;
   if (brain === 'claude' && !keys.anthropic) throw new Error('Add your Anthropic (Claude) API key in Settings → API Keys, or choose the free local brain (Ollama / LM Studio).');
   const dir = path.join(deps.userData(), 'agent-projects', new Date().toISOString().slice(0, 10) + '-' + slug(opts.goal.split(/[.\n]/)[0]) + '-' + Date.now().toString(36));
   for (const d of ['images', 'video', 'audio', 'docs', 'deck']) fs.mkdirSync(path.join(dir, d), { recursive: true });
@@ -90,10 +133,11 @@ async function run(deps, opts) {
     dir, assets: [], docs: [], budget: { images: opts.images ?? 8, videos: opts.videos ?? 3, audio: opts.audio ?? 1 },
     used: { images: 0, videos: 0, audio: 0 }, reviewPlan: opts.reviewPlan !== false,
     models: readyModels({ catalog: deps.catalog(), keys, downloaded: await deps.downloaded(), engineInstalled: deps.engineInstalled() }),
+    routes,
   };
   const state = current = { done: false, cancelled: false, approve: null, dir };
   const emit = (ev) => deps.emit({ ...ev, at: Date.now() });
-  emit({ type: 'start', dir, models: ctx.models.map((x) => ({ id: x.id, name: x.name, kind: x.kind })) });
+  emit({ type: 'start', dir, mode: routes.mode, routes: { image: routeText(routes.image), video: routeText(routes.video), voice: routeText(routes.voice) }, models: ctx.models.map((x) => ({ id: x.id, name: x.name, kind: x.kind })) });
 
   const tools = makeTools(deps, ctx, state, emit);
   const messages = [{ role: 'user', content: `Job: ${opts.goal}\n\nProject folder: ${dir}` }];
@@ -188,6 +232,36 @@ function makeTools(deps, ctx, state, emit) {
     const a = { file: dest, kind, label }; ctx.assets.push(a); emit({ type: 'asset', ...a });
     return dest;
   };
+  const ensured = new Set();
+  // free local models: install the engine and download the model on first use (with live progress)
+  async function ensureLocal(r) {
+    if (r.type !== 'local' || ensured.has(r.model.endpoint)) return;
+    if (!deps.engineInstalled()) {
+      emit({ type: 'progress', stage: 'Installing the free local engine (one time, a few minutes)', pct: 5 });
+      const inst = await deps.installEngine();
+      if (!inst || !inst.ok) throw new Error('Engine install failed: ' + ((inst && inst.error) || 'unknown'));
+    }
+    const have = (await deps.downloaded()).includes(r.model.endpoint);
+    if (!have) {
+      emit({ type: 'say', text: `Downloading ${r.model.name} once — after this it runs free and offline.` });
+      const res = await deps.downloadModel(r.model.endpoint, (p) => emit({ type: 'progress', stage: 'Downloading ' + r.model.name, pct: p.total ? Math.floor(p.bytes / p.total * 100) : 0 }));
+      if (!res || !res.ok) throw new Error((res && res.error) || 'Download failed');
+    }
+    ensured.add(r.model.endpoint);
+  }
+  async function runImage(prompt, aspect, reference) {
+    let lastErr = null;
+    for (const r of ctx.routes.image) {
+      try {
+        await ensureLocal(r);
+        const refs = reference && fs.existsSync(reference) && r.model.refInput ? [reference] : [];
+        emit({ type: 'progress', stage: 'Generating image · ' + r.label.split(' (')[0], pct: 30 });
+        const f = await deps.generate({ provider: r.model.provider, model: r.model, kind: 'image', prompt, params: { aspectRatio: aspect }, toolRefs: refs });
+        return { path: f, via: r.label };
+      } catch (e) { lastErr = e; emit({ type: 'warn', text: `${r.label}: ${String(e.message || e).slice(0, 160)} — trying the next option` }); }
+    }
+    throw lastErr || new Error('No image option worked.');
+  }
   return {
     async propose_plan({ steps = [], deliverables = [] }) {
       emit({ type: 'plan', steps, deliverables });
@@ -205,31 +279,52 @@ function makeTools(deps, ctx, state, emit) {
       ctx.docs.push({ file: md, title }); emit({ type: 'asset', file: md, kind: 'doc', label: title });
       return { saved: md };
     },
-    async generate_image({ prompt, aspect_ratio = '1:1', purpose = 'image', model_id, reference_file }) {
+    async generate_image({ prompt, aspect_ratio = '1:1', purpose = 'image', reference_file }) {
       if (ctx.used.images >= ctx.budget.images) return { error: `Image budget reached (${ctx.budget.images}). Reuse existing images.` };
-      const m = pickModel('image', model_id, !!reference_file && fs.existsSync(reference_file || '')) || pickModel('image', model_id);
-      if (!m) return { error: 'No image model available. Connect an image API key (FAL, OpenAI, Google, Replicate, Stability, Hugging Face) or download a local image model.' };
+      if (!ctx.routes.image.length) return { error: 'No image generator available. Connect an image API key or allow free model downloads.' };
       ctx.used.images++;
-      const refs = reference_file && fs.existsSync(reference_file) && m.acceptsImage ? [reference_file] : [];
-      const file = await deps.generate({ provider: m.provider, model: m.model, kind: 'image', prompt, params: { aspectRatio: aspect_ratio }, toolRefs: refs });
-      return { file: keep(file, 'image', purpose || prompt.slice(0, 30), 'images'), model: m.name };
+      const file = await runImage(prompt, aspect_ratio, reference_file);
+      return { file: keep(file.path, 'image', purpose || prompt.slice(0, 30), 'images'), via: file.via };
     },
-    async generate_video({ prompt, start_image, aspect_ratio = '16:9', model_id }) {
+    async generate_video({ prompt, start_image, aspect_ratio = '16:9' }) {
       if (ctx.used.videos >= ctx.budget.videos) return { error: `Video budget reached (${ctx.budget.videos}).` };
-      const hasImg = start_image && fs.existsSync(start_image);
-      const m = (hasImg && pickModel('video', model_id, true)) || pickModel('video', model_id);
-      if (!m) return { error: 'No video model available. Connect FAL, Higgsfield, Google or Replicate, or download a local video model (Wan 2.2 / LTX).' };
       ctx.used.videos++;
-      const file = await deps.generate({ provider: m.provider, model: m.model, kind: 'video', prompt, params: { aspectRatio: aspect_ratio }, toolRefs: hasImg && m.acceptsImage ? [start_image] : [] });
-      return { file: keep(file, 'video', prompt.slice(0, 30), 'video'), model: m.name };
+      let lastErr = null;
+      for (const r of ctx.routes.video) {
+        try {
+          if (r.type === 'still') {
+            let img = start_image && fs.existsSync(start_image) ? start_image : null;
+            if (!img) { const g = await runImage(prompt + ', cinematic film still, wide composition', aspect_ratio); img = keep(g.path, 'image', 'frame ' + prompt.slice(0, 24), 'images'); }
+            emit({ type: 'progress', stage: 'Animating still (free)', pct: 50 });
+            const moves = ['push', 'pan', 'pull'];
+            const out = await deps.cut.animateStill(deps.userData(), { image: img, seconds: 5, aspect: aspect_ratio === '1:1' ? '1:1' : aspect_ratio, move: moves[ctx.used.videos % 3], outFile: path.join(ctx.dir, 'video', `shot-${ctx.used.videos}-${Date.now().toString(36)}.mp4`) });
+            const a = { file: out, kind: 'video', label: 'Shot · ' + prompt.slice(0, 30) }; ctx.assets.push(a); emit({ type: 'asset', ...a });
+            return { file: out, via: 'animated still (free)' };
+          }
+          await ensureLocal(r);
+          const hasImg = start_image && fs.existsSync(start_image);
+          const file = await deps.generate({ provider: r.model.provider, model: r.model, kind: 'video', prompt, params: { aspectRatio: aspect_ratio }, toolRefs: hasImg && r.model.refInput ? [start_image] : [] });
+          return { file: keep(file, 'video', prompt.slice(0, 30), 'video'), via: r.label };
+        } catch (e) { lastErr = e; emit({ type: 'warn', text: `${r.label}: ${String(e.message || e).slice(0, 160)} — trying the next option` }); }
+      }
+      throw lastErr || new Error('No video option worked.');
     },
-    async generate_voiceover({ script, model_id }) {
+    async generate_voiceover({ script }) {
       if (ctx.used.audio >= ctx.budget.audio) return { error: `Voice-over budget reached (${ctx.budget.audio}).` };
-      const m = (ctx.models.filter((x) => x.kind === 'audio' && /tts|voice|eleven/i.test(x.id + x.name)).find((x) => x.id === model_id)) || ctx.models.find((x) => x.kind === 'audio' && /tts|voice|eleven/i.test(x.id + x.name));
-      if (!m) return { error: 'No voice model available. Connect an ElevenLabs key for voice-overs.' };
       ctx.used.audio++;
-      const file = await deps.generate({ provider: m.provider, model: m.model, kind: 'audio', prompt: script, params: {} });
-      return { file: keep(file, 'audio', 'voice-over', 'audio'), model: m.name };
+      let lastErr = null;
+      for (const r of ctx.routes.voice) {
+        try {
+          if (r.type === 'system') {
+            const out = await deps.tts(script, path.join(ctx.dir, 'audio', `voice-over-${ctx.used.audio}.wav`));
+            const a = { file: out, kind: 'audio', label: 'Voice-over (system voice)' }; ctx.assets.push(a); emit({ type: 'asset', ...a });
+            return { file: out, via: r.label };
+          }
+          const file = await deps.generate({ provider: r.model.provider, model: r.model, kind: 'audio', prompt: script, params: {} });
+          return { file: keep(file, 'audio', 'voice-over', 'audio'), via: r.label };
+        } catch (e) { lastErr = e; emit({ type: 'warn', text: `${r.label}: ${String(e.message || e).slice(0, 160)} — trying the next option` }); }
+      }
+      throw lastErr || new Error('No voice option worked.');
     },
     async auto_edit({ clips = [], audio_file, style = 'cinematic', aspect_ratio = '16:9', title = '', length_seconds }) {
       const ok = clips.filter((f) => f && fs.existsSync(f));
@@ -295,4 +390,4 @@ function approve(ok, note) { if (current && current.approve) { current.approve({
 function cancel() { if (current && !current.done) { current.cancelled = true; if (current.approve) current.approve({ ok: false, note: 'cancelled' }); return true; } return false; }
 function status() { return current ? { running: !current.done, dir: current.dir, waiting: !!current.approve } : { running: false }; }
 
-module.exports = { run, approve, cancel, status, readyModels };
+module.exports = { run, approve, cancel, status, readyModels, planRoutes, routeText };

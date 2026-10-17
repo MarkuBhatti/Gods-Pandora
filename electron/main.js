@@ -406,6 +406,7 @@ function registerIpc() {
   });
 
   // ── Pandora Agent: give it a job, it plans and uses every tool to deliver a finished package ──
+  let agentHw = null;
   const agentDeps = {
     keys: () => getKeys(),
     userData,
@@ -420,6 +421,14 @@ function registerIpc() {
       return saveFromUrl(src, r.mime);
     },
     cut,
+    hardware: async () => { if (agentHw && agentHw.cuda !== undefined) return agentHw; try { agentHw = engine.hardware(userData()); } catch (_) { agentHw = {}; } return agentHw; }, // cached: probing torch is slow
+    installEngine: () => engine.install(userData()),
+    downloadModel: async (repo, onProgress) => {
+      const token = getKeys().huggingface;
+      let total = 0; try { total = (await hf.info(repo, token)).sizeBytes; } catch (_) {}
+      return engine.downloadModel(userData(), repo, { token, totalBytes: total, onProgress: (p) => { onProgress && onProgress(p); if (win && !win.isDestroyed()) win.webContents.send('engine:progress', p); } });
+    },
+    tts: (text, out) => require('./tts').speak(text, out),
     emit: (ev) => { if (win && !win.isDestroyed()) win.webContents.send('agent:event', ev); },
     toPdf: async (htmlFile, pdfFile) => {
       const w = new BrowserWindow({ show: false, width: 1280, height: 720, webPreferences: { sandbox: true } });
@@ -435,6 +444,10 @@ function registerIpc() {
     jobs.onCancel(() => agent.cancel());
     return agent.run(agentDeps, args || {});
   }));
+  safeHandle('agent:routes', async (_e, opts) => {
+    const r = await agent.planRoutes(agentDeps, opts || {});
+    return { mode: r.mode, vram: r.vram, gpu: r.gpu, brain: r.brain, image: r.image.map((x) => x.label), video: r.video.map((x) => x.label), voice: r.voice.map((x) => x.label) };
+  });
   safeHandle('agent:approve', (_e, ok, note) => agent.approve(!!ok, note || ''));
   safeHandle('agent:cancel', () => { cut.cancelAll(); return agent.cancel(); });
   safeHandle('agent:status', () => agent.status());
