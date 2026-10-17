@@ -116,6 +116,62 @@ async function colorStats(ff, info) {
   return { r: acc.r / k, g: acc.g / k, b: acc.b / k, lo: acc.lo / k, hi: acc.hi / k };
 }
 
+// Motion/activity per moment (CapCut-style highlight picking: busy, eventful moments score higher)
+async function activity(ff, file) {
+  const r = await run(ff, ['-t', '900', '-i', file, '-an', '-vf', "fps=4,scale=160:-2,select='gte(scene,0)',metadata=print:key=lavfi.scene_score", '-f', 'null', '-'], { timeout: 180000 });
+  const out = []; let t = null;
+  for (const line of r.stderr.split('\n')) {
+    const a = line.match(/pts_time:([\d.]+)/); if (a) t = +a[1];
+    const b = line.match(/lavfi\.scene_score=([\d.]+)/); if (b && t != null) { out.push([t, +b[1]]); t = null; }
+  }
+  return out;
+}
+function bestWindow(act, d, used, dur) {
+  if (!act || act.length < 4) return null;
+  let best = null, bestS = -1;
+  for (let st = 0; st + d <= dur - 0.05; st += 0.25) {
+    if (used.some(([a, b]) => st < b && st + d > a)) continue;
+    let sum = 0, n = 0; for (const [t, v] of act) if (t >= st && t <= st + d) { sum += v; n++; }
+    const sc = n ? sum / n : 0; if (sc > bestS) { bestS = sc; best = st; }
+  }
+  return best;
+}
+function tempCube(text) {
+  if (!text) return null;
+  const dir = path.join(os.tmpdir(), 'pandora-cut'); fs.mkdirSync(dir, { recursive: true });
+  const f = path.join(dir, 'look-' + Date.now() + '-' + Math.random().toString(36).slice(2, 7) + '.cube');
+  fs.writeFileSync(f, text); return f;
+}
+function titleFont() {
+  const c = process.platform === 'win32'
+    ? ['C:/Windows/Fonts/segoeuib.ttf', 'C:/Windows/Fonts/arialbd.ttf', 'C:/Windows/Fonts/arial.ttf']
+    : ['/System/Library/Fonts/Supplemental/Arial Bold.ttf', '/usr/share/fonts/truetype/dejavu/DejaVuSans-Bold.ttf'];
+  return c.find((f) => fs.existsSync(f)) || null;
+}
+const ffText = (t) => String(t).replace(/\\/g, '\\\\').replace(/'/g, '\u2019').replace(/:/g, '\\:').replace(/%/g, '\\%').slice(0, 80);
+
+// One frame as a JPEG data URL (for the live colour preview)
+async function frame(userData, { file, t = null, max = 1280 }) {
+  const ff = findFfmpeg(userData);
+  if (!ff) throw new Error('FFMPEG_MISSING');
+  const info = await probe(ff, file);
+  const at = info.image ? null : (t == null ? info.duration * 0.4 : Math.min(Math.max(0, t), Math.max(0, info.duration - 0.05)));
+  const r = await run(ff, [...(at != null ? ['-ss', at.toFixed(3)] : []), '-i', file, '-frames:v', '1', '-vf', `scale='min(${max},iw)':-2`, '-f', 'image2pipe', '-vcodec', 'mjpeg', '-q:v', '3', '-'], { timeout: 30000 });
+  if (!r.stdout || r.stdout.length < 100) throw new Error(friendly(r.stderr));
+  return { dataUrl: 'data:image/jpeg;base64,' + r.stdout.toString('base64'), duration: info.duration, image: info.image, width: info.width, height: info.height, t: at };
+}
+
+// Silence detection for talking videos (jump cuts)
+async function silences(ff, file, noiseDb = -35, minSil = 0.45) {
+  const r = await run(ff, ['-i', file, '-vn', '-af', `silencedetect=noise=${noiseDb}dB:d=${minSil}`, '-f', 'null', '-'], { timeout: 600000 });
+  const list = []; let st = null;
+  for (const line of r.stderr.split('\n')) {
+    const a = line.match(/silence_start: ([\d.]+)/); if (a) st = +a[1];
+    const b = line.match(/silence_end: ([\d.]+)/); if (b && st != null) { list.push([st, +b[1]]); st = null; }
+  }
+  return list;
+}
+
 /* ───────────── Beat detection (onset envelope + autocorrelation tempo + phase fit) ───────────── */
 async function beats(ff, music) {
   const SR = 11025, HOP = 256;
@@ -237,7 +293,12 @@ async function autoEdit(userData, opts, onProgress = () => {}) {
     beat = await beats(ff, opts.music).catch(() => null);
   }
 
-  const wantColor = opts.auto || opts.matchRef || opts.look !== 'none' || opts.lut;
+  if (opts.cube) opts.cubeFile = tempCube(opts.cube);
+  if (opts.highlights) {
+    onProgress({ stage: 'Finding the best moments', pct: 14 });
+    for (const i of infos) if (!i.image && i.duration > 3) i.act = await activity(ff, i.file).catch(() => null);
+  }
+  const wantColor = opts.auto || opts.matchRef || opts.look !== 'none' || opts.lut || opts.cubeFile;
   if (wantColor) onProgress({ stage: 'Analysing colour', pct: 26 });
   if (opts.auto || opts.matchRef) for (const i of infos) i.stats = await colorStats(ff, i).catch(() => null);
   let ref = null;
@@ -251,8 +312,11 @@ async function autoEdit(userData, opts, onProgress = () => {}) {
   const segLen = beat && per ? clamp(beat.period * per, 0.35, 8) : opts.pace === 'calm' ? 4 : 2.5;
   const sumClips = infos.reduce((s, i) => s + (i.image ? 3 : i.duration), 0);
   const total = clamp(+opts.length || (beat ? Math.min(beat.duration, 90) : Math.min(sumClips, 60)), 3, 600);
-  const trans = opts.transition === 'zoomin' ? 'radial' : (opts.transition || 'cut');
-  const MIX = ['fade', 'smoothleft', 'circleopen', 'slideup', 'radial', 'fadeblack', 'dissolve', 'wipeleft']; // all exist since ffmpeg 4.3
+  let trans = opts.transition === 'zoomin' ? 'radial' : (opts.transition || 'cut');
+  if (!['cut', 'mixed', 'fade', 'fadeblack', 'fadewhite', 'dissolve', 'smoothleft', 'smoothright', 'slideup', 'slideleft', 'radial', 'circleopen', 'circleclose', 'wipeleft', 'wiperight', 'pixelize'].includes(trans)) trans = 'fade';
+  const XF = ['fade', 'fadeblack', 'fadewhite', 'dissolve', 'smoothleft', 'smoothright', 'slideup', 'slideleft', 'radial', 'circleopen', 'circleclose', 'wipeleft', 'wiperight', 'pixelize'];
+  const pickedMix = (opts.mixSet || []).filter((x) => XF.includes(x));
+  const MIX = pickedMix.length ? pickedMix : ['fade', 'smoothleft', 'circleopen', 'slideup', 'radial', 'fadeblack', 'dissolve', 'wipeleft']; // all exist since ffmpeg 4.3
   const T = trans === 'cut' ? 0 : clamp(segLen * 0.3, 0.12, 0.6);
 
   // build the segment list: round-robin through clips, each segment starts on a fresh shot when possible
@@ -271,7 +335,9 @@ async function autoEdit(userData, opts, onProgress = () => {}) {
     const d = end - t;
     if (d < 0.1) break;
     let start = 0;
-    if (!info.image) {
+    const hl = !info.image && info.act ? bestWindow(info.act, d + T, (info.used = info.used || []), info.duration) : null;
+    if (hl != null) { start = hl; info.used.push([hl, hl + d + T]); }
+    else if (!info.image) {
       let c = cursor.get(info.file) || 0;
       const fresh = info.cuts.find((x) => x >= c && x + d <= info.duration);
       start = fresh != null ? fresh : c;
@@ -299,7 +365,9 @@ async function autoEdit(userData, opts, onProgress = () => {}) {
       const avail = s.info.duration - s.start;
       args.push('-ss', s.start.toFixed(3), '-t', Math.min(len, avail).toFixed(3), '-i', s.info.file);
       const stretch = avail < len ? `,setpts=${f3(Math.min(2, len / Math.max(avail, 0.05)))}*PTS,tpad=stop_mode=clone:stop_duration=${len.toFixed(2)}` : '';
-      graph.push(`[${i}:v]${reframe(W, H)},fps=30${stretch}${grade ? ',' + grade : ''},format=yuv420p,trim=duration=${len.toFixed(3)},setpts=PTS-STARTPTS[v${i}]`);
+      // punch-in zoom on every other cut (CapCut-style energy), zoompan with one output frame per input frame
+      const zp = opts.zoomPulse && i % 2 === 1 ? `,zoompan=z='1+${(0.06 * opts.zoomPulse).toFixed(3)}*on/${Math.max(2, Math.round(len * 30))}':d=1:x='iw/2-(iw/zoom/2)':y='ih/2-(ih/zoom/2)':s=${W}x${H}:fps=30` : '';
+      graph.push(`[${i}:v]${reframe(W, H)},fps=30${zp}${stretch}${grade ? ',' + grade : ''},format=yuv420p,trim=duration=${len.toFixed(3)},setpts=PTS-STARTPTS[v${i}]`);
     }
   });
   // transitions
@@ -321,6 +389,16 @@ async function autoEdit(userData, opts, onProgress = () => {}) {
   } else { graph.push('[v0]null[vout]'); last = 'vout'; }
 
   const outLen = segs.reduce((s, x) => s + x.d, 0);
+  // finishing: cinematic bars, clarity/vignette/grain, opening title
+  const post = [];
+  if (opts.letterbox) { const bar = Math.round(H * (W > H ? 0.12 : 0.08)); post.push(`drawbox=x=0:y=0:w=iw:h=${bar}:color=black:t=fill`, `drawbox=x=0:y=ih-${bar}:w=iw:h=${bar}:color=black:t=fill`); }
+  if (Array.isArray(opts.finish)) post.push(...opts.finish.filter((f) => /^[a-z0-9_]+=[\w.:=\/-]+$/i.test(f)));
+  const font = opts.title ? titleFont() : null;
+  if (opts.title && font) {
+    const fs1 = Math.round(Math.min(W, H) * 0.075);
+    post.push(`drawtext=fontfile='${ffPath(font)}':text='${ffText(opts.title)}':fontcolor=white:fontsize=${fs1}:x=(w-text_w)/2:y=(h-text_h)/2:shadowcolor=black@0.6:shadowx=2:shadowy=2:alpha='if(lt(t,0.3),0,if(lt(t,0.8),(t-0.3)/0.5,if(lt(t,2.6),1,if(lt(t,3.2),(3.2-t)/0.6,0))))'`);
+  }
+  if (post.length) { graph.push(`[${last}]${post.join(',')}[vpost]`); last = 'vpost'; }
   let audioMap = [];
   if (beat || (opts.music && fs.existsSync(opts.music))) {
     args.push('-i', opts.music);
@@ -341,6 +419,60 @@ async function autoEdit(userData, opts, onProgress = () => {}) {
   if (r.code !== 0 || !fs.existsSync(out)) throw new Error(friendly(r.stderr));
   onProgress({ stage: 'Done', pct: 100 });
   return { file: out, shots: segs.length, bpm: beat ? beat.bpm : null, duration: +outLen.toFixed(2) };
+}
+
+/* ───────────── JUMP CUT (talking videos: remove silences, keep the speech) ───────────── */
+async function jumpCut(userData, opts, onProgress = () => {}) {
+  const ff = findFfmpeg(userData);
+  if (!ff) throw new Error('FFMPEG_MISSING');
+  if (!opts.file || !fs.existsSync(opts.file)) throw new Error('Choose a talking video first.');
+  onProgress({ stage: 'Listening for pauses', pct: 5 });
+  const info = await probe(ff, opts.file);
+  if (!info.audio) throw new Error('This video has no sound — jump cuts need speech to find the pauses.');
+  const sil = await silences(ff, opts.file, opts.noiseDb || -35, opts.minSilence || 0.45);
+  const pad = opts.padding ?? 0.12;
+  const keep = []; let cur = 0;
+  for (const [a, b] of sil) { if (a - pad > cur + 0.15) keep.push([Math.max(0, cur), a + pad]); cur = Math.max(cur, b - pad); }
+  if (info.duration - cur > 0.15) keep.push([cur, info.duration]);
+  if (!keep.length) throw new Error('No speech found — try a lower silence threshold.');
+  const removed = info.duration - keep.reduce((s, [a, b]) => s + (b - a), 0);
+  onProgress({ stage: `Cutting ${sil.length} pauses (−${removed.toFixed(1)} s)`, pct: 20 });
+  const cubeFile = tempCube(opts.cube);
+  const vf = [...(cubeFile ? [`lut3d=file='${ffPath(cubeFile)}'`] : []), ...(Array.isArray(opts.finish) ? opts.finish : [])];
+  const sel = keep.map(([a, b]) => `between(t,${a.toFixed(3)},${b.toFixed(3)})`).join('+');
+  const vchain = [`select='${sel}'`, 'setpts=N/FRAME_RATE/TB', ...vf, 'format=yuv420p'].join(',');
+  const achain = `aselect='${sel}',asetpts=N/SR/TB`;
+  const out = path.join(opts.outDir || outDirFor(userData), Date.now() + '-pandora-jumpcut.mp4');
+  const total = info.duration - removed;
+  const r = await run(ff, ['-y', '-i', opts.file, '-vf', vchain, '-af', achain, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', out], {
+    onStderr: (t) => { const m = t.match(/time=(\d+):(\d+):([\d.]+)/); if (m) { const sec = (+m[1]) * 3600 + (+m[2]) * 60 + parseFloat(m[3]); onProgress({ stage: 'Rendering', pct: Math.min(99, 22 + Math.round(sec / total * 77)) }); } },
+  });
+  if (r.code !== 0 || !fs.existsSync(out)) throw new Error(friendly(r.stderr));
+  onProgress({ stage: 'Done', pct: 100 });
+  return { file: out, removed: +removed.toFixed(1), cuts: sil.length, duration: +total.toFixed(1) };
+}
+
+/* ───────────── RENDER A GRADE (Color tab): LUT from the grade engine + finishing filters ───────────── */
+async function renderGrade(userData, opts, onProgress = () => {}) {
+  const ff = findFfmpeg(userData);
+  if (!ff) throw new Error('FFMPEG_MISSING');
+  if (!opts.file || !fs.existsSync(opts.file)) throw new Error('Choose a video or photo to grade.');
+  const info = await probe(ff, opts.file);
+  const cubeFile = tempCube(opts.cube);
+  const finish = (Array.isArray(opts.finish) ? opts.finish : []).filter((f) => /^[a-z0-9_]+=[\w.:=\/-]+$/i.test(f));
+  const vf = [...(cubeFile ? [`lut3d=file='${ffPath(cubeFile)}'`] : []), ...finish].join(',') || 'null';
+  const base = path.basename(opts.file).replace(/\.[^.]+$/, '').replace(/[^\w-]+/g, '_').slice(0, 40);
+  const out = path.join(opts.outDir || outDirFor(userData), `${Date.now()}-${base}-graded${info.image ? '.jpg' : '.mp4'}`);
+  const args = ['-y', '-i', opts.file, '-vf', info.image ? vf : vf + ',format=yuv420p'];
+  if (info.image) args.push('-frames:v', '1', '-q:v', '2', out);
+  else args.push('-map', '0:v:0', '-map', '0:a?', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-c:a', 'copy', '-movflags', '+faststart', out);
+  onProgress({ stage: 'Rendering', pct: 3 });
+  const r = await run(ff, args, {
+    onStderr: (t) => { const m = t.match(/time=(\d+):(\d+):([\d.]+)/); if (m && info.duration) { const sec = (+m[1]) * 3600 + (+m[2]) * 60 + parseFloat(m[3]); onProgress({ stage: 'Rendering', pct: Math.min(99, 3 + Math.round(sec / info.duration * 96)) }); } },
+  });
+  if (r.code !== 0 || !fs.existsSync(out)) throw new Error(friendly(r.stderr));
+  onProgress({ stage: 'Done', pct: 100 });
+  return { file: out, image: info.image };
 }
 
 /* ───────────── AUTO COLOR (one clip, keeps its audio) ───────────── */
@@ -401,4 +533,4 @@ function friendly(stderr) {
   return 'Rendering failed' + (tail ? ': ' + tail.slice(0, 220) : '. Try fewer clips or a different transition.');
 }
 
-module.exports = { findFfmpeg, ensureFfmpeg, autoEdit, autoColor, previewGrade, beats, cancelAll, LOOKS: Object.keys(LOOKS) };
+module.exports = { findFfmpeg, ensureFfmpeg, autoEdit, autoColor, previewGrade, beats, cancelAll, frame, jumpCut, renderGrade, LOOKS: Object.keys(LOOKS) };

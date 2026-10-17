@@ -11,10 +11,12 @@ const GROUPS = [
     ['styles', '❖', 'Visual Styles', 'Looks you can apply to anything'],
     ['fashion', '✂', 'Fashion', 'Outfit swap, lookbooks, flat lays'],
     ['product', '◍', 'Product', 'Packshots, lifestyle, 360 turntables'],
+    ['photo', '📷', 'Photo Retouch', 'Auto enhance, skin, blemishes, teeth, colour match'],
   ]],
   ['🎬 Video', [
     ['film', '🎬', 'Film Studio', 'Multi-shot films with cameras, lenses, grain'],
-    ['cut', '🎞', 'Pandora Cut', 'Auto edit to the beat + auto colour grade (free)'],
+    ['cut', '🎞', 'AutoEdit', 'Style templates, beat-synced cuts, best moments, jump cuts (free)'],
+    ['color', '🎨', 'Color', 'Auto balance, looks, reference match, LUT export (free)'],
     ['genjutsu', '🌀', 'Shapeshift', 'Motion transfer, swap, restyle any video'],
     ['shorts', '📱', 'Shorts', 'Talking-head vertical videos'],
     ['explainer', '🎓', 'Explainer', 'Topic → captioned explainer video'],

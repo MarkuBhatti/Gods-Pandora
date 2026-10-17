@@ -18,12 +18,17 @@ contextBridge.exposeInMainWorld('api', {
   pickMedia: () => ipcRenderer.invoke('media:pickMedia'),
   pickAudio: () => ipcRenderer.invoke('media:pickAudio'),
   pickLut: () => ipcRenderer.invoke('media:pickLut'),
+  savePhoto: (dataUrl, name) => ipcRenderer.invoke('photo:save', dataUrl, name),
   cut: {
     status: () => ipcRenderer.invoke('cut:status'),
     ensure: () => ipcRenderer.invoke('cut:ensure'),
     autoEdit: (args) => ipcRenderer.invoke('cut:autoEdit', args),
     autoColor: (args) => ipcRenderer.invoke('cut:autoColor', args),
     preview: (args) => ipcRenderer.invoke('cut:preview', args),
+    frame: (args) => ipcRenderer.invoke('cut:frame', args),
+    jumpCut: (args) => ipcRenderer.invoke('cut:jumpCut', args),
+    renderGrade: (args) => ipcRenderer.invoke('cut:renderGrade', args),
+    saveCube: (cube, name) => ipcRenderer.invoke('cut:saveCube', cube, name),
     onProgress: (cb) => { const h = (_e, p) => cb(p); ipcRenderer.on('cut:progress', h); return () => ipcRenderer.removeListener('cut:progress', h); },
   },
   jutsu: {

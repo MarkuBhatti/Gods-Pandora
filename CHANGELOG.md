@@ -3,6 +3,21 @@
 ## 0.4.0 — 2026-10-16 · Pandora Cut + "never a problem" update
 
 ### Added
+- **Pandora Color** (new tab) — a colourist's toolkit inspired by DaVinci Resolve, Colourlab AI and Retouch4Me:
+  Auto Balance with six "auto grade" directions shown as real previews, 16 film looks + **My Looks**
+  (save your own, Imagen-style), reference **colour match** with strength, primaries (exposure, contrast,
+  highlights, shadows, whites, blacks, fade, temperature, tint, vibrance, saturation), split-toning, clarity,
+  sharpen, vignette, grain, RGB histogram, before/after split, frame scrubber, batch "grade all" with shot
+  matching, and **.cube LUT export** for Resolve / Premiere / Final Cut / Photoshop. Preview and render use the
+  same LUT, so what you see is exactly what you get.
+- **Pandora Photo** (new tab) — auto photo edit & portrait retouch inspired by Imagen, Evoto and Retouch4Me:
+  Auto Enhance choices, Auto portrait, looks, colour match, skin smoothing that keeps pores, blemish removal,
+  even skin tone, brushes (spot heal, whiten teeth & eyes, smooth, brighten eyes), batch apply & save at full
+  resolution.
+- **Pandora AutoEdit** (was Cut) — CapCut AutoCut-style **style templates** (Vlog, Travel, Hype, Cinematic,
+  Wedding, Product Promo, TikTok Trend, Documentary, Moody Night), **best-moment detection**, punch-in zooms,
+  white-flash transitions, cinematic bars, opening title, looks, and a new **Talking video** mode that removes
+  pauses automatically (jump cuts).
 - **Pandora Cut** (new tab): DaVinci-Resolve-inspired, free and offline (ffmpeg).
   - *Auto Edit*: beat detection on your music (cuts land on the beat), scene detection (each shot starts
     on a fresh moment), smart reframe to 9:16 / 1:1 / 4:5 / 16:9 / 21:9, transitions, Ken-Burns on photos.

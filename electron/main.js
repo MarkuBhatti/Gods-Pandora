@@ -309,6 +309,31 @@ function registerIpc() {
     return cut.autoColor(userData(), { ...args, outDir: libraryDir() }, cutProg).catch(cutErr);
   }));
   safeHandle('cut:preview', (_e, args) => cut.previewGrade(userData(), args));
+  safeHandle('cut:frame', (_e, args) => cut.frame(userData(), args || {}).catch(cutErr));
+  safeHandle('cut:jumpCut', (_e, args) => asJob(args && args.jobId, 'Pandora AutoEdit — jump cut', async () => {
+    jobs.onCancel(() => cut.cancelAll());
+    return cut.jumpCut(userData(), { ...args, outDir: libraryDir() }, cutProg).catch(cutErr);
+  }));
+  safeHandle('cut:renderGrade', (_e, args) => asJob(args && args.jobId, 'Pandora Color — render', async () => {
+    jobs.onCancel(() => cut.cancelAll());
+    return cut.renderGrade(userData(), { ...args, outDir: libraryDir() }, cutProg).catch(cutErr);
+  }));
+  // Export a look as a .cube LUT (works in Resolve, Premiere, Final Cut, Photoshop, OBS…)
+  safeHandle('cut:saveCube', async (_e, cube, name) => {
+    const r = await dialog.showSaveDialog(win, { defaultPath: (String(name || 'pandora-look').replace(/[^\w -]+/g, '') || 'pandora-look') + '.cube', filters: [{ name: '3D LUT', extensions: ['cube'] }] });
+    if (r.canceled || !r.filePath) return null;
+    fs.writeFileSync(r.filePath, String(cube || ''));
+    return r.filePath;
+  });
+  // Save an edited photo (data URL from the Photo tab) into the library
+  safeHandle('photo:save', (_e, dataUrl, name) => {
+    const m = String(dataUrl || '').match(/^data:image\/(jpeg|png|webp);base64,(.*)$/s);
+    if (!m) throw new Error('Invalid image data.');
+    const safe = String(name || 'photo').replace(/\.[^.]+$/, '').replace(/[^\w-]+/g, '_').slice(0, 40);
+    const file = path.join(libraryDir(), `${Date.now()}-${safe}-edit.${m[1] === 'jpeg' ? 'jpg' : m[1]}`);
+    fs.writeFileSync(file, Buffer.from(m[2], 'base64'));
+    return file;
+  });
   safeHandle('media:pickMedia', async () => {
     const r = await dialog.showOpenDialog(win, { properties: ['openFile', 'multiSelections'], filters: [{ name: 'Video & images', extensions: ['mp4', 'mov', 'webm', 'mkv', 'm4v', 'avi', 'png', 'jpg', 'jpeg', 'webp'] }] });
     return r.canceled ? [] : r.filePaths;

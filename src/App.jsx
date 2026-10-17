@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from 'react';
 import Create from './pages/Create.jsx';
 import FilmStudio from './pages/FilmStudio.jsx';
 import PandoraCut from './pages/PandoraCut.jsx';
+import PandoraColor from './pages/PandoraColor.jsx';
+import PandoraPhoto from './pages/PandoraPhoto.jsx';
 import Studio from './pages/Studio.jsx';
 import Styles from './pages/Styles.jsx';
 import Library from './pages/Library.jsx';
@@ -34,7 +36,9 @@ const TOPNAV = [
   ['create',     'Pandora Studio',      '✦'],
   ['canvas',     'Pandora Node Canvas', '⚛'],
   ['film',       'Pandora Film',        '🎬'],
-  ['cut',        'Pandora Cut',         '🎞'],
+  ['cut',        'Pandora AutoEdit',    '🎞'],
+  ['color',      'Pandora Color',       '🎨'],
+  ['photo',      'Pandora Photo',       '📷'],
   ['fashion',    'Pandora Fashion',     '✂'],
   ['product',    'Pandora Product',     '◍'],
   ['marketing',  'Pandora Marketing',   '📣'],
@@ -86,6 +90,8 @@ function Page({ page }) {
       {page === 'create'      && <Create />}
       {page === 'film'        && <FilmStudio />}
       {page === 'cut'         && <PandoraCut />}
+      {page === 'color'       && <PandoraColor />}
+      {page === 'photo'       && <PandoraPhoto />}
       {page === 'fashion'     && <Studio studioId="fashion" />}
       {page === 'product'     && <Studio studioId="product" />}
       {page === 'apps'        && <Studio studioId="apps" />}
