@@ -54,6 +54,7 @@ const SETS = {
     props: () => <><Interior pendants={[50]} windows={[{ x: 4, w: 30, y: 12, h: 34 }]} desk={66} warm="#ff9d5c" /><Neon text="EDIT" color="#4fd1ff" x={78} y={22} size={2.1} /><Neon text="● REC" color="#ff4d4d" x={20} y={56} size={1.4} box={false} /></> },
   agent: { lamps: [L(50, 26, '#b98bff', 1.1), L(20, 60, '#4fd1ff', .5), L(80, 60, '#ffb36b', .5)],
     props: () => <><Skyline seed={77} top={34} h={30} warm={.35} density={.3} /><Neon text="AGENT" color="#b98bff" x={74} y={30} size={2.2} /><Trails y={62} /></> },
+  connect: { lamps: [L(50, 30, '#7ab8ff', 1)], props: () => <><Racks seed={9} /><Neon text="LINK" color="#7ab8ff" x={76} y={26} size={2} /></> },
   color: { lamps: [L(24, 50, '#4fd1ff', .45), L(50, 50, '#b98bff', .5), L(76, 50, '#ffb36b', .45)],
     props: () => <><Interior pendants={[]} windows={[{ x: 68, w: 26, y: 12, h: 30 }]} desk={66} warm="#7aa2ff" /><Neon text="COLOR" color="#b98bff" x={22} y={22} size={2} /></> },
   photo: { lamps: [L(18, 30, '#fff4dc', 1, { cone: true }), L(82, 30, '#fff4dc', 1, { cone: true })],
@@ -87,7 +88,7 @@ const SETS = {
 };
 
 const PAGE_MOOD = {
-  home: 'dystopia', create: 'neonfog', canvas: 'tealnight', film: 'tealnight', cut: 'neonfog', agent: 'neonfog', color: 'tealnight', photo: 'dystopia', fashion: 'neonfog', product: 'dystopia',
+  home: 'dystopia', create: 'neonfog', canvas: 'tealnight', film: 'tealnight', cut: 'neonfog', agent: 'neonfog', connect: 'tealnight', color: 'tealnight', photo: 'dystopia', fashion: 'neonfog', product: 'dystopia',
   marketing: 'neonfog', admulti: 'dystopia', genjutsu: 'jade', shorts: 'tealnight', explainer: 'cave', influencer: 'firelight',
   voice: 'cave', apps: 'jungle', appbuild: 'tealnight', designdocs: 'dystopia', digiproduct: 'firelight', forge: 'firelight',
   spatial: 'cave', touchdesigner: 'jade', aimarket: 'tealnight', styles: 'jungle', characters: 'firelight', locations: 'jungle',

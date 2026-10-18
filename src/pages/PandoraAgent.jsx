@@ -78,7 +78,7 @@ export default function PandoraAgent() {
   return (
     <div>
       <h1 style={{ marginBottom: 2 }}>🤖 Pandora Agent</h1>
-      <p className="sub" style={{ marginTop: 0 }}>Tell it the job. It plans, writes, generates images and video, edits, colour-grades, builds the presentation and hands you a complete launch package — using the models you've connected.</p>
+      <p className="sub" style={{ marginTop: 0 }}>Prefer chatting in Claude or ChatGPT? Connect them in <a style={{ cursor: 'pointer', color: 'var(--accent)' }} onClick={() => window.dispatchEvent(new CustomEvent('pandora:go', { detail: 'connect' }))}>Pandora Connect</a>. Tell it the job. It plans, writes, generates images and video, edits, colour-grades, builds the presentation and hands you a complete launch package — using the models you've connected.</p>
 
       <div className="two-col">
         <div className="card">

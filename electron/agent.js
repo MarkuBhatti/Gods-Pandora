@@ -386,8 +386,20 @@ ${sec('Next steps', next_steps.length ? '<ul>' + next_steps.map((n) => `<li>${es
   };
 }
 
+// A long-lived toolbox for external AI assistants (MCP connector): same tools, same free/paid routing,
+// one project folder per session, generous but finite budgets.
+async function createToolbox(deps, opts = {}) {
+  const routes = await planRoutes(deps, opts);
+  const dir = path.join(deps.userData(), 'agent-projects', new Date().toISOString().slice(0, 10) + '-connector-' + slug(opts.label || 'session') + '-' + Date.now().toString(36));
+  for (const d of ['images', 'video', 'audio', 'docs', 'deck']) fs.mkdirSync(path.join(dir, d), { recursive: true });
+  const ctx = { dir, assets: [], docs: [], routes, budget: { images: opts.images ?? 40, videos: opts.videos ?? 12, audio: opts.audio ?? 6 }, used: { images: 0, videos: 0, audio: 0 }, reviewPlan: false, models: [] };
+  const state = { done: false, cancelled: false, approve: null, dir };
+  const tools = makeTools(deps, ctx, state, (ev) => deps.emit({ ...ev, source: 'connector', at: Date.now() }));
+  return { ctx, tools, routes };
+}
+
 function approve(ok, note) { if (current && current.approve) { current.approve({ ok, note }); return true; } return false; }
 function cancel() { if (current && !current.done) { current.cancelled = true; if (current.approve) current.approve({ ok: false, note: 'cancelled' }); return true; } return false; }
 function status() { return current ? { running: !current.done, dir: current.dir, waiting: !!current.approve } : { running: false }; }
 
-module.exports = { run, approve, cancel, status, readyModels, planRoutes, routeText };
+module.exports = { run, approve, cancel, status, readyModels, planRoutes, routeText, createToolbox, TOOLS };

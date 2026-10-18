@@ -4,6 +4,7 @@ import FilmStudio from './pages/FilmStudio.jsx';
 import PandoraCut from './pages/PandoraCut.jsx';
 import PandoraColor from './pages/PandoraColor.jsx';
 import PandoraAgent from './pages/PandoraAgent.jsx';
+import PandoraConnect from './pages/PandoraConnect.jsx';
 import PandoraPhoto from './pages/PandoraPhoto.jsx';
 import Studio from './pages/Studio.jsx';
 import Styles from './pages/Styles.jsx';
@@ -73,6 +74,7 @@ const SIDENAV = [
   ['market',     'Pandora Models', '🛒'],
   ['models',     'Pandora Core & Cloud',       '⬢'],
   ['update',     'Pandora Update',       '⬆'],
+  ['connect',    'Pandora Connect',      '🔌'],
   ['settings',   'Pandora Cloud & Settings',     '⚙'],
 ];
 
@@ -94,6 +96,7 @@ function Page({ page }) {
       {page === 'cut'         && <PandoraCut />}
       {page === 'color'       && <PandoraColor />}
       {page === 'agent'       && <PandoraAgent />}
+      {page === 'connect'     && <PandoraConnect />}
       {page === 'photo'       && <PandoraPhoto />}
       {page === 'fashion'     && <Studio studioId="fashion" />}
       {page === 'product'     && <Studio studioId="product" />}

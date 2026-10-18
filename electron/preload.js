@@ -52,6 +52,12 @@ contextBridge.exposeInMainWorld('api', {
     list: () => ipcRenderer.invoke('job:list'),
   },
   claude: (args) => ipcRenderer.invoke('claude:complete', args),
+  connect: {
+    status: () => ipcRenderer.invoke('connect:status'),
+    configure: (patch) => ipcRenderer.invoke('connect:configure', patch),
+    configs: () => ipcRenderer.invoke('connect:configs'),
+    addClaude: () => ipcRenderer.invoke('connect:addClaude'),
+  },
   agent: {
     run: (args) => ipcRenderer.invoke('agent:run', args),
     approve: (ok, note) => ipcRenderer.invoke('agent:approve', ok, note),

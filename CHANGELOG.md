@@ -3,6 +3,11 @@
 ## 0.4.0 — 2026-10-16 · Pandora Cut + "never a problem" update
 
 ### Added
+- **Pandora Connect** (new tab): an MCP connector so **Claude Desktop, Claude Code, ChatGPT (via tunnel), Cursor,
+  VS Code / Copilot, Windsurf** or any MCP app can use God's Pandora from chat — generate images, video shots,
+  voice-overs, documents, decks, auto-edit, colour-grade, build a launch package or hand a whole job to the agent.
+  One-click "Add to Claude Desktop", copy-paste setup for every other app, token-protected and local-only
+  (127.0.0.1), Free / Hybrid / Cloud routing and per-session limits that protect your API credits.
 - **Pandora Agent** (new tab): tell it the job ("launch my clothing brand…") and it plans, then uses every tool —
   writes the brand bible, scripts and captions, generates images and video shots with the models you've connected,
   records a voice-over, auto-edits and colour-grades the promo video, builds a presentation (HTML + PDF) and

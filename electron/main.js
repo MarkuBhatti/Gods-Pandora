@@ -13,6 +13,7 @@ const hf = require('./hfModels');
 const jutsu = require('./jutsu');
 const cut = require('./cut');
 const agent = require('./agent');
+const mcp = require('./mcp');
 const market = require('./market');
 
 let win;
@@ -444,6 +445,14 @@ function registerIpc() {
     jobs.onCancel(() => agent.cancel());
     return agent.run(agentDeps, args || {});
   }));
+  // ── Pandora Connect (MCP): let Claude, ChatGPT, Cursor… drive the studio ──
+  try {
+    mcp.start({ ...agentDeps, version: app.getVersion(), thumb: async (f) => { const { nativeImage } = require('electron'); const im = nativeImage.createFromPath(f); if (im.isEmpty()) return null; const s = im.getSize(); return (s.width > 768 ? im.resize({ width: 768 }) : im).toJPEG(80).toString('base64'); } });
+  } catch (e) { console.error('[mcp]', e.message); }
+  safeHandle('connect:status', () => mcp.status());
+  safeHandle('connect:configure', (_e, patch) => mcp.configure(patch || {}));
+  safeHandle('connect:configs', () => mcp.clientConfigs());
+  safeHandle('connect:addClaude', () => mcp.addToClaudeDesktop(app.getPath('appData')));
   safeHandle('agent:routes', async (_e, opts) => {
     const r = await agent.planRoutes(agentDeps, opts || {});
     return { mode: r.mode, vram: r.vram, gpu: r.gpu, brain: r.brain, image: r.image.map((x) => x.label), video: r.video.map((x) => x.label), voice: r.voice.map((x) => x.label) };
@@ -707,6 +716,7 @@ app.on('before-quit', () => {
   try { engine.stop(); } catch (_) {}
   try { for (const r of engine.activeDownloads()) engine.cancelDownload(r); } catch (_) {}
   try { cut.cancelAll(); } catch (_) {}
+  try { mcp.stop(); } catch (_) {}
 });
 
 app.on('window-all-closed', () => {
