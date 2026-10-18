@@ -2,7 +2,7 @@ import ToolArt from '../lib/ToolArt.jsx';
 import React, { useEffect, useMemo, useState } from 'react';
 import { useJob, RunButton, ErrorBox, friendlyError, runKeys } from '../lib/job.jsx';
 import { PromptTools, DropZone } from '../lib/qol.jsx';
-import { useAllModels, modelLabel, ModelStatus, useModelGate, useReadiness } from '../lib/models.jsx';
+import { useAllModels, modelLabel, ModelStatus, useModelGate, useReadiness, isFree, audioTypeOf, VOICES, readiness } from '../lib/models.jsx';
 import { MentionBar, resolveMentions, insertMention } from '../lib/mentions.jsx';
 import AssetActions from '../lib/AssetActions.jsx';
 import GenSettings, { DEFAULT_GEN, genParams } from '../lib/GenSettings.jsx';
@@ -200,6 +200,8 @@ function ToolRunner({ tool, studioId, onBack }) {
   const [fashionSel, setFashionSel] = useState({ style: '', pose: '', light: '', palette: '' });
   const [cinSel, setCinSel] = useState({ camera: '', lens: '', palette: '', scheme: '', mood: '' });
   const [gen, setGen] = useState(DEFAULT_GEN);
+  const [voice, setVoice] = useState('');
+  const [seconds, setSeconds] = useState(12);
   const { db, update } = useStore();
   const [images, setImages] = useState({});
   const [secRefs, setSecRefs] = useState({});   // section-specific reference images
@@ -216,16 +218,19 @@ function ToolRunner({ tool, studioId, onBack }) {
 
   const allModels = useAllModels();
   const models = useMemo(() => {
-    const api = allModels.filter((m) => m.provider !== 'local' && m.kind === tool.kind && (tool.imageInputs.length === 0 || (m.refInput && (m.maxRefs || 1) >= tool.imageInputs.length)));
+    const fitsAudio = (m) => tool.kind !== 'audio' || audioTypeOf(m) === audioTypeOf(tool);
+    const api = allModels.filter((m) => !isFree(m) && m.kind === tool.kind && fitsAudio(m) && (tool.imageInputs.length === 0 || (m.refInput && (m.maxRefs || 1) >= tool.imageInputs.length)));
     if (tool.kind === 'llm') {
       const api = [{ id: 'claude', name: 'Claude (Anthropic)', provider: 'anthropic' }];
       const os = [{ id: 'local-llm', name: 'Your local model — Ollama / LM Studio (free)', provider: 'local' }, ...directory.openSource.filter((m) => ['llm', 'code'].includes(m.type)).map((m) => ({ id: 'os-' + m.repo, name: m.name + ' (via Ollama / LM Studio)', provider: 'local' }))];
       return { api, os, all: [...api, ...os] };
     }
-    const os = allModels.filter((m) => m.provider === 'local' && m.kind === tool.kind);
+    const os = allModels.filter((m) => isFree(m) && m.kind === tool.kind && fitsAudio(m));
     return { api, os, all: [...api, ...os] };
   }, [tool, allModels]);
-  const model = models.all.find((m) => m.id === modelId) || models.all[0];
+  const rdyEarly = useReadiness();
+  // default to a model that can actually run (key connected / free) instead of a locked one
+  const model = models.all.find((m) => m.id === modelId) || models.all.find((m) => readiness(m, rdyEarly).ok) || models.all[0];
   const style = styles.presets.find((s) => s.id === styleId) || (db.styles || []).find((s) => s.id === styleId) || null;
   const character = db.characters.find((c) => c.id === charId) || null;
   const location = db.locations.find((l) => l.id === locId) || null;
@@ -281,7 +286,7 @@ function ToolRunner({ tool, studioId, onBack }) {
       const mentions = resolveMentions(notes, db);
       const res = await window.api.generate({
         jobId, provider: model.provider, model, kind: tool.kind, prompt, mentions,
-        params: genParams(gen, tool.kind), toolRefs, style, character, location, cameraPreset: null
+        params: tool.kind === 'audio' ? { ...(voice ? { voiceId: voice } : {}), seconds } : genParams(gen, tool.kind), toolRefs: tool.kind === 'audio' ? [] : toolRefs, style: tool.kind === 'audio' ? null : style, character: tool.kind === 'audio' ? null : character, location: tool.kind === 'audio' ? null : location, cameraPreset: null
       });
       setResult(res.file);
       update((d) => {
@@ -341,6 +346,17 @@ function ToolRunner({ tool, studioId, onBack }) {
           </optgroup>
         </select>
         <ModelStatus model={model} />
+        {tool.kind === 'audio' && audioTypeOf(tool) === 'speech' && VOICES[model?.provider] && (
+          <div><label>Voice</label>
+            <select value={voice} onChange={(e) => setVoice(e.target.value)}>
+              <option value="">Default voice</option>
+              {VOICES[model.provider].map(([id, n]) => <option key={id} value={id}>{n}</option>)}
+            </select></div>
+        )}
+        {tool.kind === 'audio' && audioTypeOf(tool) !== 'speech' && (
+          <div><label>Length: {seconds} s</label><input type="range" min="3" max="30" value={seconds} onChange={(e) => setSeconds(+e.target.value)} /></div>
+        )}
+        {tool.kind === 'audio' && !models.all.length && <p className="sub" style={{ fontSize: 11 }}>No {audioTypeOf(tool)} model yet — connect ElevenLabs / FAL in Settings, or install the local engine for free voices and music.</p>}
 
         {visual && (
           <div className="cinerow" style={{ marginTop: 4 }}>

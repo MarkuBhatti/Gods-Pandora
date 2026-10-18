@@ -44,7 +44,8 @@ function mapParams(model, params) {
   const out = { ...(model.defaults || {}) };
   if (model.params?.imageSize) {
     if (params.width && params.height) out.image_size = { width: params.width, height: params.height };
-  } else if (params.aspectRatio) out.aspect_ratio = params.aspectRatio;
+  } else if (params.aspectRatio && model.kind !== 'audio') out.aspect_ratio = params.aspectRatio;
+  if (model.kind === 'audio' && model.secondsParam && params.seconds) out[model.secondsParam] = Math.max(1, Math.min(47, +params.seconds));
   if (params.negativePrompt) out.negative_prompt = params.negativePrompt;
   if (model.soul && params.soul && params.soul.provider === 'fal' && params.soul.loraUrl) {
     out.loras = [{ path: params.soul.loraUrl, scale: 1 }];

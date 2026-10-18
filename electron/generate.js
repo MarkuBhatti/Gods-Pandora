@@ -7,7 +7,9 @@ const providers = {
   stability:  require('./providers/stability'),
   local:      require('./providers/local'),
   higgsfield: require('./providers/higgsfield'),
-  huggingface:require('./providers/huggingface')
+  huggingface:require('./providers/huggingface'),
+  system:     require('./providers/system'),      // free OS voice
+  localaudio: require('./providers/localaudio'),  // free MusicGen / Bark on your GPU
 };
 
 const PROVIDER_LABEL = { fal: 'FAL.ai', replicate: 'Replicate', openai: 'OpenAI', google: 'Google AI Studio',
@@ -23,15 +25,16 @@ async function generate(payload, keys, helpers) {
   if (!impl) throw new Error('Unknown provider: ' + provider + '. Check your model catalog.');
 
   const key = keys[provider];
-  if (!key && provider !== 'local') {
+  if (!key && !['local', 'system', 'localaudio'].includes(provider)) {
     throw new Error('No API key saved for ' + (PROVIDER_LABEL[provider] || provider) + '. Add it in Settings → API Keys.');
   }
 
-  const prompt = composePrompt(payload);
+  // audio: the text is spoken / described as-is — never append visual style, camera or character notes
+  const prompt = payload.kind === 'audio' ? String(payload.prompt || '') : composePrompt(payload);
   if (!prompt || !prompt.trim()) throw new Error('Prompt is empty.');
 
   let refs = [];
-  try { refs = collectRefs(payload, model, helpers); }
+  if (payload.kind !== 'audio') try { refs = collectRefs(payload, model, helpers); }
   catch (err) { console.warn('[generate] collectRefs error (continuing without refs):', err.message); }
 
   // Identity Lock: a trained identity on the selected character (or the first @mentioned character)

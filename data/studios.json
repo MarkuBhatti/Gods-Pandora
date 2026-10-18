@@ -1556,7 +1556,8 @@
      "desc": "Narration from a script.",
      "kind": "audio",
      "imageInputs": [],
-     "template": "{notes}"
+     "template": "{notes}",
+     "audioType": "speech"
     },
     {
      "id": "character-voice",
@@ -1564,7 +1565,8 @@
      "desc": "Stylized character read.",
      "kind": "audio",
      "imageInputs": [],
-     "template": "[Read in a distinctive character voice matching this description] {notes}"
+     "template": "{notes}",
+     "audioType": "speech"
     },
     {
      "id": "sound-fx",
@@ -1572,7 +1574,8 @@
      "desc": "Ambience & effects from a description.",
      "kind": "audio",
      "imageInputs": [],
-     "template": "Sound design: {notes}"
+     "template": "{notes}",
+     "audioType": "sfx"
     },
     {
      "id": "music-bed",
@@ -1580,7 +1583,8 @@
      "desc": "Loopable background track.",
      "kind": "audio",
      "imageInputs": [],
-     "template": "Instrumental music bed, loop-friendly, for: {notes}"
+     "template": "Instrumental, loop-friendly background music: {notes}",
+     "audioType": "music"
     },
     {
      "id": "podcast-intro",
@@ -1588,7 +1592,8 @@
      "desc": "Voiced show intro with energy.",
      "kind": "audio",
      "imageInputs": [],
-     "template": "Energetic podcast intro narration: {notes}"
+     "template": "{notes}",
+     "audioType": "speech"
     },
     {
      "id": "audio-story",
@@ -1596,7 +1601,8 @@
      "desc": "Narrated scene for shorts/explainers.",
      "kind": "audio",
      "imageInputs": [],
-     "template": "Narrated audio story with natural pacing and emotion: {notes}"
+     "template": "{notes}",
+     "audioType": "speech"
     }
    ]
   },
@@ -1817,7 +1823,8 @@
      "desc": "Voice the product (audio).",
      "kind": "audio",
      "imageInputs": [],
-     "template": "Warm professional audiobook narration: {notes}"
+     "template": "{notes}",
+     "audioType": "speech"
     }
    ]
   }

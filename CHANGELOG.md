@@ -59,6 +59,12 @@
 - **Lite mode** (sidebar): freezes animated scenes and blur; Auto turns it on for low-end PCs and low battery.
 
 ### Fixed / improved
+- **Pandora Voice tab fixed & made free**: each tool now only lists models that fit it (voices for narration,
+  sound-effect models for Sound Design, music models for Music Bed) and picks one that can actually run; TTS no
+  longer reads instructions like "[Read in a distinctive character voice…]" or visual style notes aloud; no more
+  `aspect_ratio` sent to audio APIs. New: voice picker (ElevenLabs voices, system voices, Bark voices in 16 languages)
+  and a length slider for music/effects. **Free options** for every tool: System voice (offline), **Bark** voices and
+  **MusicGen** music on your PC; new cloud options **ElevenLabs Sound Effects** and **Stable Audio**.
 - Pandora Connect: fixed "metadata" / connection errors in Claude — no OAuth challenge on a wrong/missing token (it made
   clients look for OAuth metadata), OAuth discovery URLs answer immediately, protocol version follows the client
   (2024-11-05 / 2025-03-26 / 2025-06-18), resources/templates, logging and completion requests answered, tool titles

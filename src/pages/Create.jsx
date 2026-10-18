@@ -5,7 +5,7 @@ import { useStore, uid } from '../lib/store.jsx';
 import Media from '../lib/Media.jsx';
 import GuideBook from './GuideBook.jsx';
 import GenSettings, { DEFAULT_GEN, genParams } from '../lib/GenSettings.jsx';
-import { useAllModels, modelLabel, useMarketFiles, ModelStatus, useModelGate, useReadiness } from '../lib/models.jsx';
+import { useAllModels, modelLabel, useMarketFiles, ModelStatus, useModelGate, useReadiness, isFree, VOICES, readiness } from '../lib/models.jsx';
 import LoraPicker, { loraParams, triggerText } from '../lib/LoraPicker.jsx';
 import { takeIntent, useNav } from '../lib/nav.jsx';
 import { MentionBar, resolveMentions, insertMention } from '../lib/mentions.jsx';
@@ -91,8 +91,9 @@ export default function Create() {
     if (it.refs?.length) { setRefs((prev) => ({ ...prev, subject: [...(prev.subject || []), ...it.refs] })); setPreferRefs(true); }
   }, []);
 
-  const models = useMemo(() => allModels.filter((m) => m.kind === kind && (source === 'local' ? m.provider === 'local' : m.provider !== 'local')), [allModels, kind, source]);
-  const model = models.find((m) => m.id === modelId) || (preferRefs && models.find((m) => m.refInput)) || models[0];
+  const models = useMemo(() => allModels.filter((m) => m.kind === kind && (source === 'local' ? isFree(m) : !isFree(m))), [allModels, kind, source]);
+  const rdyEarly = useReadiness();
+  const model = models.find((m) => m.id === modelId) || (preferRefs && models.find((m) => m.refInput && readiness(m, rdyEarly).ok)) || (preferRefs && models.find((m) => m.refInput)) || models.find((m) => readiness(m, rdyEarly).ok) || models[0];
   const camera = presets.presets.find((p) => p.id === cameraId) || null;
   const allStyles = [...stylesData.presets, ...(db.styles || [])];
   const style = allStyles.find((s) => s.id === styleId) || null;

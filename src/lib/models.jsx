@@ -72,9 +72,21 @@ export function useAllModels() {
   }, [db.customModels, downloaded, marketFiles]);
 }
 
+// providers that run on this PC for free
+export const FREE_PROVIDERS = new Set(['local', 'localaudio', 'system']);
+export const isFree = (m) => !!m && FREE_PROVIDERS.has(m.provider);
+export const audioTypeOf = (x) => x?.audioType || (/music/i.test(x?.name || '') ? 'music' : /sound|sfx|ambien/i.test(x?.name || '') ? 'sfx' : 'speech');
+
+// voices per provider (Voice tab / audio tools)
+export const VOICES = {
+  elevenlabs: [['21m00Tcm4TlvDq8ikWAM', 'Rachel — calm female'], ['EXAVITQu4vr4xnSDxMaL', 'Bella — soft female'], ['MF3mGyEYCl7XYWbV9V6O', 'Elli — young female'], ['AZnzlk1XvdvUeBnXmlld', 'Domi — strong female'], ['pNInz6obpgDQGcFmaJgB', 'Adam — deep male'], ['ErXwobaYiN019PkySvjV', 'Antoni — warm male'], ['TxGEqnHWrfWFTfGW9XjX', 'Josh — young male'], ['VR6AewLTigWG4xSOukaG', 'Arnold — bold male'], ['yoZ06aMxZJJ28mfd3POQ', 'Sam — raspy male']],
+  system: [['female', 'Female (Windows voice)'], ['male', 'Male (Windows voice)']],
+  localaudio: [['v2/en_speaker_6', 'English · male narrator'], ['v2/en_speaker_9', 'English · female'], ['v2/en_speaker_3', 'English · male casual'], ['v2/hi_speaker_2', 'Hindi / Urdu · female'], ['v2/hi_speaker_5', 'Hindi / Urdu · male'], ['v2/es_speaker_1', 'Spanish'], ['v2/fr_speaker_1', 'French'], ['v2/de_speaker_1', 'German'], ['v2/it_speaker_1', 'Italian'], ['v2/pt_speaker_1', 'Portuguese'], ['v2/ru_speaker_1', 'Russian'], ['v2/tr_speaker_1', 'Turkish'], ['v2/zh_speaker_1', 'Chinese'], ['v2/ja_speaker_1', 'Japanese'], ['v2/ko_speaker_1', 'Korean'], ['v2/pl_speaker_1', 'Polish']],
+};
+
 export const PROVIDER_NAMES = {
   fal: 'FAL.ai', replicate: 'Replicate', higgsfield: 'Higgsfield', huggingface: 'Hugging Face',
-  openai: 'OpenAI', google: 'Google', stability: 'Stability', elevenlabs: 'ElevenLabs', local: 'Local engine',
+  openai: 'OpenAI', google: 'Google', stability: 'Stability', elevenlabs: 'ElevenLabs', local: 'Local engine', system: 'System voice', localaudio: 'Local audio',
 };
 
 // ── Model readiness ──────────────────────────────────────────────────────────
@@ -112,12 +124,17 @@ export function useReadiness() {
   return s;
 }
 
-const NO_KEY_PROVIDERS = new Set(['local', 'ollama', 'comfyui', 'touchdesigner']);
+const NO_KEY_PROVIDERS = new Set(['local', 'ollama', 'comfyui', 'touchdesigner', 'system']);
 const keyFor = (m) => m.keyName || m.provider;
 
 // → { state, ok, label, short, fix: {label, action} }
 export function readiness(m, r = rd) {
   if (!m) return { state: 'none', ok: false, label: 'Choose a model', short: '' };
+  if (m.provider === 'localaudio') {
+    if (r.engine && r.engine.installed === false) return { state: 'engine', ok: false, label: 'Free local audio needs the local engine', short: '⚙', fix: { label: 'Install engine', go: 'models' } };
+    return { state: 'ready', ok: true, label: 'Free on your PC · first use downloads the model (~1–2 GB)', short: '🆓' };
+  }
+  if (m.provider === 'system') return { state: 'ready', ok: true, label: 'Free · offline system voice', short: '🆓' };
   if (m.provider === 'local') {
     if (m.fromMarket) return { state: 'ready', ok: true, label: 'Ready · installed on this PC', short: '✅' };
     if (!m.endpoint) return { state: 'ready', ok: true, label: 'Runs in your local runtime (Ollama / LM Studio)', short: '' };
