@@ -45,6 +45,7 @@ export default function WakeWord() {
   const st = useRef({});
 
   useEffect(() => { try { localStorage.setItem('pandora.wake', on ? '1' : '0'); } catch { /* ignore */ } }, [on]);
+  useEffect(() => { const off = window.api?.stt?.onStatus?.((m) => { if (on && m) setHint(m === 'Voice ready' ? 'Say "Hey Pandora…"' : m); }); return typeof off === 'function' ? off : undefined; }, [on]);
 
   useEffect(() => {
     if (!on) { setPhase('off'); return undefined; }
@@ -57,12 +58,23 @@ export default function WakeWord() {
         stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
         if (!alive) { stream.getTracks().forEach((t) => t.stop()); return; }
         ctx = new AudioContext(); const src = ctx.createMediaStreamSource(stream);
-        proc = ctx.createScriptProcessor(4096, 1, 1); src.connect(proc); proc.connect(ctx.destination);
+        if (ctx.state === 'suspended') await ctx.resume().catch(() => {});
+        proc = ctx.createScriptProcessor(4096, 1, 1);
+        const mute = ctx.createGain(); mute.gain.value = 0; // keep the processor running without echoing the mic
+        src.connect(proc); proc.connect(mute); mute.connect(ctx.destination);
         const rate = ctx.sampleRate; const chunkMs = 4096 / rate * 1000;
+        // load the voice model once before we promise anything (first time downloads ~290 MB)
+        s.busy = true; setPhase('checking'); setHint('Preparing voice recognition…');
+        try { await window.api.stt.warm('base'); }
+        catch (e) { setHint('⚠ ' + String(e.message || e).replace(/^Error invoking remote method '[^']+':\s*(Error:\s*)?/, '')); setOn(false); return; }
+        if (!alive) return;
+        s.busy = false; s.peak = 0; s.started = Date.now();
         setPhase('idle'); setHint('Say "Hey Pandora…"');
         proc.onaudioprocess = (e) => {
           const d = e.inputBuffer.getChannelData(0); const chunk = new Float32Array(d);
           let rms = 0; for (let i = 0; i < chunk.length; i += 4) rms += chunk[i] * chunk[i]; rms = Math.sqrt(rms / (chunk.length / 4));
+          s.peak = Math.max(s.peak || 0, rms);
+          if (!s.warned && s.started && Date.now() - s.started > 6000 && s.peak < 0.002) { s.warned = true; setHint('⚠ No sound from your microphone. Check Windows Settings → Privacy & security → Microphone (allow desktop apps) and the input device in Sound settings.'); }
           if (!s.speaking) s.noise = s.noise * 0.95 + Math.min(rms, 0.05) * 0.05;
           const loud = rms > Math.max(0.012, s.noise * 3);
           if (s.busy) return;
@@ -101,7 +113,7 @@ export default function WakeWord() {
             }
             if (rest.length > 3) { await command(rest, r.language); }
             else { beep(true); s.mode = 'command'; setPhase('command'); setHint('Listening — what should I do?'); s.cmdTimer = setTimeout(() => { if (s.mode === 'command' && !s.speaking) { s.mode = 'wake'; setPhase('idle'); setHint('Say "Hey Pandora…"'); } }, 8000); }
-          } else setPhase('idle');
+          } else { setPhase('idle'); if (t.trim()) setHint('Heard: "' + t.trim().slice(0, 60) + '" — start with "Hey Pandora"'); }
         } else {
           clearTimeout(s.cmdTimer); setPhase('working'); beep(false);
           // commands are understood in English whatever language you speak (Whisper translate)
@@ -110,7 +122,7 @@ export default function WakeWord() {
           s.mode = 'wake';
         }
       } catch (e) { setHint('⚠ ' + String(e.message || e).replace(/^Error invoking remote method '[^']+':\s*(Error:\s*)?/, '')); s.mode = 'wake'; }
-      if (alive) { setPhase('idle'); s.busy = false; }
+      if (alive) { setPhase(s.mode === 'command' ? 'command' : 'idle'); s.busy = false; }
     }
 
     async function command(text, lang) {

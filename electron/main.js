@@ -452,6 +452,7 @@ function registerIpc() {
   } catch (e) { console.error('[mcp]', e.message); }
   // ── Voice input (speech-to-text, ~99 languages): free local Whisper or OpenAI ──
   safeHandle('stt:status', () => stt.status(userData(), getKeys()));
+  safeHandle('stt:warm', (_e, model) => stt.warm(userData(), model || 'base', (msg) => { if (win && !win.isDestroyed()) win.webContents.send('stt:status', msg); }));
   safeHandle('stt:transcribe', (_e, opts) => stt.transcribe(userData(), getKeys(), opts || {}, (msg) => { if (win && !win.isDestroyed()) win.webContents.send('stt:status', msg); }));
   safeHandle('connect:status', () => mcp.status());
   safeHandle('connect:configure', (_e, patch) => mcp.configure(patch || {}));
@@ -644,6 +645,7 @@ function createWindow() {
     autoHideMenuBar: true,   // cleaner window; press Alt to show the menu
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
+      autoplayPolicy: 'no-user-gesture-required', // audio context for voice / "Hey Pandora" must run without a click
       contextIsolation: true,
       nodeIntegration: false,
       sandbox: false,

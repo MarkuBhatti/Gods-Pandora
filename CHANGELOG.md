@@ -59,6 +59,11 @@
 - **Lite mode** (sidebar): freezes animated scenes and blur; Auto turns it on for low-end PCs and low battery.
 
 ### Fixed / improved
+- Voice input / "Hey Pandora" could show "recording" but never return text: the audio engine could start
+  suspended, the speech engine needed a package that isn't available for every Python version, and errors were
+  silent. Now: Whisper runs through the already-installed engine (any Python), recordings are converted to 16 kHz
+  WAV first, the model is prepared before listening starts with clear progress ("first time downloads 290 MB"),
+  a warning appears if the microphone sends no sound (Windows privacy settings), and the hint shows what it heard.
 - AutoEdit could hang forever when the last cut was shorter than the transition — fixed, plus a render safety timeout.
 - Claude model id updated to `claude-sonnet-5-5` (App Forge, prompt enhance, ad analysis).
 - **Download progress is now real**: the % and bar follow the actual bytes downloaded (no more stuck at 99 %),

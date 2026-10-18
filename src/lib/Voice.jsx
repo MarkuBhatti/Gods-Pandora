@@ -51,9 +51,14 @@ export default function MicButton({ onText, promptMode = false, small = false, t
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true } });
       streamRef.current = stream;
-      const ctx = new (window.AudioContext || window.webkitAudioContext)(); const an = ctx.createAnalyser(); an.fftSize = 512;
+      const ctx = new (window.AudioContext || window.webkitAudioContext)(); if (ctx.state === 'suspended') await ctx.resume().catch(() => {});
+      const an = ctx.createAnalyser(); an.fftSize = 512; let peak = 0; const t0 = Date.now();
       ctx.createMediaStreamSource(stream).connect(an); const buf = new Uint8Array(an.fftSize);
-      const tick = () => { an.getByteTimeDomainData(buf); let m = 0; for (const v of buf) m = Math.max(m, Math.abs(v - 128)); setLevel(m / 128); raf.current = requestAnimationFrame(tick); }; tick();
+      const tick = () => {
+        an.getByteTimeDomainData(buf); let m = 0; for (const v of buf) m = Math.max(m, Math.abs(v - 128)); setLevel(m / 128); peak = Math.max(peak, m);
+        if (peak <= 2 && Date.now() - t0 > 4000) setMsg('⚠ No sound from the microphone — check Windows Settings → Privacy & security → Microphone, and your input device.');
+        raf.current = requestAnimationFrame(tick);
+      }; tick();
       const mime = MediaRecorder.isTypeSupported('audio/webm;codecs=opus') ? 'audio/webm;codecs=opus' : 'audio/webm';
       const mr = new MediaRecorder(stream, { mimeType: mime }); chunks.current = [];
       mr.ondataavailable = (e) => e.data.size && chunks.current.push(e.data);
@@ -62,12 +67,13 @@ export default function MicButton({ onText, promptMode = false, small = false, t
         const blob = new Blob(chunks.current, { type: 'audio/webm' });
         if (blob.size < 2000) { setState('idle'); setMsg('Too short — hold on a little longer.'); return; }
         setState('busy'); setMsg('Understanding…');
+        const slow = setTimeout(() => setMsg((m) => (m === 'Understanding…' ? 'Still working… the first time downloads the voice model (a few minutes), after that it is quick.' : m)), 8000);
         try {
           const r = await window.api.stt.transcribe({ audio: await blobToB64(blob), mime: 'audio/webm', language: prefs.language, translate: prefs.translate, engine: prefs.engine, model: prefs.model });
           if (r.text) { onText(r.text, r); setMsg(`✓ ${r.engine}${r.language && prefs.language === 'auto' ? ' · heard ' + r.language : ''}`); }
           else setMsg('I didn\'t catch that — try again.');
         } catch (e) { setMsg('⚠ ' + String(e.message || e).replace(/^Error invoking remote method '[^']+':\s*(Error:\s*)?/, '')); }
-        setState('idle');
+        clearTimeout(slow); setState('idle');
       };
       rec.current = mr; mr.start(250); setState('rec');
     } catch (e) { setMsg('⚠ Microphone not available: ' + (e.message || e)); setState('idle'); }

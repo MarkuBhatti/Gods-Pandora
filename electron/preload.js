@@ -55,6 +55,7 @@ contextBridge.exposeInMainWorld('api', {
   stt: {
     status: () => ipcRenderer.invoke('stt:status'),
     transcribe: (opts) => ipcRenderer.invoke('stt:transcribe', opts),
+    warm: (model) => ipcRenderer.invoke('stt:warm', model),
     onStatus: (cb) => { const h = (_e, m) => cb(m); ipcRenderer.on('stt:status', h); return () => ipcRenderer.removeListener('stt:status', h); },
   },
   connect: {
