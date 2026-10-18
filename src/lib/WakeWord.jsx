@@ -7,7 +7,37 @@ import { speak, voicePrefs } from './Voice.jsx';
 // on this PC by free local Whisper (never sent to the cloud for wake-word detection).
 // A tiny voice-activity detector only wakes Whisper when someone speaks, so idle CPU use stays near zero.
 
-const WAKE = /^[\s"'“”.,!¡¿-]*(?:(?:hey|hi|hay|hai|he|a|okay|ok|ay|ae|ei|ہے|ہائے|ہیلو|हे|हाय|嘿|ねえ|헤이|эй)[\s,.!-]*)?(?:pan+[\s-]?do+r+a|pandor+a|pandara|pendora|pandoora|bandora|پنڈورا|پینڈورا|پانڈورا|पंडोरा|पेंडोरा|पैंडोरा|潘多拉|パンドラ|판도라|пандора)(?=$|[\s,.!?:;-])[\s,.!?:;-]*/i; // must open the sentence
+
+// Whisper often mishears a name ("Hey, Pandora's", "Hey Bandura", "Hey Pan Dora", "Pandorra").
+// Fuzzy match: within the first few words, find a word (or two joined words) close to "pandora".
+const GREET = new Set(['hey', 'hi', 'hay', 'hai', 'he', 'hei', 'a', 'okay', 'ok', 'ay', 'ae', 'ei', 'eh', 'yo', 'hello', 'oh', 'o', 'and', 'so', 'ہے', 'ہائے', 'ہیلو', 'हे', 'हाय', '嘿', 'ねえ', '헤이', 'эй']);
+function lev(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+const norm = (w) => w.toLowerCase().replace(/[’']s$/, '').replace(/[^\p{L}\p{N}]/gu, '');
+function nameLike(w, greeted) {
+  if (!w) return false;
+  if (/^(?:pandora|پنڈورا|پینڈورا|پانڈورا|पंडोरा|पेंडोरा|पैंडोरा|潘多拉|パンドラ|판도라|пандора)$/.test(w)) return true;
+  if (!/^[pbf]/.test(w) || w.length < 5 || w.length > 10) return false;
+  const dist = lev(w, 'pandora');
+  return dist <= 1 || (dist === 2 && greeted);
+}
+export function matchWake(text) {
+  const words = String(text || '').trim().split(/\s+/).filter(Boolean);
+  let greeted = false;
+  for (let i = 0; i < Math.min(words.length, 4); i++) {
+    const w = norm(words[i]);
+    for (const [cand, used] of [[w, 1], [w + norm(words[i + 1] || ''), 2]]) {
+      if (nameLike(cand, greeted)) return { rest: words.slice(i + used).join(' ').replace(/^[\s,.!?:;-]+/, '').trim() };
+    }
+    if (w && !GREET.has(w)) return null; // the name has to open the sentence
+    if (w) greeted = true;
+  }
+  return null;
+}
 
 const PAGES = [
   [/studio|create|image|picture/, 'create'], [/agent/, 'agent'], [/film/, 'film'], [/auto ?edit|edit|cut/, 'cut'], [/colou?r|grad/, 'color'],
@@ -42,6 +72,7 @@ export default function WakeWord() {
   const [on, setOn] = useState(() => { try { return localStorage.getItem('pandora.wake') === '1'; } catch { return false; } });
   const [phase, setPhase] = useState('off'); // off | idle | hearing | checking | command | working
   const [hint, setHint] = useState('');
+  const [level, setLevel] = useState(0);
   const st = useRef({});
 
   useEffect(() => { try { localStorage.setItem('pandora.wake', on ? '1' : '0'); } catch { /* ignore */ } }, [on]);
@@ -76,7 +107,9 @@ export default function WakeWord() {
           s.peak = Math.max(s.peak || 0, rms);
           if (!s.warned && s.started && Date.now() - s.started > 6000 && s.peak < 0.002) { s.warned = true; setHint('⚠ No sound from your microphone. Check Windows Settings → Privacy & security → Microphone (allow desktop apps) and the input device in Sound settings.'); }
           if (!s.speaking) s.noise = s.noise * 0.95 + Math.min(rms, 0.05) * 0.05;
-          const loud = rms > Math.max(0.012, s.noise * 3);
+          // quiet laptop mics with noise suppression often speak at ~0.01 RMS, so the floor is low and adaptive
+          const loud = rms > Math.max(0.005, s.noise * 2.5);
+          const now = Date.now(); if (!s.lvlAt || now - s.lvlAt > 120) { s.lvlAt = now; setLevel(Math.min(1, rms * 12)); }
           if (s.busy) return;
           if (!s.speaking) {
             s.pre.push(chunk); if (s.pre.length > 3) s.pre.shift();
@@ -103,17 +136,19 @@ export default function WakeWord() {
       try {
         if (s.mode === 'wake') {
           setPhase('checking');
-          const r = await window.api.stt.transcribe({ audio: b64, mime: 'audio/wav', language: 'auto', quick: true, model: 'base', engine: 'local' });
-          const t = String(r.text || '');
-          const m = t.match(WAKE);
+          // "Pandora" is an English word in every language, so the wake check is English (auto-detect on a
+          // 1-second clip often guesses the wrong language and spells the name differently); then auto as a fallback
+          const ask = (language, translate = false) => window.api.stt.transcribe({ audio: b64, mime: 'audio/wav', language, translate, quick: true, model: 'base', engine: 'local' });
+          let r = await ask('en'); let t = String(r.text || ''); let m = matchWake(t);
+          if (!m && t.trim()) { const r2 = await ask('auto').catch(() => null); const t2 = String(r2?.text || ''); const m2 = matchWake(t2); if (m2) { r = r2; t = t2; m = m2; } }
           if (m) {
-            let rest = t.slice(m[0].length).trim();
+            let rest = m.rest;
             if (rest.length > 3 && /[^\x00-\x7F]/.test(rest)) { // spoken in another language → understand it in English
-              try { const tr = await window.api.stt.transcribe({ audio: b64, mime: 'audio/wav', language: r.language, translate: true, quick: true, model: 'base', engine: 'local' }); const en = String(tr.text || ''); const mm = en.match(WAKE); rest = (mm ? en.slice(mm[0].length) : en).trim() || rest; } catch { /* keep original */ }
+              try { const tr = await ask(r.language, true); const en = String(tr.text || ''); const mm = matchWake(en); rest = (mm ? mm.rest : en).trim() || rest; } catch { /* keep original */ }
             }
             if (rest.length > 3) { await command(rest, r.language); }
             else { beep(true); s.mode = 'command'; setPhase('command'); setHint('Listening — what should I do?'); s.cmdTimer = setTimeout(() => { if (s.mode === 'command' && !s.speaking) { s.mode = 'wake'; setPhase('idle'); setHint('Say "Hey Pandora…"'); } }, 8000); }
-          } else { setPhase('idle'); if (t.trim()) setHint('Heard: "' + t.trim().slice(0, 60) + '" — start with "Hey Pandora"'); }
+          } else { setPhase('idle'); setHint(t.trim() ? 'Heard: "' + t.trim().slice(0, 60) + '" — start with "Hey Pandora"' : 'Heard sound but no words — speak a little closer/louder: "Hey Pandora"'); }
         } else {
           clearTimeout(s.cmdTimer); setPhase('working'); beep(false);
           // commands are understood in English whatever language you speak (Whisper translate)
@@ -155,6 +190,7 @@ export default function WakeWord() {
       <button type="button" className="wake-btn" onClick={() => setOn((v) => !v)} aria-pressed={on}>
         <span className="wake-dot" />{on ? '👂' : '🎙'} <span className="wake-l">{on ? (phase === 'command' ? 'Yes?' : 'Hey Pandora') : 'Hey Pandora'}</span>
       </button>
+      {on && phase !== 'off' && <div className="wake-meter" title="Microphone level — it should jump when you speak"><i style={{ width: Math.round(level * 100) + '%' }} /></div>}
       {on && hint && <div className="wake-hint">{hint}</div>}
     </div>
   );

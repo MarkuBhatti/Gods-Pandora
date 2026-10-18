@@ -73,7 +73,11 @@ def load(name, kind):
         from transformers import pipeline
         dev = "cuda" if torch.cuda.is_available() else ("mps" if getattr(torch.backends, "mps", None) and torch.backends.mps.is_available() else "cpu")
         dtype = torch.float16 if dev == "cuda" else torch.float32
-        pipe = pipeline("automatic-speech-recognition", model=HF_IDS.get(name, name), torch_dtype=dtype, device=dev)
+        mid = HF_IDS.get(name, name)
+        try:  # newer transformers use dtype=, older ones torch_dtype=
+            pipe = pipeline("automatic-speech-recognition", model=mid, dtype=dtype, device=dev)
+        except TypeError:
+            pipe = pipeline("automatic-speech-recognition", model=mid, torch_dtype=dtype, device=dev)
         m = (pipe, dev)
     _CACHE[key] = m
     return m
@@ -98,7 +102,14 @@ def run(req):
     gen = {"task": task}
     if lang:
         gen["language"] = lang
-    out = model({"raw": audio, "sampling_rate": 16000}, generate_kwargs=gen, return_timestamps=len(audio) > 16000 * 29)
+    peak = float(abs(audio).max()) if audio.size else 0.0
+    if 0 < peak < 0.3:  # quiet laptop mics: normalise so Whisper hears clearly
+        audio = (audio * (0.5 / peak)).astype("float32")
+    try:
+        out = model({"raw": audio, "sampling_rate": 16000}, generate_kwargs=gen, return_timestamps=len(audio) > 16000 * 29)
+    except (ValueError, TypeError):  # some versions reject language codes / task for this model
+        gen.pop("language", None)
+        out = model({"raw": audio, "sampling_rate": 16000}, generate_kwargs=gen, return_timestamps=len(audio) > 16000 * 29)
     text = (out.get("text") if isinstance(out, dict) else str(out)) or ""
     return {"text": text.strip(), "language": lang or "auto", "device": dev, "backend": "transformers"}
 
