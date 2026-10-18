@@ -12,6 +12,7 @@ import cine from '../../data/filmStudio.json';
 import colorTheory from '../../data/colorTheory.json';
 import { useStore, uid } from '../lib/store.jsx';
 import Media from '../lib/Media.jsx';
+import MicButton from '../lib/Voice.jsx';
 import GuideBook from './GuideBook.jsx';
 
 // Film Studio: multi-shot projects with a full cinematography deck —
@@ -259,6 +260,7 @@ function ShotCard({ index, shot, prevShot, project, db, patch }) {
       </div>
       <label>Action / description</label>
       <textarea value={shot.prompt} onChange={(e) => setShot({ prompt: e.target.value })} placeholder="What happens in this shot… @Name pulls in saved characters, locations, products" />
+      <div className="row" style={{ gap: 6 }}><MicButton promptMode small onText={(t) => setShot({ prompt: shot.prompt ? shot.prompt + ' ' + t : t })} /></div>
       <MentionBar db={db} value={shot.prompt} onInsert={(t) => setShot({ prompt: insertMention(shot.prompt, t) })} />
       {index > 0 && (
         <label className="row" style={{ gap: 6, cursor: 'pointer' }}>

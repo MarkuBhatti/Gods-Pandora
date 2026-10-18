@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import MicButton from '../lib/Voice.jsx';
 import { useNav } from '../lib/nav.jsx';
 import { useStore } from '../lib/store.jsx';
 import PandoraBox from '../lib/PandoraBox.jsx';
@@ -84,6 +85,7 @@ export default function Home() {
               ))}
             </div>
             <input value={prompt} placeholder="Describe anything… a neon city at dawn, a lo-fi beat, a product ad" onChange={(e) => setPrompt(e.target.value)} onKeyDown={(e) => e.key === 'Enter' && start()} />
+            <MicButton promptMode small onText={(t) => setPrompt((p) => (p ? p + ' ' + t : t))} />
             <button className="btn go" onClick={start}>Create ✦</button>
           </div>
           <div className="quick-row">

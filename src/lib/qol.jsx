@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from 'react';
+import MicButton from './Voice.jsx';
 
 // ── Quality-of-life helpers ─────────────────────────────────────────────────
 
@@ -42,6 +43,7 @@ export function PromptTools({ value, onChange, kind = 'image' }) {
   const list = hist ? getHistory() : [];
   return (
     <div className="prompt-tools">
+      <MicButton promptMode small onText={(t) => onChange(value && value.trim() ? value.trim() + ' ' + t : t)} title="Speak your prompt in any language" />
       <button className="chip mini" disabled={busy || !value.trim()} onClick={enhance} title="Rewrite into a detailed, model-friendly prompt (Claude key, or a local model in Ollama / LM Studio)">
         {busy ? '✨ Enhancing…' : '✨ Enhance'}
       </button>

@@ -1,6 +1,11 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useJob, RunButton, ErrorBox, friendlyError } from '../lib/job.jsx';
 import Media from '../lib/Media.jsx';
+import { takeIntent } from '../lib/nav.jsx';
+import MicButton, { speak, voicePrefs } from '../lib/Voice.jsx';
+
+// spoken "yes" in many languages → approve the plan
+const YES = /^(yes|yeah|yep|ok(ay)?|sure|go( ahead)?|approve[d]?|start|do it|haan|han|ji|jee|theek( hai)?|bilkul|chalo|si|sí|oui|ja|da|sim|evet|naam|na'am|نعم|ہاں|جی|ٹھیک|हाँ|हां|ठीक|好的?|是|はい|네|예|да|так|tak|ναι)\b/i;
 
 // Pandora Agent — describe the job, it plans, uses every tool in God's Pandora and delivers a launch package.
 const TEMPLATES = [
@@ -11,7 +16,7 @@ const TEMPLATES = [
   ['🎵 Music release', 'Create a release campaign for my new single "Midnight Static" (synthwave). Cover art, 3 promo visuals, a 15-second visualiser video, release announcement copy, a TikTok content plan and a press kit presentation.'],
 ];
 
-const ICON = { start: '🚀', thinking: '…', say: '💬', tool: '🛠', plan: '🗺', asset: '✅', progress: '⏳', warn: '⚠', done: '🎉', error: '❌', cancelled: '⏹' };
+const ICON = { you: '🗣', heard: '👂', start: '🚀', thinking: '…', say: '💬', tool: '🛠', plan: '🗺', asset: '✅', progress: '⏳', warn: '⚠', done: '🎉', error: '❌', cancelled: '⏹' };
 const TOOL_LABEL = { propose_plan: 'Planning the production', write_document: 'Writing', generate_image: 'Generating image', generate_video: 'Generating video shot', generate_voiceover: 'Recording voice-over', auto_edit: 'Auto-editing the video', color_grade: 'Colour grading', make_presentation: 'Building the presentation', list_assets: 'Checking assets', finish: 'Packaging deliverables' };
 
 export default function PandoraAgent() {
@@ -35,19 +40,37 @@ export default function PandoraAgent() {
   const [progress, setProgress] = useState(null);
   const job = useJob();
   const logRef = useRef(null);
+  const [talkBack, setTalkBack] = useState(() => voicePrefs().speak);
+  const talkRef = useRef(talkBack); talkRef.current = talkBack;
 
   useEffect(() => {
     window.api.keysList?.().then((k) => setHasClaude(!!(k && k.anthropic))).catch(() => setHasClaude(false));
     window.api.agent?.models?.().then((m) => setModels(Array.isArray(m) ? m : [])).catch(() => {});
     const off = window.api.agent?.onEvent?.((ev) => {
       if (ev.type === 'progress') { setProgress(ev); return; }
-      if (ev.type === 'plan') setPlan(ev);
+      if (ev.type === 'plan') { setPlan(ev); if (talkRef.current) speak(`I have a plan with ${ev.steps.length} steps. Say yes to start, or tell me what to change.`); }
+      if (talkRef.current && ev.type === 'say' && ev.text) speak(ev.text);
+      if (talkRef.current && ev.type === 'done') speak('Your launch package is ready.');
       if (ev.type === 'asset') setAssets((a) => [...a, ev]);
       setEvents((e) => [...e.slice(-300), ev]);
     });
     return typeof off === 'function' ? off : undefined;
   }, []);
   useEffect(() => { if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight; }, [events]);
+  // "Hey Pandora, …" — voice commands land here first
+  const live = useRef({}); live.current = { plan, running: job.running, goal, start: () => start() };
+  useEffect(() => { const it = takeIntent('agent'); if (it?.goal) { setGoal(it.goal); if (talkRef.current) speak('Say start when you are ready, or add more details.'); } }, []);
+  useEffect(() => {
+    const onVoice = (e) => {
+      const t = String(e.detail?.text || '').trim(); const L = live.current;
+      if (L.plan) { e.preventDefault(); if (YES.test(t)) { window.api.agent.approve(true, ''); setPlan(null); speak('Starting now.'); } else { window.api.agent.approve(false, t); setPlan(null); speak('Okay, revising the plan.'); } return; }
+      if (L.running) { e.preventDefault(); if (/^(stop|cancel|ruk(o|jao)|bas)\b/i.test(t)) { window.api.agent.cancel(); speak('Stopping.'); } else { window.api.agent.tell(t); setEvents((x) => [...x, { type: 'you', text: t }]); speak('Noted.'); } return; }
+      if (/^(start|go|begin|shuru|chalo|start the job)\b/i.test(t) && L.goal.trim().length >= 10) { e.preventDefault(); L.start(); speak('Starting the job.'); return; }
+      if (!/^(open|go to|show|switch to|create|generate|make|draw)\b/i.test(t)) { e.preventDefault(); setGoal((g) => (g ? g + ' ' + t : t)); speak('Added. Say start when you are ready.'); }
+    };
+    window.addEventListener('pandora:voice', onVoice);
+    return () => window.removeEventListener('pandora:voice', onVoice);
+  }, []);
   useEffect(() => { if (hasClaude === false) setBrain('local'); }, [hasClaude]);
   const brainUsed = mode === 'free' ? 'local' : brain;
   useEffect(() => {
@@ -82,7 +105,11 @@ export default function PandoraAgent() {
 
       <div className="two-col">
         <div className="card">
-          <label>What should the agent make?</label>
+          <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
+            <label style={{ margin: 0 }}>What should the agent make? <span className="sub" style={{ fontSize: 11 }}>— type or speak, in any language</span></label>
+            <label className="row" style={{ gap: 6, cursor: 'pointer', margin: 0, fontSize: 12 }}><input type="checkbox" style={{ width: 'auto' }} checked={talkBack} onChange={(e) => { setTalkBack(e.target.checked); try { localStorage.setItem('pandora.voice', JSON.stringify({ ...voicePrefs(), speak: e.target.checked })); } catch { /* ignore */ } }} /> 🔊 Agent talks back</label>
+          </div>
+          <div className="row" style={{ margin: '6px 0' }}><MicButton onText={(t) => setGoal((g) => (g ? g + ' ' + t : t))} title="Tell the agent the job by voice" /></div>
           <textarea style={{ minHeight: 130 }} value={goal} onChange={(e) => setGoal(e.target.value)} placeholder="e.g. Launch my clothing brand: brand bible, campaign images, promo video (script → shots → edit → colour), captions and a pitch deck." />
           <div className="row" style={{ flexWrap: 'wrap', gap: 6, marginTop: 6 }}>
             {TEMPLATES.map(([t, g]) => <button key={t} className="chip mini" onClick={() => setGoal(g)}>{t}</button>)}
@@ -139,7 +166,13 @@ export default function PandoraAgent() {
               <h3 style={{ marginTop: 0 }}>🗺 The plan</h3>
               <ol>{plan.steps.map((s, i) => <li key={i}>{s}</li>)}</ol>
               <p className="sub" style={{ margin: '6px 0' }}><b>Deliverables:</b> {plan.deliverables.join(' · ')}</p>
-              <input value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="Optional: changes you want (e.g. more vertical videos, add Urdu captions)" />
+              <div className="row" style={{ flexWrap: 'nowrap' }}>
+                <input style={{ flex: 1 }} value={feedback} onChange={(e) => setFeedback(e.target.value)} placeholder="Optional: changes you want (e.g. more vertical videos, add Urdu captions)" />
+                <MicButton small onText={async (t) => {
+                  if (YES.test(t.trim())) { await window.api.agent.approve(true, ''); setPlan(null); if (talkRef.current) speak('Starting now.'); }
+                  else setFeedback((f) => (f ? f + ' ' + t : t));
+                }} title='Say "yes" to approve, or say what to change' />
+              </div>
               <div className="row" style={{ marginTop: 8 }}>
                 <button className="btn" onClick={() => decide(true)}>✓ Approve & start</button>
                 <button className="btn ghost" onClick={() => decide(false)} disabled={!feedback.trim()}>↻ Revise with my notes</button>
@@ -166,6 +199,12 @@ export default function PandoraAgent() {
             </div>
           )}
 
+          {job.running && !plan && (
+            <div className="ag-talk">
+              <MicButton small onText={(t) => { window.api.agent.tell(t); setEvents((e) => [...e, { type: 'you', text: t }]); }} title="Tell the agent something while it works" />
+              <input placeholder="Say or type a note for the agent while it works (e.g. use warmer colours)…" onKeyDown={(e) => { if (e.key === 'Enter' && e.target.value.trim()) { window.api.agent.tell(e.target.value.trim()); setEvents((x) => [...x, { type: 'you', text: e.target.value.trim() }]); e.target.value = ''; } }} />
+            </div>
+          )}
           <div className="ag-log" ref={logRef}>
             {!shown.length && <p className="sub">The agent's progress appears here: plan, every tool it uses, and each file it creates.</p>}
             {shown.map((e, i) => (
@@ -174,6 +213,8 @@ export default function PandoraAgent() {
                 <span>
                   {e.type === 'tool' && <><b>{TOOL_LABEL[e.name] || e.name}</b>{e.input?.title || e.input?.purpose || e.input?.prompt ? <span className="sub"> — {String(e.input.title || e.input.purpose || e.input.prompt).slice(0, 120)}</span> : null}</>}
                   {e.type === 'say' && e.text}
+                  {e.type === 'you' && <><b>You:</b> {e.text}</>}
+                  {e.type === 'heard' && <span className="sub">{e.text}</span>}
                   {e.type === 'asset' && <>Created <b>{e.label}</b> <span className="sub">({e.kind})</span></>}
                   {e.type === 'plan' && <>Plan ready — {e.steps.length} steps</>}
                   {e.type === 'start' && <>Started · {e.models.length} models available</>}

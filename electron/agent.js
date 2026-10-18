@@ -135,7 +135,7 @@ async function run(deps, opts) {
     models: readyModels({ catalog: deps.catalog(), keys, downloaded: await deps.downloaded(), engineInstalled: deps.engineInstalled() }),
     routes,
   };
-  const state = current = { done: false, cancelled: false, approve: null, dir };
+  const state = current = { done: false, cancelled: false, approve: null, dir, inbox: [] };
   const emit = (ev) => deps.emit({ ...ev, at: Date.now() });
   emit({ type: 'start', dir, mode: routes.mode, routes: { image: routeText(routes.image), video: routeText(routes.video), voice: routeText(routes.voice) }, models: ctx.models.map((x) => ({ id: x.id, name: x.name, kind: x.kind })) });
 
@@ -167,10 +167,13 @@ async function run(deps, opts) {
         if (call.name === 'finish' && !out.error) finished = out;
         results.push({ id: call.id, name: call.name, content: JSON.stringify(out).slice(0, 4000) });
       }
+      // messages the user said / typed while the agent works (voice or text) ride along with the tool results
+      const notes = state.inbox.splice(0).map((t) => 'The user just said: "' + t + '" — take it into account from now on.');
       messages.push(brain === 'claude'
-        ? { role: 'user', content: results.map((r) => ({ type: 'tool_result', tool_use_id: r.id, content: r.content })) }
+        ? { role: 'user', content: [...results.map((r) => ({ type: 'tool_result', tool_use_id: r.id, content: r.content })), ...notes.map((t) => ({ type: 'text', text: t }))] }
         : results.map((r) => ({ role: 'tool', tool_call_id: r.id, content: r.content })));
-      if (brain !== 'claude') { const last = messages.pop(); messages.push(...last); }
+      if (brain !== 'claude') { const last = messages.pop(); messages.push(...last); if (notes.length) messages.push({ role: 'user', content: notes.join('\n') }); }
+      if (notes.length) emit({ type: 'heard', text: notes.length + ' note(s) from you passed to the agent' });
     }
     if (!finished) finished = await tools.finish({ summary: 'The agent reached its step limit. Everything created so far is in the package.' });
     state.done = true;
@@ -399,7 +402,8 @@ async function createToolbox(deps, opts = {}) {
 }
 
 function approve(ok, note) { if (current && current.approve) { current.approve({ ok, note }); return true; } return false; }
+function tell(text) { if (current && !current.done && text) { current.inbox.push(String(text).slice(0, 2000)); return true; } return false; }
 function cancel() { if (current && !current.done) { current.cancelled = true; if (current.approve) current.approve({ ok: false, note: 'cancelled' }); return true; } return false; }
 function status() { return current ? { running: !current.done, dir: current.dir, waiting: !!current.approve } : { running: false }; }
 
-module.exports = { run, approve, cancel, status, readyModels, planRoutes, routeText, createToolbox, TOOLS };
+module.exports = { run, approve, tell, cancel, status, readyModels, planRoutes, routeText, createToolbox, TOOLS };

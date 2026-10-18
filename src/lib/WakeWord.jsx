@@ -1,0 +1,149 @@
+import React, { useEffect, useRef, useState } from 'react';
+import { useNav } from './nav.jsx';
+import { speak, voicePrefs } from './Voice.jsx';
+
+// "Hey Pandora" — hands-free voice control (like "Hey Siri" / "OK Google").
+// Privacy: listening only happens while the toggle is on, a light shows it, and speech is recognised
+// on this PC by free local Whisper (never sent to the cloud for wake-word detection).
+// A tiny voice-activity detector only wakes Whisper when someone speaks, so idle CPU use stays near zero.
+
+const WAKE = /^[\s"'“”.,!¡¿-]*(?:(?:hey|hi|hay|hai|he|a|okay|ok|ay|ae|ei|ہے|ہائے|ہیلو|हे|हाय|嘿|ねえ|헤이|эй)[\s,.!-]*)?(?:pan+[\s-]?do+r+a|pandor+a|pandara|pendora|pandoora|bandora|پنڈورا|پینڈورا|پانڈورا|पंडोरा|पेंडोरा|पैंडोरा|潘多拉|パンドラ|판도라|пандора)(?=$|[\s,.!?:;-])[\s,.!?:;-]*/i; // must open the sentence
+
+const PAGES = [
+  [/studio|create|image|picture/, 'create'], [/agent/, 'agent'], [/film/, 'film'], [/auto ?edit|edit|cut/, 'cut'], [/colou?r|grad/, 'color'],
+  [/photo|retouch/, 'photo'], [/fashion/, 'fashion'], [/product/, 'product'], [/marketing/, 'marketing'], [/gallery|library/, 'library'],
+  [/models?|market/, 'market'], [/setting|key/, 'settings'], [/connect/, 'connect'], [/home/, 'home'], [/3d|spatial/, 'spatial'],
+  [/touch ?designer/, 'touchdesigner'], [/voice|audio/, 'voice'], [/shorts?/, 'shorts'], [/influencer/, 'influencer'], [/shape ?shift/, 'genjutsu'],
+];
+
+// 16-bit mono WAV from float samples
+function wav(samples, rate) {
+  const b = new ArrayBuffer(44 + samples.length * 2); const v = new DataView(b);
+  const w = (o, s) => { for (let i = 0; i < s.length; i++) v.setUint8(o + i, s.charCodeAt(i)); };
+  w(0, 'RIFF'); v.setUint32(4, 36 + samples.length * 2, true); w(8, 'WAVE'); w(12, 'fmt '); v.setUint32(16, 16, true); v.setUint16(20, 1, true);
+  v.setUint16(22, 1, true); v.setUint32(24, rate, true); v.setUint32(28, rate * 2, true); v.setUint16(32, 2, true); v.setUint16(34, 16, true);
+  w(36, 'data'); v.setUint32(40, samples.length * 2, true);
+  for (let i = 0; i < samples.length; i++) { const s = Math.max(-1, Math.min(1, samples[i])); v.setInt16(44 + i * 2, s < 0 ? s * 0x8000 : s * 0x7fff, true); }
+  let bin = ''; const u8 = new Uint8Array(b); for (let i = 0; i < u8.length; i += 0x8000) bin += String.fromCharCode.apply(null, u8.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+function downsample(buf, from, to = 16000) {
+  if (from === to) return buf; const r = from / to; const out = new Float32Array(Math.floor(buf.length / r));
+  for (let i = 0; i < out.length; i++) { const s = Math.floor(i * r), e = Math.min(buf.length, Math.floor((i + 1) * r)); let a = 0; for (let j = s; j < e; j++) a += buf[j]; out[i] = a / Math.max(1, e - s); }
+  return out;
+}
+function beep(up = true) {
+  try { const c = new AudioContext(); const o = c.createOscillator(); const g = c.createGain(); o.frequency.value = up ? 880 : 520; o.frequency.linearRampToValueAtTime(up ? 1320 : 380, c.currentTime + 0.12);
+    g.gain.value = 0.08; g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.18); o.connect(g).connect(c.destination); o.start(); o.stop(c.currentTime + 0.2); setTimeout(() => c.close(), 400); } catch { /* ignore */ }
+}
+
+export default function WakeWord() {
+  const { go } = useNav();
+  const [on, setOn] = useState(() => { try { return localStorage.getItem('pandora.wake') === '1'; } catch { return false; } });
+  const [phase, setPhase] = useState('off'); // off | idle | hearing | checking | command | working
+  const [hint, setHint] = useState('');
+  const st = useRef({});
+
+  useEffect(() => { try { localStorage.setItem('pandora.wake', on ? '1' : '0'); } catch { /* ignore */ } }, [on]);
+
+  useEffect(() => {
+    if (!on) { setPhase('off'); return undefined; }
+    let alive = true; let ctx, proc, stream;
+    const s = st.current = { mode: 'wake', buf: [], pre: [], speaking: false, silentMs: 0, speechMs: 0, noise: 0.008, busy: false };
+    (async () => {
+      try {
+        const status = await window.api.stt.status();
+        if (!status.local) { setHint('"Hey Pandora" needs the free local engine (Pandora Core & Cloud → Install engine).'); setOn(false); return; }
+        stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+        if (!alive) { stream.getTracks().forEach((t) => t.stop()); return; }
+        ctx = new AudioContext(); const src = ctx.createMediaStreamSource(stream);
+        proc = ctx.createScriptProcessor(4096, 1, 1); src.connect(proc); proc.connect(ctx.destination);
+        const rate = ctx.sampleRate; const chunkMs = 4096 / rate * 1000;
+        setPhase('idle'); setHint('Say "Hey Pandora…"');
+        proc.onaudioprocess = (e) => {
+          const d = e.inputBuffer.getChannelData(0); const chunk = new Float32Array(d);
+          let rms = 0; for (let i = 0; i < chunk.length; i += 4) rms += chunk[i] * chunk[i]; rms = Math.sqrt(rms / (chunk.length / 4));
+          if (!s.speaking) s.noise = s.noise * 0.95 + Math.min(rms, 0.05) * 0.05;
+          const loud = rms > Math.max(0.012, s.noise * 3);
+          if (s.busy) return;
+          if (!s.speaking) {
+            s.pre.push(chunk); if (s.pre.length > 3) s.pre.shift();
+            if (loud) { s.speaking = true; s.buf = [...s.pre]; s.silentMs = 0; s.speechMs = 0; if (s.mode === 'wake') setPhase('hearing'); }
+            return;
+          }
+          s.buf.push(chunk); s.speechMs += chunkMs;
+          s.silentMs = loud ? 0 : s.silentMs + chunkMs;
+          const maxMs = s.mode === 'wake' ? 6000 : 20000;
+          if (s.silentMs > (s.mode === 'wake' ? 650 : 1100) || s.speechMs > maxMs) {
+            s.speaking = false; const parts = s.buf; s.buf = [];
+            const total = parts.reduce((a, p) => a + p.length, 0);
+            if (s.speechMs < 350) { if (s.mode === 'wake') setPhase('idle'); return; }
+            const all = new Float32Array(total); let o = 0; for (const p of parts) { all.set(p, o); o += p.length; }
+            handle(wav(downsample(all, rate), 16000));
+          }
+        };
+      } catch (e) { setHint('⚠ Microphone not available: ' + (e.message || e)); setOn(false); }
+    })();
+
+    async function handle(b64) {
+      s.busy = true;
+      const prefs = voicePrefs();
+      try {
+        if (s.mode === 'wake') {
+          setPhase('checking');
+          const r = await window.api.stt.transcribe({ audio: b64, mime: 'audio/wav', language: 'auto', quick: true, model: 'base', engine: 'local' });
+          const t = String(r.text || '');
+          const m = t.match(WAKE);
+          if (m) {
+            let rest = t.slice(m[0].length).trim();
+            if (rest.length > 3 && /[^\x00-\x7F]/.test(rest)) { // spoken in another language → understand it in English
+              try { const tr = await window.api.stt.transcribe({ audio: b64, mime: 'audio/wav', language: r.language, translate: true, quick: true, model: 'base', engine: 'local' }); const en = String(tr.text || ''); const mm = en.match(WAKE); rest = (mm ? en.slice(mm[0].length) : en).trim() || rest; } catch { /* keep original */ }
+            }
+            if (rest.length > 3) { await command(rest, r.language); }
+            else { beep(true); s.mode = 'command'; setPhase('command'); setHint('Listening — what should I do?'); s.cmdTimer = setTimeout(() => { if (s.mode === 'command' && !s.speaking) { s.mode = 'wake'; setPhase('idle'); setHint('Say "Hey Pandora…"'); } }, 8000); }
+          } else setPhase('idle');
+        } else {
+          clearTimeout(s.cmdTimer); setPhase('working'); beep(false);
+          // commands are understood in English whatever language you speak (Whisper translate)
+          const r = await window.api.stt.transcribe({ audio: b64, mime: 'audio/wav', language: prefs.language, translate: true, engine: 'local', model: prefs.model || 'small' });
+          await command(String(r.text || ''), r.language);
+          s.mode = 'wake';
+        }
+      } catch (e) { setHint('⚠ ' + String(e.message || e).replace(/^Error invoking remote method '[^']+':\s*(Error:\s*)?/, '')); s.mode = 'wake'; }
+      if (alive) { setPhase('idle'); s.busy = false; }
+    }
+
+    async function command(text, lang) {
+      const t = text.trim(); const low = t.toLowerCase();
+      setHint('🗣 "' + t.slice(0, 80) + '"');
+      if (!t) return;
+      // the Agent page (or any page) can take the words first — plan approval, notes while it works…
+      const ev = new CustomEvent('pandora:voice', { detail: { text: t, lang }, cancelable: true });
+      if (!window.dispatchEvent(ev)) return; // a page handled it
+      const open = low.match(/^(?:open|go to|show|switch to|take me to|kholo|khol|ابریں)\s+(.+)/);
+      if (open) {
+        const hit = PAGES.find(([re]) => re.test(open[1]));
+        if (hit) { go(hit[1]); speak('Opening ' + hit[1]); return; }
+      }
+      const gen = t.match(/^(?:create|generate|make|draw|imagine|banao|bana do)\s+(?:an?\s+)?(image|picture|photo|video|song|music|sound|audio)?\s*(?:of|about|for)?\s*(.+)/i);
+      if (gen && gen[2]) {
+        const kind = /video/i.test(gen[1] || '') ? 'video' : /song|music|sound|audio/i.test(gen[1] || '') ? 'audio' : 'image';
+        go('create', { kind, prompt: gen[2] }); speak('Okay, setting up your ' + kind); return;
+      }
+      // anything else is a job for the agent
+      go('agent', { goal: t }); speak('Got it. I\'ve given that to the agent.');
+    }
+
+    return () => { alive = false; clearTimeout(st.current.cmdTimer); try { proc && (proc.onaudioprocess = null); } catch { /* */ } stream && stream.getTracks().forEach((x) => x.stop()); ctx && ctx.close().catch(() => {}); };
+  }, [on]);
+
+  const label = { off: 'Hey Pandora: off', idle: 'Listening for "Hey Pandora"', hearing: 'Hearing…', checking: 'Hmm…', command: 'Yes? Go ahead…', working: 'On it…' }[phase];
+  return (
+    <div className={'wake ' + phase} title={hint || label}>
+      <button type="button" className="wake-btn" onClick={() => setOn((v) => !v)} aria-pressed={on}>
+        <span className="wake-dot" />{on ? '👂' : '🎙'} <span className="wake-l">{on ? (phase === 'command' ? 'Yes?' : 'Hey Pandora') : 'Hey Pandora'}</span>
+      </button>
+      {on && hint && <div className="wake-hint">{hint}</div>}
+    </div>
+  );
+}

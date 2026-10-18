@@ -14,6 +14,7 @@ const jutsu = require('./jutsu');
 const cut = require('./cut');
 const agent = require('./agent');
 const mcp = require('./mcp');
+const stt = require('./stt');
 const market = require('./market');
 
 let win;
@@ -449,6 +450,9 @@ function registerIpc() {
   try {
     mcp.start({ ...agentDeps, version: app.getVersion(), thumb: async (f) => { const { nativeImage } = require('electron'); const im = nativeImage.createFromPath(f); if (im.isEmpty()) return null; const s = im.getSize(); return (s.width > 768 ? im.resize({ width: 768 }) : im).toJPEG(80).toString('base64'); } });
   } catch (e) { console.error('[mcp]', e.message); }
+  // ── Voice input (speech-to-text, ~99 languages): free local Whisper or OpenAI ──
+  safeHandle('stt:status', () => stt.status(userData(), getKeys()));
+  safeHandle('stt:transcribe', (_e, opts) => stt.transcribe(userData(), getKeys(), opts || {}, (msg) => { if (win && !win.isDestroyed()) win.webContents.send('stt:status', msg); }));
   safeHandle('connect:status', () => mcp.status());
   safeHandle('connect:configure', (_e, patch) => mcp.configure(patch || {}));
   safeHandle('connect:configs', () => mcp.clientConfigs());
@@ -457,6 +461,7 @@ function registerIpc() {
     const r = await agent.planRoutes(agentDeps, opts || {});
     return { mode: r.mode, vram: r.vram, gpu: r.gpu, brain: r.brain, image: r.image.map((x) => x.label), video: r.video.map((x) => x.label), voice: r.voice.map((x) => x.label) };
   });
+  safeHandle('agent:tell', (_e, text) => agent.tell(text));
   safeHandle('agent:approve', (_e, ok, note) => agent.approve(!!ok, note || ''));
   safeHandle('agent:cancel', () => { cut.cancelAll(); return agent.cancel(); });
   safeHandle('agent:status', () => agent.status());
@@ -651,6 +656,14 @@ function createWindow() {
     if (cmd === 'browser-backward') win.webContents.send('nav:history', 'back');
     if (cmd === 'browser-forward') win.webContents.send('nav:history', 'forward');
   });
+  // microphone for voice input (our own pages only); everything else denied
+  try {
+    win.webContents.session.setPermissionRequestHandler((wc, permission, cb, details) => {
+      const own = /^(file|http:\/\/localhost)/.test((details && details.requestingUrl) || wc.getURL());
+      cb(own && (permission === 'media' || permission === 'clipboard-sanitized-write'));
+    });
+    win.webContents.session.setPermissionCheckHandler((wc, permission) => permission === 'media' || permission === 'clipboard-sanitized-write');
+  } catch (_) {}
   win.webContents.setWindowOpenHandler(({ url }) => {
     if (/^https?:\/\//.test(url)) shell.openExternal(url);
     return { action: 'deny' };
@@ -717,6 +730,7 @@ app.on('before-quit', () => {
   try { for (const r of engine.activeDownloads()) engine.cancelDownload(r); } catch (_) {}
   try { cut.cancelAll(); } catch (_) {}
   try { mcp.stop(); } catch (_) {}
+  try { stt.stopWorker(); } catch (_) {}
 });
 
 app.on('window-all-closed', () => {

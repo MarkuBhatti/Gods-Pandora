@@ -52,6 +52,11 @@ contextBridge.exposeInMainWorld('api', {
     list: () => ipcRenderer.invoke('job:list'),
   },
   claude: (args) => ipcRenderer.invoke('claude:complete', args),
+  stt: {
+    status: () => ipcRenderer.invoke('stt:status'),
+    transcribe: (opts) => ipcRenderer.invoke('stt:transcribe', opts),
+    onStatus: (cb) => { const h = (_e, m) => cb(m); ipcRenderer.on('stt:status', h); return () => ipcRenderer.removeListener('stt:status', h); },
+  },
   connect: {
     status: () => ipcRenderer.invoke('connect:status'),
     configure: (patch) => ipcRenderer.invoke('connect:configure', patch),
@@ -61,6 +66,7 @@ contextBridge.exposeInMainWorld('api', {
   agent: {
     run: (args) => ipcRenderer.invoke('agent:run', args),
     approve: (ok, note) => ipcRenderer.invoke('agent:approve', ok, note),
+    tell: (text) => ipcRenderer.invoke('agent:tell', text),
     cancel: () => ipcRenderer.invoke('agent:cancel'),
     status: () => ipcRenderer.invoke('agent:status'),
     models: () => ipcRenderer.invoke('agent:models'),

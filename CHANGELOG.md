@@ -3,6 +3,15 @@
 ## 0.4.0 — 2026-10-16 · Pandora Cut + "never a problem" update
 
 ### Added
+- **Voice control in ~99 languages**: a 🎙 button on every prompt (Studio, tools, Film, Home) and on the Agent —
+  speak Urdu, Hindi, Arabic, Spanish, Chinese… and it types for you, optionally translated to English for
+  image/video prompts. Free & offline with Whisper on your PC (installed on first use; fast / balanced / best
+  accuracy), or OpenAI with your key. The Agent can talk back, you can approve its plan by saying "yes" (in many
+  languages) and give it spoken notes while it works.
+- **"Hey Pandora" wake word** (sidebar toggle): hands-free like "Hey Siri" — "Hey Pandora, open colour",
+  "Hey Pandora, create an image of a red sports car at night", or any job ("…launch my coffee brand") goes to the
+  Agent. Commands work in any language. Listening is private (recognised on your PC, never sent to the cloud),
+  shown by a light, and off until you turn it on.
 - **Pandora Connect** (new tab): an MCP connector so **Claude Desktop, Claude Code, ChatGPT (via tunnel), Cursor,
   VS Code / Copilot, Windsurf** or any MCP app can use God's Pandora from chat — generate images, video shots,
   voice-overs, documents, decks, auto-edit, colour-grade, build a launch package or hand a whole job to the agent.

@@ -964,3 +964,28 @@ body { background: #050508 !important; }
 .cn-ex { padding: 9px 12px; margin: 6px 0; border-radius: 14px; background: rgba(139,107,255,.08); border: 1px solid rgba(139,107,255,.2); font-size: 12.5px; cursor: pointer; }
 .cn-ex:hover { background: rgba(139,107,255,.15); }
 .cn-tools { display: flex; flex-wrap: wrap; gap: 6px; }
+
+/* ══ Voice input ══ */
+.mic-wrap { position: relative; display: inline-flex; align-items: center; gap: 6px; flex-wrap: wrap; }
+.mic-btn { width: 38px; height: 38px; border-radius: 50%; border: 1px solid rgba(255,255,255,.15); background: rgba(255,255,255,.06); color: inherit; cursor: pointer; font-size: 16px; display: grid; place-items: center; transition: transform .2s, background .2s; }
+.mic-wrap.small .mic-btn { width: 30px; height: 30px; font-size: 13px; }
+.mic-btn:hover { transform: scale(1.06); background: rgba(139,107,255,.18); }
+.mic-btn.rec { background: #ff4d6d; border-color: #ff4d6d; color: #fff; box-shadow: 0 0 0 calc(4px + var(--lvl, 0) * 18px) rgba(255,77,109,.25); animation: none; }
+.mic-opt { border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.04); color: #c9c4dc; border-radius: 999px; padding: 3px 8px; font-size: 10.5px; cursor: pointer; }
+.mic-live { font-size: 11px; color: #ff8fa3; }
+.mic-msg { font-size: 11px; color: #9a95b0; max-width: 420px; }
+.mic-pop { position: absolute; top: 110%; left: 0; z-index: 50; width: 290px; padding: 12px; border-radius: 16px; background: #1a1825; border: 1px solid rgba(255,255,255,.12); box-shadow: 0 14px 40px rgba(0,0,0,.5); display: flex; flex-direction: column; gap: 4px; animation: iwPop .3s cubic-bezier(.2,1.35,.4,1); }
+.mic-pop label { font-size: 11px; margin: 4px 0 0; }
+.ag-talk { display: flex; gap: 8px; align-items: center; padding: 8px 10px; border-radius: 16px; background: rgba(79,209,255,.06); border: 1px solid rgba(79,209,255,.2); }
+.ag-talk input { flex: 1; }
+.ag-you { background: rgba(79,209,255,.08); }
+/* Hey Pandora */
+.wake { padding: 6px 10px 0; position: relative; }
+.wake-btn { width: 100%; display: flex; align-items: center; gap: 6px; padding: 7px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.04); color: #cfc8ff; font-size: 11.5px; cursor: pointer; }
+.wake-dot { width: 8px; height: 8px; border-radius: 50%; background: #666; flex-shrink: 0; }
+.wake.idle .wake-dot { background: #40dc8c; box-shadow: 0 0 8px #40dc8c; }
+.wake.hearing .wake-dot, .wake.checking .wake-dot { background: #4fd1ff; box-shadow: 0 0 10px #4fd1ff; animation: mstatPulse .8s infinite; }
+.wake.command .wake-btn { border-color: #b98bff; background: linear-gradient(90deg, rgba(139,107,255,.35), rgba(79,209,255,.2)); color: #fff; }
+.wake.command .wake-dot { background: #ff4d6d; box-shadow: 0 0 12px #ff4d6d; animation: mstatPulse .6s infinite; }
+.wake.working .wake-dot { background: #ffb86b; }
+.wake-hint { font-size: 10.5px; color: #9a95b0; padding: 4px 6px 0; line-height: 1.3; }
