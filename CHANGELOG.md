@@ -59,6 +59,12 @@
 - **Lite mode** (sidebar): freezes animated scenes and blur; Auto turns it on for low-end PCs and low battery.
 
 ### Fixed / improved
+- Pandora Connect: fixed "metadata" / connection errors in Claude — no OAuth challenge on a wrong/missing token (it made
+  clients look for OAuth metadata), OAuth discovery URLs answer immediately, protocol version follows the client
+  (2024-11-05 / 2025-03-26 / 2025-06-18), resources/templates, logging and completion requests answered, tool titles
+  & annotations added, tool errors flagged properly. The Claude Desktop bridge now reads the live token/port (a new
+  token never breaks it) and starts God's Pandora automatically if it isn't open. Added a "Claude (connector URL)"
+  guide explaining that Claude's custom connectors need a public HTTPS tunnel.
 - Voice input / "Hey Pandora" could show "recording" but never return text: the audio engine could start
   suspended, the speech engine needed a package that isn't available for every Python version, and errors were
   silent. Now: Whisper runs through the already-installed engine (any Python), recordings are converted to 16 kHz

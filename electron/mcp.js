@@ -11,6 +11,7 @@ const path = require('path');
 const crypto = require('crypto');
 
 const PROTOCOL = '2025-06-18';
+const SUPPORTED = ['2025-06-18', '2025-03-26', '2024-11-05']; // answer with the client's version when we support it
 let server = null;
 let cfgPath = null;
 let deps = null;
@@ -30,7 +31,13 @@ function saveCfg(c) { fs.mkdirSync(path.dirname(cfgPath), { recursive: true }); 
 const text = (t) => ({ type: 'text', text: typeof t === 'string' ? t : JSON.stringify(t, null, 2) });
 
 // ── tool catalogue exposed to external assistants ──
-function toolList() {
+const TITLES = { pandora_status: 'Studio status', write_document: 'Write document', generate_image: 'Generate image', generate_video: 'Generate video shot', generate_voiceover: 'Voice-over', auto_edit: 'Auto edit video', color_grade: 'Colour grade', make_presentation: 'Make presentation', list_assets: 'List files', finish_package: 'Finish launch package', run_agent: 'Run Pandora Agent', check_job: 'Check job' };
+function withMeta(t) {
+  const ro = ['pandora_status', 'list_assets', 'check_job'].includes(t.name);
+  return { ...t, title: TITLES[t.name] || t.name, annotations: { title: TITLES[t.name] || t.name, readOnlyHint: ro, destructiveHint: false, idempotentHint: ro, openWorldHint: !ro } };
+}
+function toolList() { return baseToolList().map(withMeta); }
+function baseToolList() {
   const { TOOLS } = require('./agent');
   const pick = TOOLS.filter((t) => !['propose_plan'].includes(t.name)).map((t) => ({
     name: t.name === 'finish' ? 'finish_package' : t.name,
@@ -110,16 +117,23 @@ async function handleRpc(msg, sessionId) {
   const ok = (result) => ({ jsonrpc: '2.0', id, result });
   const fail = (code, message) => ({ jsonrpc: '2.0', id, error: { code, message } });
   try {
-    if (method === 'initialize') return ok({ protocolVersion: PROTOCOL, capabilities: { tools: { listChanged: false } }, serverInfo: { name: "God's Pandora", version: deps.version || '0.4.0' }, instructions: "God's Pandora is a creative studio. Start with pandora_status, then use generate_image / generate_video / generate_voiceover / write_document / make_presentation / auto_edit / color_grade, and finish_package at the end. For a whole campaign, call run_agent." });
+    if (method === 'initialize') return ok({ protocolVersion: SUPPORTED.includes(params && params.protocolVersion) ? params.protocolVersion : PROTOCOL, capabilities: { tools: { listChanged: false } }, serverInfo: { name: "God's Pandora", version: deps.version || '0.4.0' }, instructions: "God's Pandora is a creative studio. Start with pandora_status, then use generate_image / generate_video / generate_voiceover / write_document / make_presentation / auto_edit / color_grade, and finish_package at the end. For a whole campaign, call run_agent." });
     if (method === 'ping') return ok({});
     if (method === 'tools/list') return ok({ tools: toolList() });
     if (method === 'tools/call') {
-      try { return ok({ content: await callTool(sessionId, params && params.name, (params && params.arguments) || {}) }); }
+      try {
+        const content = await callTool(sessionId, params && params.name, (params && params.arguments) || {});
+        const isErr = !!(content[0] && content[0].type === 'text' && /^\{\s*"error"/.test(content[0].text));
+        return ok(isErr ? { content, isError: true } : { content });
+      }
       catch (e) { return ok({ content: [text('Error: ' + String(e.message || e))], isError: true }); }
     }
     if (method && method.startsWith('notifications/')) return null;
     if (method === 'resources/list') return ok({ resources: [] });
+    if (method === 'resources/templates/list') return ok({ resourceTemplates: [] });
     if (method === 'prompts/list') return ok({ prompts: [] });
+    if (method === 'logging/setLevel') return ok({});
+    if (method === 'completion/complete') return ok({ completion: { values: [], total: 0, hasMore: false } });
     return fail(-32601, 'Method not found: ' + method);
   } catch (e) { return fail(-32603, String(e.message || e)); }
 }
@@ -134,10 +148,16 @@ function start(d) {
     const origin = req.headers.origin;
     if (origin && !/^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)) { res.writeHead(403, cors); return res.end('Forbidden origin'); } // DNS-rebinding guard
     const url = new URL(req.url, 'http://127.0.0.1');
-    if (url.pathname !== '/mcp') { res.writeHead(404, cors); return res.end('Not found'); }
+    // OAuth discovery probes (Claude / ChatGPT connectors): we use a token instead of OAuth — answer clearly, never hang
+    if (url.pathname.startsWith('/.well-known/')) { res.writeHead(404, { ...cors, 'Content-Type': 'application/json' }); return res.end(JSON.stringify({ error: 'not_supported', error_description: "God's Pandora uses a token in the URL (?token=…) or an Authorization: Bearer header, not OAuth." })); }
+    if (url.pathname !== '/mcp' && url.pathname !== '/mcp/') { res.writeHead(404, cors); return res.end('Not found — the MCP endpoint is /mcp'); }
     const tok = (req.headers.authorization || '').replace(/^Bearer\s+/i, '') || url.searchParams.get('token') || '';
     const want = loadCfg().token;
-    if (!tok || tok.length !== want.length || !crypto.timingSafeEqual(Buffer.from(tok), Buffer.from(want))) { res.writeHead(401, { ...cors, 'WWW-Authenticate': 'Bearer' }); return res.end('Unauthorized — use the token shown in God\'s Pandora → Pandora Connect'); }
+    if (!tok || tok.length !== want.length || !crypto.timingSafeEqual(Buffer.from(tok), Buffer.from(want))) {
+      // no WWW-Authenticate header on purpose: it makes MCP clients start an OAuth "metadata" discovery that can't succeed
+      res.writeHead(401, { ...cors, 'Content-Type': 'application/json' });
+      return res.end(JSON.stringify({ jsonrpc: '2.0', id: null, error: { code: -32001, message: "Missing or wrong token — copy the URL with ?token=… (or the Authorization header) from God's Pandora → Pandora Connect." } }));
+    }
     if (req.method === 'GET') { res.writeHead(405, { ...cors, Allow: 'POST' }); return res.end(); }
     if (req.method === 'DELETE') { sessions.delete(req.headers['mcp-session-id']); res.writeHead(200, cors); return res.end(); }
     if (req.method !== 'POST') { res.writeHead(405, cors); return res.end(); }
@@ -166,22 +186,50 @@ function bridgePath() { return path.join(path.dirname(cfgPath), 'pandora-mcp.js'
 // stdio ⇄ HTTP bridge for Claude Desktop & other clients that launch a local command (runs with the app's own runtime)
 function writeBridge() {
   const src = `// God's Pandora MCP bridge (stdio ⇄ http). Generated by the app — safe to delete, it is recreated on start.
-const URL_ = process.env.PANDORA_MCP_URL || 'http://127.0.0.1:8765/mcp';
-const TOKEN = process.env.PANDORA_MCP_TOKEN || '';
+// the live settings file next to this script wins, so a new token or port never breaks a configured app
+let URL_ = process.env.PANDORA_MCP_URL || 'http://127.0.0.1:8765/mcp';
+let TOKEN = process.env.PANDORA_MCP_TOKEN || '';
+function refresh() {
+  try {
+    const c = JSON.parse(require('fs').readFileSync(require('path').join(__dirname, 'mcp.json'), 'utf8'));
+    if (c.token) TOKEN = c.token; if (c.port) URL_ = 'http://127.0.0.1:' + c.port + '/mcp';
+  } catch (_) {}
+}
+refresh();
 let sid = null, buf = '';
 process.stdin.setEncoding('utf8');
 process.stdin.on('data', (d) => { buf += d; let i; while ((i = buf.indexOf('\\n')) >= 0) { const line = buf.slice(0, i).trim(); buf = buf.slice(i + 1); if (line) send(line); } });
+let launched = false;
+function launchApp() {
+  if (launched) return; launched = true;
+  try {
+    const env = { ...process.env }; delete env.ELECTRON_RUN_AS_NODE; delete env.PANDORA_MCP_TOKEN;
+    require('child_process').spawn(process.execPath, [], { detached: true, stdio: 'ignore', env, windowsHide: false }).unref();
+  } catch (_) {}
+}
+async function post(line) {
+  refresh();
+  return fetch(URL_, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json', Authorization: 'Bearer ' + TOKEN, ...(sid ? { 'Mcp-Session-Id': sid } : {}) }, body: line });
+}
 async function send(line) {
   let msg; try { msg = JSON.parse(line); } catch (_) { return; }
   try {
-    const r = await fetch(URL_, { method: 'POST', headers: { 'Content-Type': 'application/json', Accept: 'application/json', Authorization: 'Bearer ' + TOKEN, ...(sid ? { 'Mcp-Session-Id': sid } : {}) }, body: line });
+    let r;
+    for (let i = 0; ; i++) {
+      try { r = await post(line); break; }
+      catch (e) { // app not running yet → start it and wait up to ~40 s
+        if (i === 0) launchApp();
+        if (i > 40) throw new Error("God's Pandora did not start");
+        await new Promise((res) => setTimeout(res, 1000));
+      }
+    }
     const s = r.headers.get('mcp-session-id'); if (s) sid = s;
     if (r.status === 202) return;
     const t = await r.text();
-    if (!r.ok) throw new Error(r.status + ' ' + t);
+    if (!r.ok) { let m = t; try { m = JSON.parse(t).error.message; } catch (_) {} throw new Error(m); }
     process.stdout.write(t.replace(/\\n/g, ' ') + '\\n');
   } catch (e) {
-    if (msg && msg.id !== undefined) process.stdout.write(JSON.stringify({ jsonrpc: '2.0', id: msg.id, error: { code: -32000, message: "God's Pandora is not reachable — open the app and turn on Pandora Connect. (" + e.message + ")" } }) + '\\n');
+    if (msg && msg.id !== undefined) process.stdout.write(JSON.stringify({ jsonrpc: '2.0', id: msg.id, error: { code: -32000, message: "God's Pandora: " + e.message + " — open the app and turn on Pandora Connect." } }) + '\\n');
   }
 }
 `;

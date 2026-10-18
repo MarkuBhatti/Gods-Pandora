@@ -41,7 +41,7 @@ export default function PandoraConnect() {
   };
 
   const tok = st ? (show ? st.token : st.token.slice(0, 4) + '••••••••••••' + st.token.slice(-4)) : '';
-  const CLIENTS = [['claude', 'Claude Desktop'], ['claudecode', 'Claude Code'], ['chatgpt', 'ChatGPT'], ['cursor', 'Cursor'], ['vscode', 'VS Code / Copilot'], ['windsurf', 'Windsurf'], ['any', 'Any MCP app']];
+  const CLIENTS = [['claude', 'Claude Desktop'], ['claudeweb', 'Claude (connector URL)'], ['claudecode', 'Claude Code'], ['chatgpt', 'ChatGPT'], ['cursor', 'Cursor'], ['vscode', 'VS Code / Copilot'], ['windsurf', 'Windsurf'], ['any', 'Any MCP app']];
 
   return (
     <div>
@@ -99,6 +99,14 @@ export default function PandoraConnect() {
             <button className="btn" onClick={addClaude}>＋ Add to Claude Desktop</button>
             <p className="sub" style={{ fontSize: 11, marginTop: 10 }}>Or paste this into Claude Desktop → Settings → Developer → Edit Config:</p>
             <Snip value={cfgs.claudeDesktop} />
+          </>)}
+          {cfgs && client === 'claudeweb' && (<>
+            <p className="sub"><b>Recommended:</b> use the <a style={{ cursor: 'pointer', color: 'var(--accent)' }} onClick={() => setClient('claude')}>Claude Desktop</a> one-click setup — it works locally with no tunnel.</p>
+            <p className="sub">Claude's <b>Settings → Connectors → Add custom connector</b> connects from Anthropic's servers, so it needs a <b>public HTTPS</b> address (it can't see <code>127.0.0.1</code>). If you see a "metadata" or "couldn't connect" error there, that's why. To use it anyway:</p>
+            <Snip value={`cloudflared tunnel --url http://127.0.0.1:${st?.port || 8765}`} />
+            <p className="sub">Then add a custom connector with this URL (replace the address with the one cloudflared prints) and leave OAuth settings empty:</p>
+            <Snip value={cfgs.tunnelUrl.replace(`http://127.0.0.1:${st?.port || 8765}`, 'https://YOUR-TUNNEL.trycloudflare.com')} />
+            <p className="sub" style={{ fontSize: 11, color: '#ffb86b' }}>⚠ Anyone with the full link can use your studio while the tunnel runs. Stop it when done and create a new token if the link was shared.</p>
           </>)}
           {cfgs && client === 'claudecode' && (<><p className="sub">Run this once in a terminal:</p><Snip value={cfgs.claudeCode} /></>)}
           {cfgs && client === 'cursor' && (<><p className="sub">Cursor → Settings → MCP → Add new global MCP server, or paste into <code>~/.cursor/mcp.json</code>:</p><Snip value={cfgs.cursor} /></>)}
