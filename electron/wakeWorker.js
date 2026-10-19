@@ -17,7 +17,7 @@ try {
     numTrailingBlanks: 1,
     keywordsScore: workerData.score || 1.5,
     keywordsThreshold: workerData.threshold || 0.2,
-    keywords: workerData.keywordsFile,
+    keywords: workerData.keywordsText,
   });
   stream = kws.createStream();
   parentPort.postMessage({ type: 'ready' });

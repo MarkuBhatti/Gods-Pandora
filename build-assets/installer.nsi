@@ -5,6 +5,8 @@ ManifestDPIAware true
 !include "MUI2.nsh"
 !include "FileFunc.nsh"
 !include "LogicLib.nsh"
+!include "nsDialogs.nsh"
+!include "WinMessages.nsh"
 
 !define APPNAME "God's Pandora"
 !define EXENAME "God's Pandora.exe"
@@ -65,6 +67,7 @@ VIAddVersionKey "ProductVersion" "${VERSION}"
 !define MUI_CUSTOMFUNCTION_UNGUIINIT un.DarkGuiInit
 
 ; ── pages: one big, rounded, borderless card (like Resolve / modern app installers) ──
+Page custom LocationsPage LocationsLeave
 !define MUI_PAGE_CUSTOMFUNCTION_SHOW BigShow
 !insertmacro MUI_PAGE_INSTFILES
 
@@ -168,7 +171,18 @@ FunctionEnd
 
 
 ; ── splash (like Resolve's launch card) ──
+Var DataDir
 Function .onInit
+  ReadRegStr $DataDir HKCU "Software\God's Pandora" "DataDir"
+  ${If} $DataDir == ""
+    ${If} ${FileExists} "$APPDATA\God's Eye\db.json"
+      StrCpy $DataDir "$APPDATA\God's Eye"
+    ${ElseIf} ${FileExists} "$APPDATA\God's Eye\keys.enc.json"
+      StrCpy $DataDir "$APPDATA\God's Eye"
+    ${Else}
+      StrCpy $DataDir "$APPDATA\God's Pandora"
+    ${EndIf}
+  ${EndIf}
   ${IfNot} ${Silent}
     InitPluginsDir
     File "/oname=$PLUGINSDIR\splash.bmp" "${ART}/splash.bmp"
@@ -270,6 +284,105 @@ Function BigShow
   ShowWindow $8 ${SW_HIDE}
 FunctionEnd
 
+
+; ── locations: where the app goes, and where the library + AI models go (they can be tens of GB) ──
+Var hInst
+Var hData
+!macro LOC_CTL OUT CLASS STYLE TEXT X Y W H
+  !insertmacro SCALE $R1 ${X}
+  !insertmacro SCALE $R2 ${Y}
+  !insertmacro SCALE $R3 ${W}
+  !insertmacro SCALE $R4 ${H}
+  nsDialogs::CreateControl ${CLASS} ${STYLE} 0 $R1 $R2 $R3 $R4 "${TEXT}"
+  Pop ${OUT}
+  SendMessage ${OUT} ${WM_SETFONT} $R9 1
+!macroend
+
+Function LocationsPage
+  nsDialogs::Create 1018
+  Pop $5
+  ${If} $5 == error
+    Abort
+  ${EndIf}
+  System::Call 'user32::SetWindowPos(p r5, p 0, i 0, i 0, i $CardW, i $CardH, i 0x0014)'
+  SetCtlColors $5 E9E9EF 0D0C14
+  System::Call 'user32::CreateWindowExW(i 0, w "STATIC", w "", i 0x5000000E, i 0, i 0, i $CardW, i $CardH, p r5, p 0, p 0, p 0) p .r6'
+  System::Call 'user32::LoadImageW(p 0, w "$PLUGINSDIR\bg.bmp", i 0, i 0, i 0, i 0x10) p .r7'
+  SendMessage $6 0x0172 0 $7
+  CreateFont $R9 "Segoe UI" 10 400
+  CreateFont $R8 "Segoe UI" 10 600
+  ; panel covering the feature list + progress track
+  !insertmacro LOC_CTL $R7 STATIC ${WS_CHILD}|${WS_VISIBLE} "" 470 300 432 196
+  SetCtlColors $R7 E9E9EF 1B1926
+  !insertmacro LOC_CTL $0 STATIC ${WS_CHILD}|${WS_VISIBLE} "Install God's Pandora to" 486 304 398 18
+  SendMessage $0 ${WM_SETFONT} $R8 1
+  SetCtlColors $0 E9E9EF 1B1926
+  !insertmacro LOC_CTL $hInst EDIT ${WS_CHILD}|${WS_VISIBLE}|${WS_TABSTOP}|${ES_AUTOHSCROLL} "$INSTDIR" 486 324 300 26
+  SetCtlColors $hInst E9E9EF 26232F
+  !insertmacro LOC_CTL $0 BUTTON ${WS_CHILD}|${WS_VISIBLE}|${WS_TABSTOP} "Browse…" 794 324 90 26
+  ${NSD_OnClick} $0 BrowseInst
+  !insertmacro LOC_CTL $0 STATIC ${WS_CHILD}|${WS_VISIBLE} "Library, downloads && AI models  (5–60 GB — pick a big drive)" 486 362 398 18
+  SendMessage $0 ${WM_SETFONT} $R8 1
+  SetCtlColors $0 E9E9EF 1B1926
+  !insertmacro LOC_CTL $hData EDIT ${WS_CHILD}|${WS_VISIBLE}|${WS_TABSTOP}|${ES_AUTOHSCROLL} "$DataDir" 486 382 300 26
+  SetCtlColors $hData E9E9EF 26232F
+  !insertmacro LOC_CTL $0 BUTTON ${WS_CHILD}|${WS_VISIBLE}|${WS_TABSTOP} "Browse…" 794 382 90 26
+  ${NSD_OnClick} $0 BrowseData
+  !insertmacro LOC_CTL $0 STATIC ${WS_CHILD}|${WS_VISIBLE} "Your keys, creations and models are moved there automatically on first launch." 486 414 398 18
+  SetCtlColors $0 9A95B0 1B1926
+  !insertmacro LOC_CTL $0 BUTTON ${WS_CHILD}|${WS_VISIBLE}|${WS_TABSTOP}|${BS_DEFPUSHBUTTON} "Install" 764 446 120 34
+  SendMessage $0 ${WM_SETFONT} $R8 1
+  ${NSD_OnClick} $0 DoInstall
+  !insertmacro LOC_CTL $0 BUTTON ${WS_CHILD}|${WS_VISIBLE}|${WS_TABSTOP} "Cancel" 650 446 104 34
+  ${NSD_OnClick} $0 DoCancel
+  ; z-order: controls on top, then the panel, then the artwork
+  System::Call 'user32::SetWindowPos(p R7, p 1, i 0, i 0, i 0, i 0, i 0x0013)'
+  System::Call 'user32::SetWindowPos(p r6, p 1, i 0, i 0, i 0, i 0, i 0x0013)'
+  nsDialogs::Show
+FunctionEnd
+
+Function BrowseInst
+  Pop $0
+  ${NSD_GetText} $hInst $1
+  nsDialogs::SelectFolderDialog "Where should God's Pandora be installed?" "$1"
+  Pop $1
+  ${If} $1 != error
+    ${NSD_SetText} $hInst "$1\God's Pandora"
+  ${EndIf}
+FunctionEnd
+
+Function BrowseData
+  Pop $0
+  ${NSD_GetText} $hData $1
+  nsDialogs::SelectFolderDialog "Where should your library and AI models be stored?" "$1"
+  Pop $1
+  ${If} $1 != error
+    ${NSD_SetText} $hData "$1\God's Pandora Data"
+  ${EndIf}
+FunctionEnd
+
+Function DoInstall
+  Pop $0
+  SendMessage $HWNDPARENT ${WM_COMMAND} 1 0
+FunctionEnd
+
+Function DoCancel
+  Pop $0
+  SendMessage $HWNDPARENT ${WM_COMMAND} 2 0
+FunctionEnd
+
+Function LocationsLeave
+  ${NSD_GetText} $hInst $0
+  ${NSD_GetText} $hData $1
+  ${If} $0 == ""
+  ${OrIf} $1 == ""
+    MessageBox MB_ICONEXCLAMATION "Please choose both folders."
+    Abort
+  ${EndIf}
+  StrCpy $INSTDIR $0
+  StrCpy $DataDir $1
+FunctionEnd
+
 Function .onInstSuccess
   ${IfNot} ${Silent}
     Exec "$\"$INSTDIR\${EXENAME}$\" --installed=${VERSION}"
@@ -323,6 +436,11 @@ Section "God's Pandora (required)" SecMain
   SetOutPath "$INSTDIR"
   WriteUninstaller "$INSTDIR\Uninstall God's Pandora.exe"
   WriteRegStr HKCU "Software\God's Pandora" "InstallDir" "$INSTDIR"
+  WriteRegStr HKCU "Software\God's Pandora" "DataDir" "$DataDir"
+  CreateDirectory "$DataDir"
+  FileOpen $0 "$INSTDIR\pandora-data.txt" w
+  FileWriteUTF16LE /BOM $0 "$DataDir"
+  FileClose $0
   WriteRegStr HKCU "${UNINSTKEY}" "DisplayName" "${APPNAME}"
   WriteRegStr HKCU "${UNINSTKEY}" "DisplayVersion" "${VERSION}"
   WriteRegStr HKCU "${UNINSTKEY}" "Publisher" "${PUBLISHER}"
@@ -369,7 +487,12 @@ Section "un.God's Pandora (app)" UnSecMain
 SectionEnd
 
 Section /o "un.Also delete my library, keys and downloaded models" UnSecData
+  ReadRegStr $0 HKCU "Software\God's Pandora" "DataDir"
+  ${If} $0 != ""
+    RMDir /r "$0"
+  ${EndIf}
   RMDir /r "$APPDATA\God's Pandora"
+  DeleteRegValue HKCU "Software\God's Pandora" "DataDir"
 SectionEnd
 
 !insertmacro MUI_UNFUNCTION_DESCRIPTION_BEGIN

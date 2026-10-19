@@ -117,10 +117,10 @@ async function startOnce(userData, { sensitivity = 'normal' } = {}, onStatus = (
   stop();
   const model = await ensureModel(userData, onStatus);
   stats.model = model.encoder; logUD = userData;
-  const keywordsFile = path.join(modelDir(userData), 'keywords-pandora.txt');
-  fs.writeFileSync(keywordsFile, PHRASES.map((p) => p + ' @HEY_PANDORA').join('\n') + '\n', 'utf8');
+  // NOTE: in the WebAssembly build sherpa-onnx parses `keywords` as the keyword TEXT itself, not a file path
+  const keywordsText = PHRASES.map((p) => p + ' @HEY_PANDORA').join('\n');
   onStatus('Starting the detector…');
-  const w = new Worker(unpacked(path.join(__dirname, 'wakeWorker.js')), { workerData: { sherpa: unpacked(require.resolve('sherpa-onnx')), model, keywordsFile, threshold: SENS[sensitivity] || SENS.normal, score: 1.5 } });
+  const w = new Worker(unpacked(path.join(__dirname, 'wakeWorker.js')), { workerData: { sherpa: unpacked(require.resolve('sherpa-onnx')), model, keywordsText, threshold: SENS[sensitivity] || SENS.normal, score: 1.5 } });
   worker = w;
   await new Promise((resolve, reject) => {
     const t = setTimeout(() => reject(new Error('The "Hey Pandora" detector did not start in time.')), 60000);

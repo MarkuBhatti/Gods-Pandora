@@ -33,6 +33,32 @@ let win;
   } catch { /* first run */ }
 })();
 
+// Data folder chosen in the installer (library, keys, downloaded AI models can be tens of GB → any drive).
+// First launch in a new folder: personal data is copied over; models + engine are moved (instant on the same drive).
+(() => {
+  try {
+    const f = path.join(path.dirname(process.execPath), 'pandora-data.txt');
+    if (!fs.existsSync(f)) return;
+    const b = fs.readFileSync(f);
+    const dir = (b[0] === 0xFF && b[1] === 0xFE ? b.subarray(2).toString('utf16le') : b.toString('utf8')).replace(/^﻿/, '').trim();
+    if (!dir) return;
+    const cur = app.getPath('userData');
+    if (path.resolve(dir).toLowerCase() === path.resolve(cur).toLowerCase()) return;
+    fs.mkdirSync(dir, { recursive: true });
+    if (!fs.existsSync(path.join(dir, 'db.json')) && fs.existsSync(cur)) {
+      for (const n of ['models', 'engine-venv']) {
+        const from = path.join(cur, n), to = path.join(dir, n);
+        if (fs.existsSync(from) && !fs.existsSync(to)) { try { fs.renameSync(from, to); } catch { /* other drive: downloaded again when needed */ } }
+      }
+      for (const n of ['db.json', 'keys.enc.json', 'library', 'assets', 'forge', 'agent-projects', 'connector', 'mcp.json']) {
+        const from = path.join(cur, n);
+        if (fs.existsSync(from)) { try { fs.cpSync(from, path.join(dir, n), { recursive: true, force: false, errorOnExist: false }); } catch { /* skip */ } }
+      }
+    }
+    app.setPath('userData', dir);
+  } catch (e) { console.error('[data folder]', e.message); }
+})();
+
 const userData  = () => app.getPath('userData');
 const libraryDir= () => ensure(path.join(userData(), 'library'));
 const assetsDir = () => ensure(path.join(userData(), 'assets'));
