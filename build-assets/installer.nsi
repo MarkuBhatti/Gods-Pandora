@@ -217,12 +217,16 @@ Function BigGuiInit
   InitPluginsDir
   ${If} $Dpi >= 180
     File "/oname=$PLUGINSDIR\bg.bmp" "${ART}/bg200.bmp"
+    File "/oname=$PLUGINSDIR\loc.bmp" "${ART}/loc200.bmp"
   ${ElseIf} $Dpi >= 132
     File "/oname=$PLUGINSDIR\bg.bmp" "${ART}/bg150.bmp"
+    File "/oname=$PLUGINSDIR\loc.bmp" "${ART}/loc150.bmp"
   ${ElseIf} $Dpi >= 110
     File "/oname=$PLUGINSDIR\bg.bmp" "${ART}/bg125.bmp"
+    File "/oname=$PLUGINSDIR\loc.bmp" "${ART}/loc125.bmp"
   ${Else}
     File "/oname=$PLUGINSDIR\bg.bmp" "${ART}/bg100.bmp"
+    File "/oname=$PLUGINSDIR\loc.bmp" "${ART}/loc100.bmp"
   ${EndIf}
   ; borderless popup, rounded corners (Windows 11), centred
   System::Call 'user32::SetWindowLongW(p $HWNDPARENT, i -16, i 0x96000000)'
@@ -286,17 +290,21 @@ FunctionEnd
 
 
 ; ── locations: where the app goes, and where the library + AI models go (they can be tens of GB) ──
+; artwork (loc*.bmp) has the labels, field boxes and button shapes; live controls sit exactly inside them
 Var hInst
 Var hData
-!macro LOC_CTL OUT CLASS STYLE TEXT X Y W H
+!define CLIPSIB 0x04000000
+!macro LOC_CTL OUT CLASS STYLE TEXT X Y W H FG BG
   !insertmacro SCALE $R1 ${X}
   !insertmacro SCALE $R2 ${Y}
   !insertmacro SCALE $R3 ${W}
   !insertmacro SCALE $R4 ${H}
-  nsDialogs::CreateControl ${CLASS} ${STYLE} 0 $R1 $R2 $R3 $R4 "${TEXT}"
+  nsDialogs::CreateControl ${CLASS} ${STYLE}|${WS_CHILD}|${WS_VISIBLE}|${CLIPSIB} 0 $R1 $R2 $R3 $R4 "${TEXT}"
   Pop ${OUT}
   SendMessage ${OUT} ${WM_SETFONT} $R9 1
+  SetCtlColors ${OUT} ${FG} ${BG}
 !macroend
+!define SS_BTN 0x00000301 ; SS_CENTER | SS_CENTERIMAGE | SS_NOTIFY
 
 Function LocationsPage
   nsDialogs::Create 1018
@@ -305,39 +313,31 @@ Function LocationsPage
     Abort
   ${EndIf}
   System::Call 'user32::SetWindowPos(p r5, p 0, i 0, i 0, i $CardW, i $CardH, i 0x0014)'
+  System::Call 'user32::GetWindowLongW(p r5, i -16) i .r0'
+  IntOp $0 $0 | 0x02000000 ; WS_CLIPCHILDREN
+  System::Call 'user32::SetWindowLongW(p r5, i -16, i r0)'
   SetCtlColors $5 E9E9EF 0D0C14
-  System::Call 'user32::CreateWindowExW(i 0, w "STATIC", w "", i 0x5000000E, i 0, i 0, i $CardW, i $CardH, p r5, p 0, p 0, p 0) p .r6'
-  System::Call 'user32::LoadImageW(p 0, w "$PLUGINSDIR\bg.bmp", i 0, i 0, i 0, i 0x10) p .r7'
-  SendMessage $6 0x0172 0 $7
   CreateFont $R9 "Segoe UI" 10 400
-  CreateFont $R8 "Segoe UI" 10 600
-  ; panel covering the feature list + progress track
-  !insertmacro LOC_CTL $R7 STATIC ${WS_CHILD}|${WS_VISIBLE} "" 470 300 432 196
-  SetCtlColors $R7 E9E9EF 1B1926
-  !insertmacro LOC_CTL $0 STATIC ${WS_CHILD}|${WS_VISIBLE} "Install God's Pandora to" 486 304 398 18
-  SendMessage $0 ${WM_SETFONT} $R8 1
-  SetCtlColors $0 E9E9EF 1B1926
-  !insertmacro LOC_CTL $hInst EDIT ${WS_CHILD}|${WS_VISIBLE}|${WS_TABSTOP}|${ES_AUTOHSCROLL} "$INSTDIR" 486 324 300 26
-  SetCtlColors $hInst E9E9EF 26232F
-  !insertmacro LOC_CTL $0 BUTTON ${WS_CHILD}|${WS_VISIBLE}|${WS_TABSTOP} "Browse…" 794 324 90 26
+  CreateFont $R8 "Segoe UI" 10 700
+  ; live controls (positions match loc.py)
+  !insertmacro LOC_CTL $hInst EDIT ${WS_TABSTOP}|${ES_AUTOHSCROLL} "$INSTDIR" 494 327 284 18 E9E9EF 100F18
+  !insertmacro LOC_CTL $0 STATIC ${SS_BTN} "Browse" 800 323 78 26 E9E9EF 2A2735
   ${NSD_OnClick} $0 BrowseInst
-  !insertmacro LOC_CTL $0 STATIC ${WS_CHILD}|${WS_VISIBLE} "Library, downloads && AI models  (5–60 GB — pick a big drive)" 486 362 398 18
-  SendMessage $0 ${WM_SETFONT} $R8 1
-  SetCtlColors $0 E9E9EF 1B1926
-  !insertmacro LOC_CTL $hData EDIT ${WS_CHILD}|${WS_VISIBLE}|${WS_TABSTOP}|${ES_AUTOHSCROLL} "$DataDir" 486 382 300 26
-  SetCtlColors $hData E9E9EF 26232F
-  !insertmacro LOC_CTL $0 BUTTON ${WS_CHILD}|${WS_VISIBLE}|${WS_TABSTOP} "Browse…" 794 382 90 26
+  !insertmacro LOC_CTL $hData EDIT ${WS_TABSTOP}|${ES_AUTOHSCROLL} "$DataDir" 494 391 284 18 E9E9EF 100F18
+  !insertmacro LOC_CTL $0 STATIC ${SS_BTN} "Browse" 800 387 78 26 E9E9EF 2A2735
   ${NSD_OnClick} $0 BrowseData
-  !insertmacro LOC_CTL $0 STATIC ${WS_CHILD}|${WS_VISIBLE} "Your keys, creations and models are moved there automatically on first launch." 486 414 398 18
-  SetCtlColors $0 9A95B0 1B1926
-  !insertmacro LOC_CTL $0 BUTTON ${WS_CHILD}|${WS_VISIBLE}|${WS_TABSTOP}|${BS_DEFPUSHBUTTON} "Install" 764 446 120 34
+  !insertmacro LOC_CTL $0 STATIC ${SS_BTN} "Cancel" 668 458 88 28 E9E9EF 2A2735
+  ${NSD_OnClick} $0 DoCancel
+  !insertmacro LOC_CTL $0 STATIC ${SS_BTN} "Install" 780 458 96 28 FFFFFF 8B6BFF
   SendMessage $0 ${WM_SETFONT} $R8 1
   ${NSD_OnClick} $0 DoInstall
-  !insertmacro LOC_CTL $0 BUTTON ${WS_CHILD}|${WS_VISIBLE}|${WS_TABSTOP} "Cancel" 650 446 104 34
-  ${NSD_OnClick} $0 DoCancel
-  ; z-order: controls on top, then the panel, then the artwork
-  System::Call 'user32::SetWindowPos(p R7, p 1, i 0, i 0, i 0, i 0, i 0x0013)'
+  ; artwork last, sent to the bottom
+  System::Call 'user32::CreateWindowExW(i 0, w "STATIC", w "", i 0x5400000E, i 0, i 0, i $CardW, i $CardH, p r5, p 0, p 0, p 0) p .r6'
+  System::Call 'user32::LoadImageW(p 0, w "$PLUGINSDIR\loc.bmp", i 0, i 0, i 0, i 0x10) p .r7'
+  SendMessage $6 0x0172 0 $7
   System::Call 'user32::SetWindowPos(p r6, p 1, i 0, i 0, i 0, i 0, i 0x0013)'
+  ${NSD_SetFocus} $hInst
+  SendMessage $hInst ${EM_SETSEL} -1 -1
   nsDialogs::Show
 FunctionEnd
 
