@@ -59,7 +59,7 @@ export default function PandoraAgent() {
   useEffect(() => { if (logRef.current) logRef.current.scrollTop = logRef.current.scrollHeight; }, [events]);
   // "Hey Pandora, …" — voice commands land here first
   const live = useRef({}); live.current = { plan, running: job.running, goal, start: () => start() };
-  useEffect(() => { const it = takeIntent('agent'); if (it?.goal) { setGoal(it.goal); if (talkRef.current) speak('Say start when you are ready, or add more details.'); } }, []);
+  useEffect(() => { const it = takeIntent('agent'); if (it?.goal) { setGoal(it.goal); if (it.mode) setMode(it.mode); if (it.autorun) setTimeout(() => { if (live.current.goal.trim().length >= 10 && !live.current.running) live.current.start(); }, 500); else if (talkRef.current) speak('Say start when you are ready, or add more details.'); } }, []);
   useEffect(() => {
     const onVoice = (e) => {
       const t = String(e.detail?.text || '').trim(); const L = live.current;

@@ -1,6 +1,9 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNav } from './nav.jsx';
 import { speak, voicePrefs } from './Voice.jsx';
+import { parse as parseCommand } from './voiceIntent.js';
+
+let recentFile = null; // last image/video made by voice → "grade it warm"
 
 // "Hey Pandora" — hands-free voice control (like "Hey Siri" / "OK Google").
 // Privacy: listening only happens while the toggle is on, a light shows it, and speech is recognised
@@ -91,7 +94,8 @@ export default function WakeWord() {
     const onHit = () => {
       if (!alive || s.mode !== 'wake' || s.busy) return;
       beep(true); clearTimeout(s.cmdTimer);
-      s.mode = 'command'; s.speaking = false; s.buf = []; s.pre = []; setPhase('command'); setHint('Yes? Say your command…');
+      s.mode = 'command'; s.speaking = !!s.lastLoud; s.buf = s.lastLoud ? s.pre.slice(-2) : []; s.pre = []; s.silentMs = 0; s.speechMs = 0; setPhase('command'); setHint('Yes? Say your command…');
+      window.api.wake.log?.('wake word → listening for command');
       s.cmdTimer = setTimeout(() => { if (alive && s.mode === 'command' && !s.speaking && !s.busy) ready(); }, 8000);
     };
     (async () => {
@@ -122,7 +126,7 @@ export default function WakeWord() {
           if (!status.local) { setHint('⚠ The "Hey Pandora" detector could not be downloaded and the local engine is not installed. Check your internet and turn it on again.'); setOn(false); return; }
           try { await window.api.stt.warm('base'); } catch (e) { setHint('⚠ ' + clean(e)); setOn(false); return; }
         } else if (status.local) {
-          window.api.stt.warm(voicePrefs().model || 'small').catch(() => {}); // get the command model ready in the background
+          window.api.stt.warm(voicePrefs().model || 'base').catch(() => {}); // get the command model ready in the background (never blocks: cloud is used until it is ready)
         }
         if (!alive) return;
         s.busy = false; s.peak = 0; s.started = Date.now();
@@ -136,7 +140,7 @@ export default function WakeWord() {
           const now = Date.now(); if (!s.lvlAt || now - s.lvlAt > 120) { s.lvlAt = now; setLevel(Math.min(1, rms * 12)); }
           // the keyword spotter hears everything while waiting for the wake word
           if (!s.speaking) s.noise = s.noise * 0.95 + Math.min(rms, 0.05) * 0.05;
-          if (s.kws && s.mode === 'wake' && !s.busy) { window.api.wake.feed(downsample(chunk, rate)); return; }
+          if (s.kws && s.mode === 'wake' && !s.busy) { s.lastLoud = rms > Math.max(0.005, s.noise * 2.5); s.pre.push(chunk); if (s.pre.length > 3) s.pre.shift(); window.api.wake.feed(downsample(chunk, rate)); return; }
           // quiet laptop mics with noise suppression often speak at ~0.01 RMS, so the floor is low and adaptive
           const loud = rms > Math.max(0.005, s.noise * 2.5);
           if (s.busy) return;
@@ -181,34 +185,53 @@ export default function WakeWord() {
         } else {
           clearTimeout(s.cmdTimer); setPhase('working'); beep(false);
           // commands are understood in English whatever language you speak (Whisper translate)
-          const r = await window.api.stt.transcribe({ audio: b64, mime: 'audio/wav', language: prefs.language, translate: true, engine: 'auto', model: prefs.model || 'small' });
+          setHint('Understanding…');
+          const model = prefs.model || 'base';
+          const stt = await window.api.stt.status().catch(() => ({}));
+          const engine = (stt.warm || []).includes(model) ? 'local' : stt.cloud ? 'cloud' : 'local';
+          const r = await window.api.stt.transcribe({ audio: b64, mime: 'audio/wav', language: prefs.language, translate: true, engine, model });
           const said = String(r.text || ''); const mw = matchWake(said);
-          await command(mw ? mw.rest : said, r.language);
+          window.api.wake.log?.('command heard (' + engine + '): ' + said);
           s.mode = 'wake';
+          command(mw ? mw.rest : said, r.language); // runs in the background — you can keep talking
         }
       } catch (e) { setHint('⚠ ' + String(e.message || e).replace(/^Error invoking remote method '[^']+':\s*(Error:\s*)?/, '')); s.mode = 'wake'; }
       if (alive) { setPhase(s.mode === 'command' ? 'command' : 'idle'); s.busy = false; }
     }
 
     async function command(text, lang) {
-      const t = text.trim(); const low = t.toLowerCase();
-      setHint('🗣 "' + t.slice(0, 80) + '"');
-      if (!t) return;
+      const t = text.trim();
+      if (!t) { setHint('I didn\'t catch that — say "Hey Pandora" and try again.'); return; }
+      setHint('🗣 "' + t.slice(0, 90) + '"');
       // the Agent page (or any page) can take the words first — plan approval, notes while it works…
       const ev = new CustomEvent('pandora:voice', { detail: { text: t, lang }, cancelable: true });
-      if (!window.dispatchEvent(ev)) return; // a page handled it
-      const open = low.match(/^(?:open|go to|show|switch to|take me to|kholo|khol|ابریں)\s+(.+)/);
-      if (open) {
-        const hit = PAGES.find(([re]) => re.test(open[1]));
-        if (hit) { go(hit[1]); speak('Opening ' + hit[1]); return; }
+      if (!window.dispatchEvent(ev)) return;
+      const c = parseCommand(t);
+      window.api.wake.log?.('intent: ' + JSON.stringify(c).slice(0, 250));
+      if (c.type === 'open') { go(c.page); speak('Opening ' + (c.page === 'create' ? 'the studio' : c.page)); setHint('✓ Opened ' + c.page); return; }
+      if (c.type === 'do') {
+        if (c.needsRecent) {
+          if (!recentFile) { go('color'); speak('Open an image or video in Color and I will grade it.'); setHint('Nothing made by voice yet — opened Pandora Color.'); return; }
+          c.steps[0].args.file = recentFile;
+        }
+        speak(c.say + (c.mode === 'free' ? ', free on your PC.' : '.'));
+        setHint('⏳ ' + c.say + (c.mode === 'free' ? ' · free, on this PC' : '') + '…');
+        const off = window.api.agent.onEvent?.((e) => {
+          if (e && e.source === 'connector' && e.type === 'progress') setHint('⏳ ' + (e.stage || 'Working') + (e.pct != null ? ' ' + Math.round(e.pct) + '%' : ''));
+        });
+        try {
+          const r = await window.api.wake.act({ steps: c.steps, mode: c.mode, prefer: c.prefer });
+          if (r && r.file) { recentFile = r.file; window.api.agent.open?.(r.file); }
+          setHint('✓ Done' + (r && r.imageModel ? ' · ' + r.imageModel.replace(/\s*\(.*$/, '') : '') + ' — saved to your Agent projects folder.');
+          speak('Done. Here it is.');
+          window.api.wake.log?.('done: ' + (r && r.file));
+        } catch (e) {
+          setHint('⚠ ' + clean(e)); speak('Sorry, that did not work.'); window.api.wake.log?.('action failed: ' + clean(e));
+        } finally { try { off && off(); } catch { /* */ } }
+        return;
       }
-      const gen = t.match(/^(?:create|generate|make|draw|imagine|banao|bana do)\s+(?:an?\s+)?(image|picture|photo|video|song|music|sound|audio)?\s*(?:of|about|for)?\s*(.+)/i);
-      if (gen && gen[2]) {
-        const kind = /video/i.test(gen[1] || '') ? 'video' : /song|music|sound|audio/i.test(gen[1] || '') ? 'audio' : 'image';
-        go('create', { kind, prompt: gen[2] }); speak('Okay, setting up your ' + kind); return;
-      }
-      // anything else is a job for the agent
-      go('agent', { goal: t }); speak('Got it. I\'ve given that to the agent.');
+      // bigger jobs go to the agent, which plans and starts on its own
+      go('agent', { goal: t, autorun: true, mode: c.mode }); speak('Got it. The agent is on it.'); setHint('✓ Sent to Pandora Agent');
     }
 
     return () => { alive = false; clearTimeout(st.current.cmdTimer); try { offHit && offHit(); } catch { /* */ } if (s.kws) window.api.wake.stop().catch(() => {}); try { proc && (proc.onaudioprocess = null); } catch { /* */ } stream && stream.getTracks().forEach((x) => x.stop()); ctx && ctx.close().catch(() => {}); };

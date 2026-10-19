@@ -47,8 +47,8 @@ function readyModels({ catalog, keys, downloaded, engineInstalled }) {
 //       'hybrid'→ open-source first, cloud API only when no local option works
 //       'cloud' → cloud APIs first, open-source as fallback
 const LOCAL_IMAGE = [ // best first, with rough VRAM need and first-time download size
-  { id: 'local-flux2-klein', vram: 12, gb: 16, label: 'FLUX.2 [klein] 4B' },
-  { id: 'local-sdxl', vram: 8, gb: 7, label: 'SDXL' },
+  { id: 'local-flux2-klein', vram: 6, gb: 16, label: 'FLUX.2 [klein] 4B' },
+  { id: 'local-sdxl', vram: 6, gb: 7, label: 'SDXL' },
   { id: 'local-sd15', vram: 0, gb: 2, label: 'SD 1.5' },
 ];
 const LOCAL_VIDEO = [{ id: 'local-wan22-5b', vram: 16, gb: 22, label: 'Wan 2.2 5B' }, { id: 'local-ltx23', vram: 16, gb: 30, label: 'LTX-2.3' }];
@@ -73,7 +73,9 @@ async function planRoutes(deps, opts = {}) {
   const cloudPick = (kind, re) => { const m = cloud.find((x) => x.kind === kind && (!re || re.test(x.id + x.name))); return m ? { type: 'cloud', model: m.model, label: m.name + ' (API · paid)' } : null; };
   const order = (local, cl, free) => (mode === 'free' ? [local, free] : mode === 'hybrid' ? [local, cl, free] : [cl, local, free]).filter(Boolean);
   const anyLocalImage = localReady.find((m) => m.kind === 'image');
-  const imgLocal = pickLocal(LOCAL_IMAGE, 'image') || (anyLocalImage ? { type: 'local', model: anyLocalImage.model, label: anyLocalImage.name + ' (on this PC · free)' } : null);
+  // a model asked for by name (e.g. "use flux") goes first
+  const imgList = opts.preferImage ? [...LOCAL_IMAGE].sort((a, b) => (opts.preferImage.test(b.id + b.label) ? 1 : 0) - (opts.preferImage.test(a.id + a.label) ? 1 : 0)) : LOCAL_IMAGE;
+  const imgLocal = pickLocal(imgList, 'image') || (anyLocalImage ? { type: 'local', model: anyLocalImage.model, label: anyLocalImage.name + ' (on this PC · free)' } : null);
   return {
     mode, vram, gpu: hw.gpu || null,
     image: order(imgLocal, cloudPick('image'), null),

@@ -147,4 +147,4 @@ function feed(buf) {
 function stop() { if (stats.state === 'listening') stats.state = 'off'; if (worker) { const w = worker; worker = null; try { w.postMessage({ type: 'stop' }); } catch (_) {} setTimeout(() => w.terminate().catch(() => {}), 300); } }
 function onEvent(cb) { listeners.add(cb); return () => listeners.delete(cb); }
 
-module.exports = { start, stop, feed, onEvent, ensureModel, findModel, report, PHRASES };
+module.exports = { start, stop, feed, onEvent, ensureModel, findModel, report, log, PHRASES };

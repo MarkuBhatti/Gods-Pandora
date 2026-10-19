@@ -4,6 +4,8 @@
 - "Hey Pandora" now uses a dedicated offline keyword spotter (sherpa-onnx, Apache-2.0, ~6 MB, CPU-only) instead of Whisper: instant, works without the local engine, no GPU, no cloud.
 - Sensitivity control (Low / Normal / High) and a live mic-level meter under the toggle.
 - Commands after the wake word use local Whisper, or OpenAI if the engine is not installed.
+- Voice commands now act: "open studio", "generate an image of … using flux, then colour grade it teal and orange" runs free on your PC and opens the result; bigger jobs go to the Agent and start on their own.
+- Commands no longer wait for the voice model download (cloud is used until local is ready); FLUX.2 klein is picked on 8 GB GPUs.
 
 ## 0.4.0 — 2026-10-16 · Pandora Cut + "never a problem" update
 
