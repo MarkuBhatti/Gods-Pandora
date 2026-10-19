@@ -1,5 +1,10 @@
 # Changelog
 
+## Unreleased — new "Hey Pandora" engine
+- "Hey Pandora" now uses a dedicated offline keyword spotter (sherpa-onnx, Apache-2.0, ~6 MB, CPU-only) instead of Whisper: instant, works without the local engine, no GPU, no cloud.
+- Sensitivity control (Low / Normal / High) and a live mic-level meter under the toggle.
+- Commands after the wake word use local Whisper, or OpenAI if the engine is not installed.
+
 ## 0.4.0 — 2026-10-16 · Pandora Cut + "never a problem" update
 
 ### Added

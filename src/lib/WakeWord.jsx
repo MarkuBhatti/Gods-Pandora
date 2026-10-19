@@ -67,12 +67,16 @@ function beep(up = true) {
     g.gain.value = 0.08; g.gain.exponentialRampToValueAtTime(0.0001, c.currentTime + 0.18); o.connect(g).connect(c.destination); o.start(); o.stop(c.currentTime + 0.2); setTimeout(() => c.close(), 400); } catch { /* ignore */ }
 }
 
+const clean = (e) => String((e && e.message) || e).replace(/^Error invoking remote method '[^']+':\s*(Error:\s*)?/, '');
+
 export default function WakeWord() {
   const { go } = useNav();
   const [on, setOn] = useState(() => { try { return localStorage.getItem('pandora.wake') === '1'; } catch { return false; } });
   const [phase, setPhase] = useState('off'); // off | idle | hearing | checking | command | working
   const [hint, setHint] = useState('');
   const [level, setLevel] = useState(0);
+  const [sens, setSens] = useState(() => { try { return localStorage.getItem('pandora.wakeSens') || 'normal'; } catch { return 'normal'; } });
+  useEffect(() => { try { localStorage.setItem('pandora.wakeSens', sens); } catch { /* ignore */ } }, [sens]);
   const st = useRef({});
 
   useEffect(() => { try { localStorage.setItem('pandora.wake', on ? '1' : '0'); } catch { /* ignore */ } }, [on]);
@@ -82,34 +86,59 @@ export default function WakeWord() {
     if (!on) { setPhase('off'); return undefined; }
     let alive = true; let ctx, proc, stream;
     const s = st.current = { mode: 'wake', buf: [], pre: [], speaking: false, silentMs: 0, speechMs: 0, noise: 0.008, busy: false };
+    let offHit = null;
+    const ready = () => { s.mode = 'wake'; setPhase('idle'); setHint('Say "Hey Pandora…"'); };
+    const onHit = () => {
+      if (!alive || s.mode !== 'wake' || s.busy) return;
+      beep(true); clearTimeout(s.cmdTimer);
+      s.mode = 'command'; s.speaking = false; s.buf = []; s.pre = []; setPhase('command'); setHint('Yes? Say your command…');
+      s.cmdTimer = setTimeout(() => { if (alive && s.mode === 'command' && !s.speaking && !s.busy) ready(); }, 8000);
+    };
     (async () => {
       try {
         const status = await window.api.stt.status();
-        if (!status.local) { setHint('"Hey Pandora" needs the free local engine (Pandora Core & Cloud → Install engine).'); setOn(false); return; }
-        stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true } });
+        s.canUnderstand = status.local || status.cloud;
+        stream = await navigator.mediaDevices.getUserMedia({ audio: { echoCancellation: true, noiseSuppression: true, autoGainControl: true, channelCount: 1 } });
         if (!alive) { stream.getTracks().forEach((t) => t.stop()); return; }
-        ctx = new AudioContext(); const src = ctx.createMediaStreamSource(stream);
+        try { ctx = new AudioContext({ sampleRate: 16000 }); } catch { ctx = new AudioContext(); }
+        const src = ctx.createMediaStreamSource(stream);
         if (ctx.state === 'suspended') await ctx.resume().catch(() => {});
         proc = ctx.createScriptProcessor(4096, 1, 1);
         const mute = ctx.createGain(); mute.gain.value = 0; // keep the processor running without echoing the mic
         src.connect(proc); proc.connect(mute); mute.connect(ctx.destination);
         const rate = ctx.sampleRate; const chunkMs = 4096 / rate * 1000;
-        // load the voice model once before we promise anything (first time downloads ~290 MB)
-        s.busy = true; setPhase('checking'); setHint('Preparing voice recognition…');
-        try { await window.api.stt.warm('base'); }
-        catch (e) { setHint('⚠ ' + String(e.message || e).replace(/^Error invoking remote method '[^']+':\s*(Error:\s*)?/, '')); setOn(false); return; }
+        s.busy = true; setPhase('checking'); setHint('Starting the "Hey Pandora" detector…');
+        // 1) dedicated offline keyword spotter (sherpa-onnx): fast, exact, no engine needed
+        s.kws = false;
+        if (window.api.wake) {
+          try {
+            offHit = window.api.wake.onEvent((m) => { if (m.type === 'hit') onHit(); else if (m.type === 'error') setHint('⚠ Detector: ' + m.error); });
+            await window.api.wake.start({ sensitivity: sens });
+            s.kws = true;
+          } catch (e) { setHint('⚠ ' + clean(e) + ' — trying Whisper instead…'); }
+        }
+        // 2) fallback: Whisper-based check (needs the local engine)
+        if (!s.kws) {
+          if (!status.local) { setHint('⚠ The "Hey Pandora" detector could not be downloaded and the local engine is not installed. Check your internet and turn it on again.'); setOn(false); return; }
+          try { await window.api.stt.warm('base'); } catch (e) { setHint('⚠ ' + clean(e)); setOn(false); return; }
+        } else if (status.local) {
+          window.api.stt.warm(voicePrefs().model || 'small').catch(() => {}); // get the command model ready in the background
+        }
         if (!alive) return;
         s.busy = false; s.peak = 0; s.started = Date.now();
-        setPhase('idle'); setHint('Say "Hey Pandora…"');
+        ready();
+        if (s.kws && !s.canUnderstand) setHint('Say "Hey Pandora…" (to understand commands, install the free local engine or add an OpenAI key)');
         proc.onaudioprocess = (e) => {
           const d = e.inputBuffer.getChannelData(0); const chunk = new Float32Array(d);
           let rms = 0; for (let i = 0; i < chunk.length; i += 4) rms += chunk[i] * chunk[i]; rms = Math.sqrt(rms / (chunk.length / 4));
           s.peak = Math.max(s.peak || 0, rms);
           if (!s.warned && s.started && Date.now() - s.started > 6000 && s.peak < 0.002) { s.warned = true; setHint('⚠ No sound from your microphone. Check Windows Settings → Privacy & security → Microphone (allow desktop apps) and the input device in Sound settings.'); }
+          const now = Date.now(); if (!s.lvlAt || now - s.lvlAt > 120) { s.lvlAt = now; setLevel(Math.min(1, rms * 12)); }
+          // the keyword spotter hears everything while waiting for the wake word
           if (!s.speaking) s.noise = s.noise * 0.95 + Math.min(rms, 0.05) * 0.05;
+          if (s.kws && s.mode === 'wake' && !s.busy) { window.api.wake.feed(downsample(chunk, rate)); return; }
           // quiet laptop mics with noise suppression often speak at ~0.01 RMS, so the floor is low and adaptive
           const loud = rms > Math.max(0.005, s.noise * 2.5);
-          const now = Date.now(); if (!s.lvlAt || now - s.lvlAt > 120) { s.lvlAt = now; setLevel(Math.min(1, rms * 12)); }
           if (s.busy) return;
           if (!s.speaking) {
             s.pre.push(chunk); if (s.pre.length > 3) s.pre.shift();
@@ -152,8 +181,9 @@ export default function WakeWord() {
         } else {
           clearTimeout(s.cmdTimer); setPhase('working'); beep(false);
           // commands are understood in English whatever language you speak (Whisper translate)
-          const r = await window.api.stt.transcribe({ audio: b64, mime: 'audio/wav', language: prefs.language, translate: true, engine: 'local', model: prefs.model || 'small' });
-          await command(String(r.text || ''), r.language);
+          const r = await window.api.stt.transcribe({ audio: b64, mime: 'audio/wav', language: prefs.language, translate: true, engine: 'auto', model: prefs.model || 'small' });
+          const said = String(r.text || ''); const mw = matchWake(said);
+          await command(mw ? mw.rest : said, r.language);
           s.mode = 'wake';
         }
       } catch (e) { setHint('⚠ ' + String(e.message || e).replace(/^Error invoking remote method '[^']+':\s*(Error:\s*)?/, '')); s.mode = 'wake'; }
@@ -181,8 +211,8 @@ export default function WakeWord() {
       go('agent', { goal: t }); speak('Got it. I\'ve given that to the agent.');
     }
 
-    return () => { alive = false; clearTimeout(st.current.cmdTimer); try { proc && (proc.onaudioprocess = null); } catch { /* */ } stream && stream.getTracks().forEach((x) => x.stop()); ctx && ctx.close().catch(() => {}); };
-  }, [on]);
+    return () => { alive = false; clearTimeout(st.current.cmdTimer); try { offHit && offHit(); } catch { /* */ } if (s.kws) window.api.wake.stop().catch(() => {}); try { proc && (proc.onaudioprocess = null); } catch { /* */ } stream && stream.getTracks().forEach((x) => x.stop()); ctx && ctx.close().catch(() => {}); };
+  }, [on, sens]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const label = { off: 'Hey Pandora: off', idle: 'Listening for "Hey Pandora"', hearing: 'Hearing…', checking: 'Hmm…', command: 'Yes? Go ahead…', working: 'On it…' }[phase];
   return (
@@ -192,6 +222,7 @@ export default function WakeWord() {
       </button>
       {on && phase !== 'off' && <div className="wake-meter" title="Microphone level — it should jump when you speak"><i style={{ width: Math.round(level * 100) + '%' }} /></div>}
       {on && hint && <div className="wake-hint">{hint}</div>}
+      {on && <button type="button" className="wake-sens" title="If it misses you, use High. If it wakes up by itself, use Low." onClick={() => setSens((v) => ({ low: 'normal', normal: 'high', high: 'low' }[v] || 'normal'))}>Sensitivity: {sens}</button>}
     </div>
   );
 }

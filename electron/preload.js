@@ -58,6 +58,12 @@ contextBridge.exposeInMainWorld('api', {
     warm: (model) => ipcRenderer.invoke('stt:warm', model),
     onStatus: (cb) => { const h = (_e, m) => cb(m); ipcRenderer.on('stt:status', h); return () => ipcRenderer.removeListener('stt:status', h); },
   },
+  wake: {
+    start: (opts) => ipcRenderer.invoke('wake:start', opts),
+    stop: () => ipcRenderer.invoke('wake:stop'),
+    feed: (f32) => ipcRenderer.send('wake:audio', f32),
+    onEvent: (cb) => { const h = (_e, m) => cb(m); ipcRenderer.on('wake:event', h); return () => ipcRenderer.removeListener('wake:event', h); },
+  },
   connect: {
     status: () => ipcRenderer.invoke('connect:status'),
     configure: (patch) => ipcRenderer.invoke('connect:configure', patch),

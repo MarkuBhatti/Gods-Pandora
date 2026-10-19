@@ -454,6 +454,13 @@ function registerIpc() {
   safeHandle('stt:status', () => stt.status(userData(), getKeys()));
   safeHandle('stt:warm', (_e, model) => stt.warm(userData(), model || 'base', (msg) => { if (win && !win.isDestroyed()) win.webContents.send('stt:status', msg); }));
   safeHandle('stt:transcribe', (_e, opts) => stt.transcribe(userData(), getKeys(), opts || {}, (msg) => { if (win && !win.isDestroyed()) win.webContents.send('stt:status', msg); }));
+  // ── "Hey Pandora": dedicated offline keyword spotter (sherpa-onnx), audio streamed from the renderer ──
+  const wake = require('./wake');
+  const wakeSend = (ch, m) => { if (win && !win.isDestroyed()) win.webContents.send(ch, m); };
+  wake.onEvent((m) => wakeSend('wake:event', m));
+  safeHandle('wake:start', (_e, opts) => wake.start(userData(), opts || {}, (msg) => wakeSend('stt:status', msg)));
+  safeHandle('wake:stop', () => { wake.stop(); return { ok: true }; });
+  ipcMain.on('wake:audio', (_e, a) => { try { const f = a instanceof Float32Array ? a : ArrayBuffer.isView(a) ? new Float32Array(a.buffer, a.byteOffset, a.byteLength >> 2) : new Float32Array(a); wake.feed(f.slice().buffer); } catch (_) { /* ignore */ } });
   safeHandle('connect:status', () => mcp.status());
   safeHandle('connect:configure', (_e, patch) => mcp.configure(patch || {}));
   safeHandle('connect:configs', () => mcp.clientConfigs());
@@ -733,6 +740,7 @@ app.on('before-quit', () => {
   try { cut.cancelAll(); } catch (_) {}
   try { mcp.stop(); } catch (_) {}
   try { stt.stopWorker(); } catch (_) {}
+  try { require('./wake').stop(); } catch (_) {}
 });
 
 app.on('window-all-closed', () => {

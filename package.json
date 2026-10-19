@@ -15,11 +15,12 @@
     "release": "npm run build:ui && electron-builder --win --publish never"
   },
   "dependencies": {
+    "electron-updater": "^6.8.9",
     "node-osc": "^11.6.0",
     "react": "^18.3.1",
     "react-dom": "^18.3.1",
-    "ws": "^8.21.0",
-    "electron-updater": "^6.8.9"
+    "sherpa-onnx": "^1.13.8",
+    "ws": "^8.21.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.3.1",
@@ -58,7 +59,9 @@
       "icon": "build-assets/icon.ico",
       "requestedExecutionLevel": "asInvoker",
       "sign": "./build-assets/sign.js",
-      "signingHashAlgorithms": ["sha256"]
+      "signingHashAlgorithms": [
+        "sha256"
+      ]
     },
     "mac": {
       "target": [
@@ -101,7 +104,9 @@
       }
     ],
     "asarUnpack": [
-      "engine/**"
+      "engine/**",
+      "electron/wakeWorker.js",
+      "node_modules/sherpa-onnx/**"
     ]
   },
   "repository": {
