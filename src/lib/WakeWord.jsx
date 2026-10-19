@@ -223,6 +223,7 @@ export default function WakeWord() {
       {on && phase !== 'off' && <div className="wake-meter" title="Microphone level — it should jump when you speak"><i style={{ width: Math.round(level * 100) + '%' }} /></div>}
       {on && hint && <div className="wake-hint">{hint}</div>}
       {on && <button type="button" className="wake-sens" title="If it misses you, use High. If it wakes up by itself, use Low." onClick={() => setSens((v) => ({ low: 'normal', normal: 'high', high: 'low' }[v] || 'normal'))}>Sensitivity: {sens}</button>}
+      {on && window.api?.wake?.report && <button type="button" className="wake-sens" onClick={async () => { try { const r = await window.api.wake.report(); await navigator.clipboard.writeText(r); setHint('Voice report copied — paste it to support / Claude.'); } catch (e) { setHint('⚠ ' + clean(e)); } }}>Copy voice report</button>}
     </div>
   );
 }

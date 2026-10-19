@@ -54,6 +54,19 @@ function tarBin() {
   return 'tar';
 }
 
+// diagnostics: a small log + live stats so problems can be reported in one click
+const stats = { state: 'off', model: null, chunks: 0, loud: 0, hits: 0, lastHit: null, lastError: null, startedAt: null, sensitivity: null };
+let logFile = null;
+function log(userData, msg) {
+  try { if (!logFile) { const d = path.join(userData, 'logs'); fs.mkdirSync(d, { recursive: true }); logFile = path.join(d, 'voice.log'); }
+    fs.appendFileSync(logFile, new Date().toISOString() + '  ' + msg + '\n'); } catch (_) { /* ignore */ }
+}
+function report(userData) {
+  let tail = ''; try { tail = fs.readFileSync(path.join(userData, 'logs', 'voice.log'), 'utf8').split('\n').slice(-40).join('\n'); } catch (_) {}
+  let files = []; try { files = fs.readdirSync(modelDir(userData), { recursive: true }).map(String); } catch (_) {}
+  return JSON.stringify({ ...stats, worker: !!worker, modelFiles: files.slice(0, 20), platform: process.platform + ' ' + process.arch, node: process.versions.node }, null, 1) + '\n--- voice.log ---\n' + tail;
+}
+
 let preparing = null;
 async function ensureModel(userData, onStatus = () => {}) {
   const dir = modelDir(userData);
@@ -61,9 +74,17 @@ async function ensureModel(userData, onStatus = () => {}) {
   if (preparing) return preparing;
   preparing = (async () => {
     fs.mkdirSync(dir, { recursive: true });
+    log(userData, 'downloading detector model');
     onStatus('Downloading the "Hey Pandora" detector (6 MB, one time)…');
     const errors = [];
-    // 1) official k2-fsa release (one archive; Windows 10+/macOS/Linux all ship tar with bzip2)
+    // 1) Hugging Face (individual files, no extraction needed — works on every Windows version)
+    try {
+      const sub = path.join(dir, 'hf'); fs.mkdirSync(sub, { recursive: true });
+      for (const f of HF_FILES) { const out = path.join(sub, f); if (!fs.existsSync(out)) await download(HF + f, out); }
+      m = findModel(dir); if (m) return m;
+      throw new Error('files missing');
+    } catch (e) { errors.push('Hugging Face: ' + e.message); log(userData, 'HF source failed: ' + e.message); }
+    // 2) official k2-fsa release archive (needs a tar with bzip2 support)
     try {
       const arc = path.join(dir, NAME + '.tar.bz2');
       await download(GH, arc);
@@ -72,14 +93,7 @@ async function ensureModel(userData, onStatus = () => {}) {
       if (r.status !== 0) throw new Error('extract failed: ' + String(r.stderr || '').slice(0, 160));
       m = findModel(dir); if (m) return m;
       throw new Error('archive had no model files');
-    } catch (e) { errors.push('GitHub: ' + e.message); }
-    // 2) Hugging Face mirror (individual files, no extraction needed)
-    try {
-      const sub = path.join(dir, 'hf'); fs.mkdirSync(sub, { recursive: true });
-      for (const f of HF_FILES) { const out = path.join(sub, f); if (!fs.existsSync(out)) await download(HF + f, out); }
-      m = findModel(dir); if (m) return m;
-      throw new Error('files missing');
-    } catch (e) { errors.push('Hugging Face: ' + e.message); }
+    } catch (e) { errors.push('GitHub: ' + e.message); log(userData, 'GitHub source failed: ' + e.message); }
     throw new Error('Could not download the "Hey Pandora" detector — check your internet connection. (' + errors.join('; ') + ')');
   })();
   try { return await preparing; } finally { preparing = null; }
@@ -87,11 +101,14 @@ async function ensureModel(userData, onStatus = () => {}) {
 
 let worker = null; const listeners = new Set();
 async function start(userData, opts = {}, onStatus = () => {}) {
-  try { return await startOnce(userData, opts, onStatus); } catch (e) {
-    if (/download/i.test(e.message)) throw e;
+  stats.state = 'starting'; stats.sensitivity = opts.sensitivity || 'normal'; stats.lastError = null;
+  try { const r = await startOnce(userData, opts, onStatus); stats.state = 'listening'; stats.startedAt = new Date().toISOString(); log(userData, 'detector listening (' + stats.sensitivity + ')'); return r; } catch (e) {
+    stats.lastError = e.message; log(userData, 'start failed: ' + e.message);
+    if (/download/i.test(e.message)) { stats.state = 'failed'; throw e; }
     // a half-downloaded or damaged model: wipe it and fetch a fresh copy once
     try { fs.rmSync(modelDir(userData), { recursive: true, force: true }); } catch (_) {}
-    try { return await startOnce(userData, opts, onStatus); } catch (e2) {
+    try { const r = await startOnce(userData, opts, onStatus); stats.state = 'listening'; log(userData, 'detector listening after re-download'); return r; } catch (e2) {
+      stats.state = 'failed'; stats.lastError = e2.message; log(userData, 'start failed again: ' + e2.message);
       throw new Error('The "Hey Pandora" detector could not start (' + (/^\d+$/.test(e2.message) ? 'model file damaged' : e2.message) + ').');
     }
   }
@@ -99,6 +116,7 @@ async function start(userData, opts = {}, onStatus = () => {}) {
 async function startOnce(userData, { sensitivity = 'normal' } = {}, onStatus = () => {}) {
   stop();
   const model = await ensureModel(userData, onStatus);
+  stats.model = model.encoder; logUD = userData;
   const keywordsFile = path.join(modelDir(userData), 'keywords-pandora.txt');
   fs.writeFileSync(keywordsFile, PHRASES.map((p) => p + ' @HEY_PANDORA').join('\n') + '\n', 'utf8');
   onStatus('Starting the detector…');
@@ -111,14 +129,22 @@ async function startOnce(userData, { sensitivity = 'normal' } = {}, onStatus = (
     w.on('message', (msg) => {
       if (msg.type === 'ready') { clearTimeout(t); resolve(); }
       else if (msg.type === 'error') { clearTimeout(t); reject(new Error(msg.error)); for (const l of listeners) l({ type: 'error', error: msg.error }); }
-      else if (msg.type === 'hit') for (const l of listeners) l(msg);
+      else if (msg.type === 'hit') { stats.hits++; stats.lastHit = new Date().toISOString(); log(userData, 'WAKE WORD detected'); for (const l of listeners) l(msg); }
     });
   }).catch((e) => { stop(); throw e; });
   return { ok: true, engine: 'sherpa-onnx keyword spotter (offline)' };
 }
 
-function feed(buf) { if (worker) worker.postMessage({ type: 'audio', data: buf }, [buf]); }
-function stop() { if (worker) { const w = worker; worker = null; try { w.postMessage({ type: 'stop' }); } catch (_) {} setTimeout(() => w.terminate().catch(() => {}), 300); } }
+let logUD = null;
+function feed(buf) {
+  if (!worker) return;
+  stats.chunks++;
+  const f = new Float32Array(buf); let e = 0; for (let i = 0; i < f.length; i += 8) e += f[i] * f[i];
+  if (Math.sqrt(e / Math.max(1, f.length / 8)) > 0.01) stats.loud++;
+  if (logUD && stats.chunks % 600 === 0) log(logUD, `audio ok: ${stats.chunks} chunks, ${stats.loud} with speech, ${stats.hits} wake hits`);
+  worker.postMessage({ type: 'audio', data: buf }, [buf]);
+}
+function stop() { if (stats.state === 'listening') stats.state = 'off'; if (worker) { const w = worker; worker = null; try { w.postMessage({ type: 'stop' }); } catch (_) {} setTimeout(() => w.terminate().catch(() => {}), 300); } }
 function onEvent(cb) { listeners.add(cb); return () => listeners.delete(cb); }
 
-module.exports = { start, stop, feed, onEvent, ensureModel, findModel, PHRASES };
+module.exports = { start, stop, feed, onEvent, ensureModel, findModel, report, PHRASES };

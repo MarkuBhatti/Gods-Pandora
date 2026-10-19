@@ -31,9 +31,9 @@ function saveCfg(c) { fs.mkdirSync(path.dirname(cfgPath), { recursive: true }); 
 const text = (t) => ({ type: 'text', text: typeof t === 'string' ? t : JSON.stringify(t, null, 2) });
 
 // ── tool catalogue exposed to external assistants ──
-const TITLES = { pandora_status: 'Studio status', write_document: 'Write document', generate_image: 'Generate image', generate_video: 'Generate video shot', generate_voiceover: 'Voice-over', auto_edit: 'Auto edit video', color_grade: 'Colour grade', make_presentation: 'Make presentation', list_assets: 'List files', finish_package: 'Finish launch package', run_agent: 'Run Pandora Agent', check_job: 'Check job' };
+const TITLES = { pandora_status: 'Studio status', write_document: 'Write document', generate_image: 'Generate image', generate_video: 'Generate video shot', generate_voiceover: 'Voice-over', auto_edit: 'Auto edit video', color_grade: 'Colour grade', make_presentation: 'Make presentation', list_assets: 'List files', finish_package: 'Finish launch package', run_agent: 'Run Pandora Agent', check_job: 'Check job', voice_report: 'Voice diagnostics' };
 function withMeta(t) {
-  const ro = ['pandora_status', 'list_assets', 'check_job'].includes(t.name);
+  const ro = ['pandora_status', 'list_assets', 'check_job', 'voice_report'].includes(t.name);
   return { ...t, title: TITLES[t.name] || t.name, annotations: { title: TITLES[t.name] || t.name, readOnlyHint: ro, destructiveHint: false, idempotentHint: ro, openWorldHint: !ro } };
 }
 function toolList() { return baseToolList().map(withMeta); }
@@ -48,6 +48,7 @@ function baseToolList() {
     { name: 'pandora_status', description: "What God's Pandora can do right now: production mode (free/hybrid/cloud), which model each step will use, session budgets and the project folder.", inputSchema: { type: 'object', properties: {} } },
     ...pick,
     { name: 'run_agent', description: "Hand a whole job to Pandora Agent (it plans and uses every tool itself) — e.g. 'launch my clothing brand: images, promo video, deck'. Returns a job_id; call check_job until done.", inputSchema: { type: 'object', properties: { goal: { type: 'string' }, images: { type: 'number' }, videos: { type: 'number' } }, required: ['goal'] } },
+    { name: 'voice_report', description: 'Diagnostics for "Hey Pandora" voice control: detector state, model files, audio received, wake-word hits and the recent voice log.', inputSchema: { type: 'object', properties: {} } },
     { name: 'check_job', description: 'Wait up to ~45 s for a long-running job (video, auto edit, agent) and return its status or result.', inputSchema: { type: 'object', properties: { job_id: { type: 'string' } }, required: ['job_id'] } },
   ];
 }
@@ -86,6 +87,10 @@ async function callTool(sessionId, name, args = {}) {
   if (name === 'pandora_status') {
     const r = tb.routes; const rt = require('./agent').routeText;
     return [text({ mode: r.mode, gpu: r.gpu, vram_gb: r.vram, images: rt(r.image), video: rt(r.video), voice: rt(r.voice), budgets: tb.ctx.budget, used: tb.ctx.used, project_folder: tb.ctx.dir, tips: 'Use returned file paths in later calls (reference_file, start_image, clips, image_file). Call finish_package at the end.' })];
+  }
+  if (name === 'voice_report') {
+    const ud = require('electron').app.getPath('userData');
+    return [text({ stt: require('./stt').status(ud, {}), report: require('./wake').report(ud) })];
   }
   if (name === 'check_job') {
     const j = jobs.get(args.job_id);

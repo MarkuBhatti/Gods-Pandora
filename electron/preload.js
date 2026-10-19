@@ -61,6 +61,7 @@ contextBridge.exposeInMainWorld('api', {
   wake: {
     start: (opts) => ipcRenderer.invoke('wake:start', opts),
     stop: () => ipcRenderer.invoke('wake:stop'),
+    report: () => ipcRenderer.invoke('wake:report'),
     feed: (f32) => ipcRenderer.send('wake:audio', f32),
     onEvent: (cb) => { const h = (_e, m) => cb(m); ipcRenderer.on('wake:event', h); return () => ipcRenderer.removeListener('wake:event', h); },
   },
