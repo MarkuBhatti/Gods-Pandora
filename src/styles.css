@@ -980,16 +980,3 @@ body { background: #050508 !important; }
 .ag-talk input { flex: 1; }
 .ag-you { background: rgba(79,209,255,.08); }
 /* Hey Pandora */
-.wake { padding: 6px 10px 0; position: relative; }
-.wake-btn { width: 100%; display: flex; align-items: center; gap: 6px; padding: 7px 10px; border-radius: 999px; border: 1px solid rgba(255,255,255,.12); background: rgba(255,255,255,.04); color: #cfc8ff; font-size: 11.5px; cursor: pointer; }
-.wake-dot { width: 8px; height: 8px; border-radius: 50%; background: #666; flex-shrink: 0; }
-.wake.idle .wake-dot { background: #40dc8c; box-shadow: 0 0 8px #40dc8c; }
-.wake.hearing .wake-dot, .wake.checking .wake-dot { background: #4fd1ff; box-shadow: 0 0 10px #4fd1ff; animation: mstatPulse .8s infinite; }
-.wake.command .wake-btn { border-color: #b98bff; background: linear-gradient(90deg, rgba(139,107,255,.35), rgba(79,209,255,.2)); color: #fff; }
-.wake.command .wake-dot { background: #ff4d6d; box-shadow: 0 0 12px #ff4d6d; animation: mstatPulse .6s infinite; }
-.wake.working .wake-dot { background: #ffb86b; }
-.wake-meter { height: 3px; margin: 5px 6px 0; border-radius: 2px; background: rgba(255,255,255,.08); overflow: hidden; }
-.wake-meter i { display: block; height: 100%; background: linear-gradient(90deg, #6ee7b7, #a78bfa); transition: width .1s linear; }
-.wake-hint { font-size: 10.5px; color: #9a95b0; padding: 4px 6px 0; line-height: 1.3; }
-.wake-sens { display: block; margin: 4px 6px 0; padding: 0; background: none; border: 0; color: #7d7896; font-size: 10px; cursor: pointer; text-decoration: underline dotted; }
-.wake-sens:hover { color: #c4bfdc; }

@@ -20,7 +20,6 @@ import StudioTD from './pages/StudioTD.jsx';
 import Onboarding from './pages/Onboarding.jsx';
 import SetupWizard from './pages/SetupWizard.jsx';
 import InstallWelcome from './lib/InstallWelcome.jsx';
-import WakeWord from './lib/WakeWord.jsx';
 import Updates from './pages/Updates.jsx';
 import MoodBackdrop from './lib/MoodBackdrop.jsx';
 import PandoraBox from './lib/PandoraBox.jsx';
@@ -236,7 +235,6 @@ export default function App() {
             </button>
           )}
           <JobsIndicator />
-          <WakeWord />
           <div className="side-foot">
             <button className={"perf-pill" + (lite ? " on" : "")} onClick={cyclePerf} title="Lite mode freezes the animated backgrounds and blur so the app stays fast on any PC. Auto = on for low-end PCs and low battery.">
               ⚡ Lite · {perf === 'auto' ? 'Auto' : perf === 'on' ? 'On' : 'Off'}

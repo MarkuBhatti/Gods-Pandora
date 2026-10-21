@@ -34,7 +34,9 @@ export function speak(text, lang) {
 }
 
 // mode: 'append' (add to the field) | 'replace'. promptMode=true defaults translation to English on.
-export default function MicButton({ onText, promptMode = false, small = false, title = 'Speak instead of typing' }) {
+export default function MicButton() { return null; } // voice control removed
+// eslint-disable-next-line no-unused-vars
+function MicButtonOld({ onText, promptMode = false, small = false, title = 'Speak instead of typing' }) {
   const [prefs, setPrefs] = useState(() => { const p = voicePrefs(); return promptMode && load().translate === undefined ? { ...p, translate: true } : p; });
   const [state, setState] = useState('idle'); // idle | rec | busy
   const [level, setLevel] = useState(0);

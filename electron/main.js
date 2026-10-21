@@ -468,22 +468,6 @@ function registerIpc() {
       } finally { w.destroy(); }
     },
   };
-  // ── Voice quick actions: run tool steps directly (no LLM needed) — e.g. "generate an image with flux, then grade it teal & orange"
-  safeHandle('voice:do', async (_e, args = {}) => {
-    const PREFER = { flux: /flux/i, sdxl: /sdxl/i, sd15: /sd ?1\.?5/i };
-    const tb = await agent.createToolbox(agentDeps, { mode: ['free', 'hybrid', 'cloud'].includes(args.mode) ? args.mode : 'hybrid', label: 'voice', preferImage: PREFER[args.prefer] || null });
-    const out = []; let last = null;
-    for (const st of (args.steps || []).slice(0, 6)) {
-      const fn = tb.tools[st.tool];
-      if (typeof fn !== 'function') throw new Error('Unknown step: ' + st.tool);
-      const a = { ...(st.args || {}) }; if (a.file === '$last') a.file = last;
-      const r = await fn.call(tb.tools, a);
-      if (r && r.error) throw new Error(r.error);
-      if (r && r.file) last = r.file;
-      out.push({ tool: st.tool, ...(r || {}) });
-    }
-    return { steps: out, file: last, dir: tb.ctx.dir, imageModel: tb.routes.image[0] ? tb.routes.image[0].label : null };
-  });
   safeHandle('agent:run', (_e, args) => asJob(args && args.jobId, 'Pandora Agent', async () => {
     jobs.onCancel(() => agent.cancel());
     return agent.run(agentDeps, args || {});
@@ -496,17 +480,6 @@ function registerIpc() {
   safeHandle('stt:status', () => stt.status(userData(), getKeys()));
   safeHandle('stt:warm', (_e, model) => stt.warm(userData(), model || 'base', (msg) => { if (win && !win.isDestroyed()) win.webContents.send('stt:status', msg); }));
   safeHandle('stt:transcribe', (_e, opts) => stt.transcribe(userData(), getKeys(), opts || {}, (msg) => { if (win && !win.isDestroyed()) win.webContents.send('stt:status', msg); }));
-  // ── "Hey Pandora": dedicated offline keyword spotter (sherpa-onnx), audio streamed from the renderer ──
-  const wake = require('./wake');
-  const wakeSend = (ch, m) => { if (win && !win.isDestroyed()) win.webContents.send(ch, m); };
-  wake.onEvent((m) => wakeSend('wake:event', m));
-  safeHandle('wake:start', (_e, opts) => wake.start(userData(), opts || {}, (msg) => wakeSend('stt:status', msg)));
-  safeHandle('wake:stop', () => { wake.stop(); return { ok: true }; });
-  ipcMain.on('wake:hit', () => { try { wake.hit(userData()); } catch (_) {} });
-  ipcMain.on('wake:reset', () => { try { wake.resetStream(); } catch (_) {} });
-  ipcMain.on('wake:log', (_e, m) => { try { wake.log(userData(), 'ui: ' + String(m).slice(0, 300)); } catch (_) {} });
-  safeHandle('wake:report', () => 'God\'s Pandora ' + app.getVersion() + '\nstt: ' + JSON.stringify(stt.status(userData(), getKeys())) + '\n' + wake.report(userData()));
-  ipcMain.on('wake:audio', (_e, a) => { try { const f = a instanceof Float32Array ? a : ArrayBuffer.isView(a) ? new Float32Array(a.buffer, a.byteOffset, a.byteLength >> 2) : new Float32Array(a); wake.feed(f.slice().buffer); } catch (_) { /* ignore */ } });
   safeHandle('connect:status', () => mcp.status());
   safeHandle('connect:configure', (_e, patch) => mcp.configure(patch || {}));
   safeHandle('connect:configs', () => mcp.clientConfigs());
@@ -786,7 +759,6 @@ app.on('before-quit', () => {
   try { cut.cancelAll(); } catch (_) {}
   try { mcp.stop(); } catch (_) {}
   try { stt.stopWorker(); } catch (_) {}
-  try { require('./wake').stop(); } catch (_) {}
 });
 
 app.on('window-all-closed', () => {

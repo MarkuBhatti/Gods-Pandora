@@ -40,7 +40,7 @@ export default function PandoraAgent() {
   const [progress, setProgress] = useState(null);
   const job = useJob();
   const logRef = useRef(null);
-  const [talkBack, setTalkBack] = useState(() => voicePrefs().speak);
+  const [talkBack, setTalkBack] = useState(false); // voice control removed
   const talkRef = useRef(talkBack); talkRef.current = talkBack;
 
   useEffect(() => {
@@ -68,8 +68,8 @@ export default function PandoraAgent() {
       if (/^(start|go|begin|shuru|chalo|start the job)\b/i.test(t) && L.goal.trim().length >= 10) { e.preventDefault(); L.start(); speak('Starting the job.'); return; }
       if (!/^(open|go to|show|switch to|create|generate|make|draw)\b/i.test(t)) { e.preventDefault(); setGoal((g) => (g ? g + ' ' + t : t)); speak('Added. Say start when you are ready.'); }
     };
-    window.addEventListener('pandora:voice', onVoice);
-    return () => window.removeEventListener('pandora:voice', onVoice);
+    void onVoice; // voice control removed
+    return undefined;
   }, []);
   useEffect(() => { if (hasClaude === false) setBrain('local'); }, [hasClaude]);
   const brainUsed = mode === 'free' ? 'local' : brain;
@@ -107,7 +107,7 @@ export default function PandoraAgent() {
         <div className="card">
           <div className="row" style={{ justifyContent: 'space-between', alignItems: 'center' }}>
             <label style={{ margin: 0 }}>What should the agent make? <span className="sub" style={{ fontSize: 11 }}>— type or speak, in any language</span></label>
-            <label className="row" style={{ gap: 6, cursor: 'pointer', margin: 0, fontSize: 12 }}><input type="checkbox" style={{ width: 'auto' }} checked={talkBack} onChange={(e) => { setTalkBack(e.target.checked); try { localStorage.setItem('pandora.voice', JSON.stringify({ ...voicePrefs(), speak: e.target.checked })); } catch { /* ignore */ } }} /> 🔊 Agent talks back</label>
+            {null}
           </div>
           <div className="row" style={{ margin: '6px 0' }}><MicButton onText={(t) => setGoal((g) => (g ? g + ' ' + t : t))} title="Tell the agent the job by voice" /></div>
           <textarea style={{ minHeight: 130 }} value={goal} onChange={(e) => setGoal(e.target.value)} placeholder="e.g. Launch my clothing brand: brand bible, campaign images, promo video (script → shots → edit → colour), captions and a pitch deck." />

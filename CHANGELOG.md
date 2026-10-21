@@ -1,11 +1,8 @@
 # Changelog
 
-## Unreleased — new "Hey Pandora" engine
-- "Hey Pandora" now uses an offline streaming speech recognizer (sherpa-onnx zipformer, Apache-2.0, ~46 MB, CPU-only) with fuzzy name matching: works without the local engine, no GPU, no cloud. Every sentence it hears is in the voice report.
-- Sensitivity control (Low / Normal / High) and a live mic-level meter under the toggle.
-- Commands after the wake word use local Whisper, or OpenAI if the engine is not installed.
-- Voice commands now act: "open studio", "generate an image of … using flux, then colour grade it teal and orange" runs free on your PC and opens the result; bigger jobs go to the Agent and start on their own.
-- Voice commands are 100% free and offline: the same on-device recogniser hears "Hey Pandora" and the command, boosted toward Pandora's own vocabulary (tab names, generate, grade, teal & orange, flux…), with sound-alike matching for the name and auto-correction of misheard command words. No cloud, no API key.
+## Unreleased
+- Removed "Hey Pandora" and voice dictation. Text prompts, the Agent and the Pandora Voice tab (text-to-speech, music, sound effects) are unchanged.
+- Installer: choose the install folder and the library/models folder.
 - FLUX.2 klein is picked on 8 GB GPUs.
 
 ## 0.4.0 — 2026-10-16 · Pandora Cut + "never a problem" update
