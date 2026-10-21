@@ -5,7 +5,8 @@
 - Sensitivity control (Low / Normal / High) and a live mic-level meter under the toggle.
 - Commands after the wake word use local Whisper, or OpenAI if the engine is not installed.
 - Voice commands now act: "open studio", "generate an image of … using flux, then colour grade it teal and orange" runs free on your PC and opens the result; bigger jobs go to the Agent and start on their own.
-- Commands no longer wait for the voice model download (cloud is used until local is ready); FLUX.2 klein is picked on 8 GB GPUs.
+- Voice commands are 100% free and offline: the same on-device recogniser hears "Hey Pandora" and the command, boosted toward Pandora's own vocabulary (tab names, generate, grade, teal & orange, flux…), with sound-alike matching for the name and auto-correction of misheard command words. No cloud, no API key.
+- FLUX.2 klein is picked on 8 GB GPUs.
 
 ## 0.4.0 — 2026-10-16 · Pandora Cut + "never a problem" update
 

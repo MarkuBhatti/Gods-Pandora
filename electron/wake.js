@@ -16,6 +16,11 @@ const HF_FILES = ['tokens.txt', 'encoder-epoch-99-avg-1.int8.onnx', 'decoder-epo
 
 
 const unpacked = (p) => p.replace('app.asar' + path.sep, 'app.asar.unpacked' + path.sep); // workers + WASM load from real files
+// Pandora's vocabulary: boosted in the recogniser so commands are heard right (free, offline)
+const HOTWORDS = ['HEY PANDORA', 'PANDORA', 'OPEN', 'GO TO', 'SHOW', 'STUDIO', 'AGENT', 'FILM', 'AUTO EDIT', 'EDIT', 'COLOR', 'COLOUR', 'PHOTO', 'FASHION',
+  'PRODUCT', 'MARKETING', 'SHORTS', 'EXPLAINER', 'INFLUENCER', 'VOICE', 'APPS', 'FORGE', 'SPATIAL', 'TOUCHDESIGNER', 'HOME', 'GALLERY', 'LIBRARY', 'MODELS',
+  'SETTINGS', 'CONNECT', 'UPDATE', 'GENERATE', 'CREATE', 'MAKE', 'IMAGE', 'PICTURE', 'VIDEO', 'COLOR GRADE', 'GRADE', 'TEAL', 'ORANGE', 'TEAL AND ORANGE',
+  'WARM', 'COOL', 'CINEMATIC', 'GOLDEN HOUR', 'BLACK AND WHITE', 'VINTAGE', 'MOODY', 'FLUX', 'OPEN SOURCE', 'PROMPT', 'STOP', 'CANCEL', 'START'].join('\n');
 const modelDir = (userData) => path.join(userData, 'models', 'wake-asr');
 
 function findModel(dir) {
@@ -111,7 +116,13 @@ async function startOnce(userData, { sensitivity = 'normal' } = {}, onStatus = (
   const model = await ensureModel(userData, onStatus);
   stats.model = model.encoder; logUD = userData;
   onStatus('Starting the listener…');
-  const w = new Worker(unpacked(path.join(__dirname, 'wakeWorker.js')), { workerData: { sherpa: unpacked(require.resolve('sherpa-onnx')), model } });
+  // vocabulary file for word boosting (built from the model's own tokens)
+  let bpeVocab = '';
+  try {
+    bpeVocab = path.join(path.dirname(model.tokens), 'bpe.vocab');
+    if (!fs.existsSync(bpeVocab)) fs.writeFileSync(bpeVocab, fs.readFileSync(model.tokens, 'utf8').split(/\r?\n/).map((l) => l.trim().split(' ')).filter((p) => p.length === 2 && !p[0].startsWith('#')).map(([t, i]) => t + '\t' + -Number(i)).join('\n') + '\n', 'utf8');
+  } catch (_) { bpeVocab = ''; }
+  const w = new Worker(unpacked(path.join(__dirname, 'wakeWorker.js')), { workerData: { sherpa: unpacked(require.resolve('sherpa-onnx')), model, bpeVocab, hotwords: HOTWORDS } });
   worker = w;
   await new Promise((resolve, reject) => {
     const t = setTimeout(() => reject(new Error('The "Hey Pandora" detector did not start in time.')), 60000);

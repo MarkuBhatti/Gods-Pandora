@@ -70,3 +70,28 @@ export function parse(raw) {
   }
   return { type: 'agent', goal: t, mode };
 }
+
+// The offline recogniser sometimes mishears command words ("open edent" → "open agent").
+// Only the first few words (the verb + the tab name) are corrected, so prompts are left alone.
+const HEAD = ['open', 'go', 'show', 'switch', 'generate', 'create', 'make', 'draw', 'render', 'imagine', 'studio', 'agent', 'film', 'color', 'colour',
+  'photo', 'gallery', 'library', 'settings', 'models', 'home', 'connect', 'update', 'grade', 'voice', 'apps', 'forge', 'shorts', 'fashion', 'product',
+  'marketing', 'explainer', 'influencer', 'edit', 'image', 'picture', 'video', 'stop', 'cancel', 'start', 'canvas', 'spatial', 'styles', 'characters', 'locations'];
+function lev(a, b) {
+  const d = Array.from({ length: a.length + 1 }, (_, i) => [i]);
+  for (let j = 1; j <= b.length; j++) d[0][j] = j;
+  for (let i = 1; i <= a.length; i++) for (let j = 1; j <= b.length; j++) d[i][j] = Math.min(d[i - 1][j] + 1, d[i][j - 1] + 1, d[i - 1][j - 1] + (a[i - 1] === b[j - 1] ? 0 : 1));
+  return d[a.length][b.length];
+}
+const V = /^[aeiou]/;
+export function fixHead(text, n = 3) {
+  const words = String(text || '').split(/\s+/).filter(Boolean);
+  for (let i = 0; i < Math.min(n, words.length); i++) {
+    const w = words[i].toLowerCase().replace(/[^a-z]/g, '');
+    if (w.length < 4 || HEAD.includes(w)) continue;
+    const max = w.length >= 5 ? 2 : 1;
+    let best = null, bd = 9;
+    for (const h of HEAD) { const d = lev(w, h); if (d < bd && (h[0] === w[0] || (V.test(h) && V.test(w)))) { bd = d; best = h; } }
+    if (best && bd <= max) words[i] = best;
+  }
+  return words.join(' ');
+}

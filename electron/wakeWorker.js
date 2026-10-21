@@ -8,23 +8,27 @@ let rec = null; let stream = null; let lastPartial = '';
 try {
   let sherpa; try { sherpa = require(workerData.sherpa); } catch (_) { sherpa = require('sherpa-onnx'); }
   const m = workerData.model;
-  rec = sherpa.createOnlineRecognizer({
+  // Pandora's own words (wake phrase + command vocabulary) are boosted so they're recognised far more reliably
+  const make = (hot) => sherpa.createOnlineRecognizer({
     featConfig: { sampleRate: 16000, featureDim: 80 },
     modelConfig: {
       transducer: { encoder: m.encoder, decoder: m.decoder, joiner: m.joiner },
       paraformer: { encoder: '', decoder: '' }, zipformer2Ctc: { model: '' }, nemoCtc: { model: '' }, toneCtc: { model: '' },
-      tokens: m.tokens, numThreads: 1, provider: 'cpu', debug: 0, modelType: '', modelingUnit: '', bpeVocab: '',
+      tokens: m.tokens, numThreads: 1, provider: 'cpu', debug: 0, modelType: '',
+      modelingUnit: hot ? 'bpe' : '', bpeVocab: hot ? workerData.bpeVocab : '',
     },
-    decodingMethod: 'greedy_search',
+    decodingMethod: hot ? 'modified_beam_search' : 'greedy_search',
     maxActivePaths: 4,
     enableEndpoint: 1,
     rule1MinTrailingSilence: 2.0,  // silence with nothing said
-    rule2MinTrailingSilence: 0.7,  // pause after speech → end of utterance (fast response)
+    rule2MinTrailingSilence: 0.7,  // pause after speech → end of sentence (fast response)
     rule3MinUtteranceLength: 15,
-    hotwordsFile: '', hotwordsScore: 1.5,
+    hotwordsFile: '', hotwordsBuf: hot || '', hotwordsBufSize: Buffer.byteLength(hot || ''), hotwordsScore: 2.0,
     ctcFstDecoderConfig: { graph: '', maxActive: 3000 },
     ruleFsts: '', ruleFars: '',
   });
+  try { rec = workerData.hotwords && workerData.bpeVocab ? make(workerData.hotwords) : make(''); }
+  catch (_) { rec = make(''); } // without boosting if the vocabulary can't be used
   stream = rec.createStream();
   parentPort.postMessage({ type: 'ready' });
 } catch (e) {

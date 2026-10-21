@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNav } from './nav.jsx';
 import { speak, voicePrefs } from './Voice.jsx';
-import { parse as parseCommand } from './voiceIntent.js';
+import { parse as parseCommand, fixHead } from './voiceIntent.js';
 
 let recentFile = null; // last image/video made by voice → "grade it warm"
 
@@ -30,7 +30,22 @@ function nameLike(w, greeted, sens = 'normal') {
   if (sens === 'low') return dist === 0 || (dist === 1 && greeted);
   return dist <= 1 || (dist === 2 && greeted);
 }
+// Sound-alike key for when "hey" and the name run together: HIPPODORA, HYPNOTA, HYPERNDOTA, HE HAD PENDERA, HEY BENDORA
+const NAMEKEY = /^(?:h[aeiouy]*(?:[hd][aeiouy]*){0,2})?[pb]+[aeiouy]*r?[nm]?[aeiouy]*[dt]+[aeiouy]*(?:[rt]+[aeiouy]*)?$/;
+function soundsLikeName(joined, greetedOrH) {
+  const core = joined.replace(/^h[aeiouy]*(?:[hd][aeiouy]*){0,2}/, '');
+  return core.length >= 5 && core.length <= 10 && (greetedOrH || joined.startsWith('h')) && NAMEKEY.test(joined);
+}
 export function matchWake(text, sens = 'normal') {
+  const w0 = String(text || '').trim().split(/\s+/).filter(Boolean);
+  for (let k = Math.min(3, w0.length); k >= 1; k--) { // merged forms first: join the first 1–3 words
+    const joined = w0.slice(0, k).map(norm).join('');
+    if (/^(?:hey|hi|hay|he|a|ok|okay)$/.test(joined)) continue;
+    const lastW = norm(w0[k - 1] || '');
+    if (k > 1 && /^(?:to|the|me|you|it|is|a|an|and|of|in|on|at|for|up|out|by)$/.test(lastW)) continue;
+    if (/^(?:happen(?:ed|ing|s)?|hoped|hopped|hipped|headed|habit|hated|hunted|happened)$/.test(norm(w0[0]))) break;
+    if (soundsLikeName(joined, /^(?:hey|hi|he|hay)/.test(joined) || sens === 'high')) return { rest: w0.slice(k).join(' ').replace(/^[\s,.!?:;-]+/, '').trim() };
+  }
   const words = String(text || '').trim().split(/\s+/).filter(Boolean);
   let greeted = false;
   for (let i = 0; i < Math.min(words.length, sens === 'high' ? 6 : 4); i++) {
@@ -96,9 +111,9 @@ export default function WakeWord() {
     const onHit = () => {
       if (!alive || s.mode !== 'wake' || s.busy) return;
       beep(true); clearTimeout(s.cmdTimer);
-      s.mode = 'command'; s.speaking = !!s.lastLoud; s.buf = s.lastLoud ? s.pre.slice(-2) : []; s.pre = []; s.silentMs = 0; s.speechMs = 0; setPhase('command'); setHint('Yes? Say your command…');
+      s.mode = 'command'; setPhase('command'); setHint('Yes? Say your command…');
       window.api.wake.log?.('wake word → listening for command');
-      s.cmdTimer = setTimeout(() => { if (alive && s.mode === 'command' && !s.speaking && !s.busy) ready(); }, 8000);
+      s.cmdTimer = setTimeout(() => { if (alive && s.mode === 'command') { ready(); setHint('I didn\'t hear a command — say "Hey Pandora" again.'); } }, 10000);
     };
     (async () => {
       try {
@@ -118,16 +133,29 @@ export default function WakeWord() {
         s.kws = false;
         if (window.api.wake) {
           try {
+            // Everything below is free and on this PC: the offline recogniser hears the wake phrase AND the command
             offHit = window.api.wake.onEvent((m) => {
               if (m.type === 'error') { setHint('⚠ Listener: ' + m.error); return; }
-              if (s.mode !== 'wake' || s.busy) return;
-              if (m.type === 'partial') { const p = matchWake(m.text, sens); if (p && !p.rest) setPhase('hearing'); return; }
+              if (s.busy) return;
+              if (s.mode === 'command') {
+                if (m.type === 'partial') { setHint('🗣 ' + m.text.toLowerCase().slice(0, 80) + '…'); return; }
+                if (m.type !== 'text') return;
+                clearTimeout(s.cmdTimer);
+                const mm = matchWake(m.text, sens); const said = mm ? mm.rest : m.text; // "hey pandora" said again → ignore it
+                if (!said.trim()) return;
+                ready(); beep(false);
+                window.api.wake.log?.('command heard: ' + said);
+                command(fixHead(said.toLowerCase()), 'en');
+                return;
+              }
+              if (m.type === 'partial') { const p = matchWake(m.text, sens); if (p) setPhase('hearing'); return; }
               if (m.type !== 'text') return;
               const w = matchWake(m.text, sens);
               if (!w) { setHint('Heard: "' + m.text.toLowerCase().slice(0, 60) + '" — start with "Hey Pandora"'); return; }
               window.api.wake.hit?.();
-              if (w.rest.split(/\s+/).filter(Boolean).length >= 2) { // "hey pandora open studio" in one go
-                beep(true); window.api.wake.log?.('one-breath command: ' + w.rest); command(w.rest.toLowerCase(), 'en');
+              if (w.rest.split(/\s+/).filter(Boolean).length >= 1) { // "hey pandora open studio" in one go
+                beep(true); window.api.wake.log?.('one-breath command: ' + w.rest);
+                command(fixHead(w.rest.toLowerCase()), 'en');
               } else onHit();
             });
             await window.api.wake.start({ sensitivity: sens });
@@ -138,13 +166,11 @@ export default function WakeWord() {
         if (!s.kws) {
           if (!status.local) { setHint('⚠ The "Hey Pandora" detector could not be downloaded and the local engine is not installed. Check your internet and turn it on again.'); setOn(false); return; }
           try { await window.api.stt.warm('base'); } catch (e) { setHint('⚠ ' + clean(e)); setOn(false); return; }
-        } else if (status.local) {
-          window.api.stt.warm(voicePrefs().model || 'base').catch(() => {}); // get the command model ready in the background (never blocks: cloud is used until it is ready)
         }
         if (!alive) return;
         s.busy = false; s.peak = 0; s.started = Date.now();
         ready();
-        if (s.kws && !s.canUnderstand) setHint('Say "Hey Pandora…" (to understand commands, install the free local engine or add an OpenAI key)');
+        
         proc.onaudioprocess = (e) => {
           const d = e.inputBuffer.getChannelData(0); const chunk = new Float32Array(d);
           let rms = 0; for (let i = 0; i < chunk.length; i += 4) rms += chunk[i] * chunk[i]; rms = Math.sqrt(rms / (chunk.length / 4));
@@ -152,8 +178,8 @@ export default function WakeWord() {
           if (!s.warned && s.started && Date.now() - s.started > 6000 && s.peak < 0.002) { s.warned = true; setHint('⚠ No sound from your microphone. Check Windows Settings → Privacy & security → Microphone (allow desktop apps) and the input device in Sound settings.'); }
           const now = Date.now(); if (!s.lvlAt || now - s.lvlAt > 120) { s.lvlAt = now; setLevel(Math.min(1, rms * 12)); }
           // the keyword spotter hears everything while waiting for the wake word
-          if (!s.speaking) s.noise = s.noise * 0.95 + Math.min(rms, 0.05) * 0.05;
-          if (s.kws && s.mode === 'wake' && !s.busy) { s.lastLoud = rms > Math.max(0.005, s.noise * 2.5); s.pre.push(chunk); if (s.pre.length > 3) s.pre.shift(); window.api.wake.feed(downsample(chunk, rate)); return; }
+          if (!s.speaking && rms < Math.max(0.005, s.noise * 2.5)) s.noise = s.noise * 0.95 + Math.min(rms, 0.05) * 0.05; // learn background noise only from quiet moments
+          if (s.kws) { if (!s.busy) window.api.wake.feed(downsample(chunk, rate)); return; } // offline recogniser handles wake word + command
           // quiet laptop mics with noise suppression often speak at ~0.01 RMS, so the floor is low and adaptive
           const loud = rms > Math.max(0.005, s.noise * 2.5);
           if (s.busy) return;
