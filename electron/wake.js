@@ -9,21 +9,14 @@ const { Worker } = require('worker_threads');
 const { Readable } = require('stream');
 const { pipeline } = require('stream/promises');
 
-const NAME = 'sherpa-onnx-kws-zipformer-gigaspeech-3.3M-2024-01-01';
-const GH = `https://github.com/k2-fsa/sherpa-onnx/releases/download/kws-models/${NAME}.tar.bz2`;
-const HF = 'https://huggingface.co/mobilebytesensei/sherpa-onnx-kws-zipformer-gigaspeech-3.3M/resolve/main/';
-const HF_FILES = ['tokens.txt', 'encoder-epoch-12-avg-2-chunk-16-left-64.int8.onnx', 'decoder-epoch-12-avg-2-chunk-16-left-64.onnx', 'joiner-epoch-12-avg-2-chunk-16-left-64.int8.onnx'];
+const NAME = 'sherpa-onnx-streaming-zipformer-en-20M-2023-02-17';
+const GH = `https://github.com/k2-fsa/sherpa-onnx/releases/download/asr-models/${NAME}.tar.bz2`;
+const HF = `https://huggingface.co/csukuangfj/${NAME}/resolve/main/`;
+const HF_FILES = ['tokens.txt', 'encoder-epoch-99-avg-1.int8.onnx', 'decoder-epoch-99-avg-1.onnx', 'joiner-epoch-99-avg-1.int8.onnx']; // ≈ 46 MB
 
-// "HEY PANDORA" written in the model's BPE tokens (several spellings so every accent/segmentation matches)
-const B = '\u2581';
-const PHRASES = [
-  `${B}HE Y ${B}PA N D OR A`, `${B}HE Y ${B}PA N D O RA`, `${B}HE Y ${B}P AN D OR A`, `${B}HE Y ${B}PA N ${B}DO RA`,
-  `${B}HI ${B}PA N D OR A`, `${B}OKAY ${B}PA N D OR A`, `${B}HE Y ${B}PA N D OR RA`,
-];
-const SENS = { low: 0.3, normal: 0.2, high: 0.12 };
 
 const unpacked = (p) => p.replace('app.asar' + path.sep, 'app.asar.unpacked' + path.sep); // workers + WASM load from real files
-const modelDir = (userData) => path.join(userData, 'models', 'wake-kws');
+const modelDir = (userData) => path.join(userData, 'models', 'wake-asr');
 
 function findModel(dir) {
   const all = [];
@@ -32,9 +25,9 @@ function findModel(dir) {
   const pick = (re, prefer) => { const c = all.filter((f) => re.test(path.basename(f)) && fs.statSync(f).size > 1000); return c.find((f) => prefer.every((p) => p.test(path.basename(f)))) || c.find((f) => prefer[0].test(path.basename(f))) || c[0]; };
   const m = {
     tokens: all.find((f) => path.basename(f) === 'tokens.txt'),
-    encoder: pick(/^encoder.*\.onnx$/, [/chunk-16/, /int8/]),
-    decoder: pick(/^decoder.*\.onnx$/, [/chunk-16/, /^(?!.*int8)/]),
-    joiner: pick(/^joiner.*\.onnx$/, [/chunk-16/, /int8/]),
+    encoder: pick(/^encoder.*\.onnx$/, [/int8/]),
+    decoder: pick(/^decoder.*\.onnx$/, [/^(?!.*int8)/]),
+    joiner: pick(/^joiner.*\.onnx$/, [/int8/]),
   };
   return m.tokens && m.encoder && m.decoder && m.joiner ? m : null;
 }
@@ -55,7 +48,7 @@ function tarBin() {
 }
 
 // diagnostics: a small log + live stats so problems can be reported in one click
-const stats = { state: 'off', model: null, chunks: 0, loud: 0, hits: 0, lastHit: null, lastError: null, startedAt: null, sensitivity: null };
+const stats = { state: 'off', model: null, chunks: 0, loud: 0, hits: 0, utterances: 0, heard: [], lastHit: null, lastError: null, startedAt: null, sensitivity: null };
 let logFile = null;
 function log(userData, msg) {
   try { if (!logFile) { const d = path.join(userData, 'logs'); fs.mkdirSync(d, { recursive: true }); logFile = path.join(d, 'voice.log'); }
@@ -75,7 +68,7 @@ async function ensureModel(userData, onStatus = () => {}) {
   preparing = (async () => {
     fs.mkdirSync(dir, { recursive: true });
     log(userData, 'downloading detector model');
-    onStatus('Downloading the "Hey Pandora" detector (6 MB, one time)…');
+    onStatus('Downloading the "Hey Pandora" listener (46 MB, one time)…');
     const errors = [];
     // 1) Hugging Face (individual files, no extraction needed — works on every Windows version)
     try {
@@ -117,10 +110,8 @@ async function startOnce(userData, { sensitivity = 'normal' } = {}, onStatus = (
   stop();
   const model = await ensureModel(userData, onStatus);
   stats.model = model.encoder; logUD = userData;
-  // NOTE: in the WebAssembly build sherpa-onnx parses `keywords` as the keyword TEXT itself, not a file path
-  const keywordsText = PHRASES.map((p) => p + ' @HEY_PANDORA').join('\n');
-  onStatus('Starting the detector…');
-  const w = new Worker(unpacked(path.join(__dirname, 'wakeWorker.js')), { workerData: { sherpa: unpacked(require.resolve('sherpa-onnx')), model, keywordsText, threshold: SENS[sensitivity] || SENS.normal, score: 1.5 } });
+  onStatus('Starting the listener…');
+  const w = new Worker(unpacked(path.join(__dirname, 'wakeWorker.js')), { workerData: { sherpa: unpacked(require.resolve('sherpa-onnx')), model } });
   worker = w;
   await new Promise((resolve, reject) => {
     const t = setTimeout(() => reject(new Error('The "Hey Pandora" detector did not start in time.')), 60000);
@@ -129,10 +120,11 @@ async function startOnce(userData, { sensitivity = 'normal' } = {}, onStatus = (
     w.on('message', (msg) => {
       if (msg.type === 'ready') { clearTimeout(t); resolve(); }
       else if (msg.type === 'error') { clearTimeout(t); reject(new Error(msg.error)); for (const l of listeners) l({ type: 'error', error: msg.error }); }
-      else if (msg.type === 'hit') { stats.hits++; stats.lastHit = new Date().toISOString(); log(userData, 'WAKE WORD detected'); for (const l of listeners) l(msg); }
+      else if (msg.type === 'text') { stats.utterances++; stats.heard.push(msg.text); if (stats.heard.length > 15) stats.heard.shift(); log(userData, 'heard: ' + msg.text); for (const l of listeners) l(msg); }
+      else if (msg.type === 'partial') { for (const l of listeners) l(msg); }
     });
   }).catch((e) => { stop(); throw e; });
-  return { ok: true, engine: 'sherpa-onnx keyword spotter (offline)' };
+  return { ok: true, engine: 'sherpa-onnx streaming recognizer (offline)' };
 }
 
 let logUD = null;
@@ -141,10 +133,12 @@ function feed(buf) {
   stats.chunks++;
   const f = new Float32Array(buf); let e = 0; for (let i = 0; i < f.length; i += 8) e += f[i] * f[i];
   if (Math.sqrt(e / Math.max(1, f.length / 8)) > 0.01) stats.loud++;
-  if (logUD && stats.chunks % 600 === 0) log(logUD, `audio ok: ${stats.chunks} chunks, ${stats.loud} with speech, ${stats.hits} wake hits`);
+  if (logUD && stats.chunks % 600 === 0) log(logUD, `audio ok: ${stats.chunks} chunks, ${stats.loud} with speech, ${stats.utterances} sentences, ${stats.hits} wake hits`);
   worker.postMessage({ type: 'audio', data: buf }, [buf]);
 }
 function stop() { if (stats.state === 'listening') stats.state = 'off'; if (worker) { const w = worker; worker = null; try { w.postMessage({ type: 'stop' }); } catch (_) {} setTimeout(() => w.terminate().catch(() => {}), 300); } }
+function hit(userData) { stats.hits++; stats.lastHit = new Date().toISOString(); log(userData, 'WAKE WORD detected'); }
+function resetStream() { if (worker) worker.postMessage({ type: 'reset' }); }
 function onEvent(cb) { listeners.add(cb); return () => listeners.delete(cb); }
 
-module.exports = { start, stop, feed, onEvent, ensureModel, findModel, report, log, PHRASES };
+module.exports = { start, stop, feed, onEvent, ensureModel, findModel, report, log, hit, resetStream };

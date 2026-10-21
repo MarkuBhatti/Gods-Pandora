@@ -64,6 +64,8 @@ contextBridge.exposeInMainWorld('api', {
     report: () => ipcRenderer.invoke('wake:report'),
     act: (args) => ipcRenderer.invoke('voice:do', args),
     log: (m) => ipcRenderer.send('wake:log', m),
+    hit: () => ipcRenderer.send('wake:hit'),
+    reset: () => ipcRenderer.send('wake:reset'),
     feed: (f32) => ipcRenderer.send('wake:audio', f32),
     onEvent: (cb) => { const h = (_e, m) => cb(m); ipcRenderer.on('wake:event', h); return () => ipcRenderer.removeListener('wake:event', h); },
   },

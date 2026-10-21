@@ -1,7 +1,7 @@
 # Changelog
 
 ## Unreleased — new "Hey Pandora" engine
-- "Hey Pandora" now uses a dedicated offline keyword spotter (sherpa-onnx, Apache-2.0, ~6 MB, CPU-only) instead of Whisper: instant, works without the local engine, no GPU, no cloud.
+- "Hey Pandora" now uses an offline streaming speech recognizer (sherpa-onnx zipformer, Apache-2.0, ~46 MB, CPU-only) with fuzzy name matching: works without the local engine, no GPU, no cloud. Every sentence it hears is in the voice report.
 - Sensitivity control (Low / Normal / High) and a live mic-level meter under the toggle.
 - Commands after the wake word use local Whisper, or OpenAI if the engine is not installed.
 - Voice commands now act: "open studio", "generate an image of … using flux, then colour grade it teal and orange" runs free on your PC and opens the result; bigger jobs go to the Agent and start on their own.

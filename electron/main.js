@@ -502,6 +502,8 @@ function registerIpc() {
   wake.onEvent((m) => wakeSend('wake:event', m));
   safeHandle('wake:start', (_e, opts) => wake.start(userData(), opts || {}, (msg) => wakeSend('stt:status', msg)));
   safeHandle('wake:stop', () => { wake.stop(); return { ok: true }; });
+  ipcMain.on('wake:hit', () => { try { wake.hit(userData()); } catch (_) {} });
+  ipcMain.on('wake:reset', () => { try { wake.resetStream(); } catch (_) {} });
   ipcMain.on('wake:log', (_e, m) => { try { wake.log(userData(), 'ui: ' + String(m).slice(0, 300)); } catch (_) {} });
   safeHandle('wake:report', () => 'God\'s Pandora ' + app.getVersion() + '\nstt: ' + JSON.stringify(stt.status(userData(), getKeys())) + '\n' + wake.report(userData()));
   ipcMain.on('wake:audio', (_e, a) => { try { const f = a instanceof Float32Array ? a : ArrayBuffer.isView(a) ? new Float32Array(a.buffer, a.byteOffset, a.byteLength >> 2) : new Float32Array(a); wake.feed(f.slice().buffer); } catch (_) { /* ignore */ } });

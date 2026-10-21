@@ -21,22 +21,24 @@ function lev(a, b) {
   return d[a.length][b.length];
 }
 const norm = (w) => w.toLowerCase().replace(/[’']s$/, '').replace(/[^\p{L}\p{N}]/gu, '');
-function nameLike(w, greeted) {
+function nameLike(w, greeted, sens = 'normal') {
   if (!w) return false;
   if (/^(?:pandora|پنڈورا|پینڈورا|پانڈورا|पंडोरा|पेंडोरा|पैंडोरा|潘多拉|パンドラ|판도라|пандора)$/.test(w)) return true;
   if (!/^[pbf]/.test(w) || w.length < 5 || w.length > 10) return false;
   const dist = lev(w, 'pandora');
+  if (sens === 'high') return dist <= 2 || (dist === 3 && greeted && w.length >= 6);
+  if (sens === 'low') return dist === 0 || (dist === 1 && greeted);
   return dist <= 1 || (dist === 2 && greeted);
 }
-export function matchWake(text) {
+export function matchWake(text, sens = 'normal') {
   const words = String(text || '').trim().split(/\s+/).filter(Boolean);
   let greeted = false;
-  for (let i = 0; i < Math.min(words.length, 4); i++) {
+  for (let i = 0; i < Math.min(words.length, sens === 'high' ? 6 : 4); i++) {
     const w = norm(words[i]);
     for (const [cand, used] of [[w, 1], [w + norm(words[i + 1] || ''), 2]]) {
-      if (nameLike(cand, greeted)) return { rest: words.slice(i + used).join(' ').replace(/^[\s,.!?:;-]+/, '').trim() };
+      if (nameLike(cand, greeted, sens)) return { rest: words.slice(i + used).join(' ').replace(/^[\s,.!?:;-]+/, '').trim() };
     }
-    if (w && !GREET.has(w)) return null; // the name has to open the sentence
+    if (w && !GREET.has(w) && sens !== 'high') return null; // the name has to open the sentence (High: anywhere near the start)
     if (w) greeted = true;
   }
   return null;
@@ -90,7 +92,7 @@ export default function WakeWord() {
     let alive = true; let ctx, proc, stream;
     const s = st.current = { mode: 'wake', buf: [], pre: [], speaking: false, silentMs: 0, speechMs: 0, noise: 0.008, busy: false };
     let offHit = null;
-    const ready = () => { s.mode = 'wake'; setPhase('idle'); setHint('Say "Hey Pandora…"'); };
+    const ready = () => { s.mode = 'wake'; window.api.wake?.reset?.(); setPhase('idle'); setHint('Say "Hey Pandora…"'); };
     const onHit = () => {
       if (!alive || s.mode !== 'wake' || s.busy) return;
       beep(true); clearTimeout(s.cmdTimer);
@@ -111,12 +113,23 @@ export default function WakeWord() {
         const mute = ctx.createGain(); mute.gain.value = 0; // keep the processor running without echoing the mic
         src.connect(proc); proc.connect(mute); mute.connect(ctx.destination);
         const rate = ctx.sampleRate; const chunkMs = 4096 / rate * 1000;
-        s.busy = true; setPhase('checking'); setHint('Starting the "Hey Pandora" detector…');
+        s.busy = true; setPhase('checking'); setHint('Starting the "Hey Pandora" listener…');
         // 1) dedicated offline keyword spotter (sherpa-onnx): fast, exact, no engine needed
         s.kws = false;
         if (window.api.wake) {
           try {
-            offHit = window.api.wake.onEvent((m) => { if (m.type === 'hit') onHit(); else if (m.type === 'error') setHint('⚠ Detector: ' + m.error); });
+            offHit = window.api.wake.onEvent((m) => {
+              if (m.type === 'error') { setHint('⚠ Listener: ' + m.error); return; }
+              if (s.mode !== 'wake' || s.busy) return;
+              if (m.type === 'partial') { const p = matchWake(m.text, sens); if (p && !p.rest) setPhase('hearing'); return; }
+              if (m.type !== 'text') return;
+              const w = matchWake(m.text, sens);
+              if (!w) { setHint('Heard: "' + m.text.toLowerCase().slice(0, 60) + '" — start with "Hey Pandora"'); return; }
+              window.api.wake.hit?.();
+              if (w.rest.split(/\s+/).filter(Boolean).length >= 2) { // "hey pandora open studio" in one go
+                beep(true); window.api.wake.log?.('one-breath command: ' + w.rest); command(w.rest.toLowerCase(), 'en');
+              } else onHit();
+            });
             await window.api.wake.start({ sensitivity: sens });
             s.kws = true;
           } catch (e) { setHint('⚠ ' + clean(e) + ' — trying Whisper instead…'); }
@@ -192,7 +205,7 @@ export default function WakeWord() {
           const r = await window.api.stt.transcribe({ audio: b64, mime: 'audio/wav', language: prefs.language, translate: true, engine, model });
           const said = String(r.text || ''); const mw = matchWake(said);
           window.api.wake.log?.('command heard (' + engine + '): ' + said);
-          s.mode = 'wake';
+          s.mode = 'wake'; window.api.wake?.reset?.();
           command(mw ? mw.rest : said, r.language); // runs in the background — you can keep talking
         }
       } catch (e) { setHint('⚠ ' + String(e.message || e).replace(/^Error invoking remote method '[^']+':\s*(Error:\s*)?/, '')); s.mode = 'wake'; }
