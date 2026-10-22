@@ -10,7 +10,7 @@ ManifestDPIAware true
 
 !define APPNAME "God's Pandora"
 !define EXENAME "God's Pandora.exe"
-!define VERSION "0.4.0"
+!define VERSION "0.5.0"
 !define PUBLISHER "Haider Bhatti"
 !define UNINSTKEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\com.haider.godspandora"
 !define SRC "../release/win-unpacked"
@@ -447,8 +447,8 @@ Section "God's Pandora (required)" SecMain
   WriteRegStr HKCU "${UNINSTKEY}" "DisplayIcon" "$INSTDIR\${EXENAME}"
   WriteRegStr HKCU "${UNINSTKEY}" "InstallLocation" "$INSTDIR"
   WriteRegStr HKCU "${UNINSTKEY}" "URLInfoAbout" "https://github.com/"
-  WriteRegStr HKCU "${UNINSTKEY}" "UninstallString" '"$INSTDIR\Uninstall God$\'s Pandora.exe"'
-  WriteRegStr HKCU "${UNINSTKEY}" "QuietUninstallString" '"$INSTDIR\Uninstall God$\'s Pandora.exe" /S'
+  WriteRegStr HKCU "${UNINSTKEY}" "UninstallString" '"$INSTDIR\Uninstall God$\'s Pandora.exe" _?=$INSTDIR'
+  WriteRegStr HKCU "${UNINSTKEY}" "QuietUninstallString" '"$INSTDIR\Uninstall God$\'s Pandora.exe" /S _?=$INSTDIR'
   WriteRegDWORD HKCU "${UNINSTKEY}" "NoModify" 1
   WriteRegDWORD HKCU "${UNINSTKEY}" "NoRepair" 1
   ${GetSize} "$INSTDIR" "/S=0K" $0 $1 $2
@@ -464,7 +464,7 @@ SectionEnd
 Section "-Start menu shortcuts" SecStart
   CreateDirectory "$SMPROGRAMS\God's Pandora"
   CreateShortCut "$SMPROGRAMS\God's Pandora\God's Pandora.lnk" "$INSTDIR\${EXENAME}" "" "$INSTDIR\${EXENAME}" 0
-  CreateShortCut "$SMPROGRAMS\God's Pandora\Uninstall God's Pandora.lnk" "$INSTDIR\Uninstall God's Pandora.exe"
+  CreateShortCut "$SMPROGRAMS\God's Pandora\Uninstall God's Pandora.lnk" "$INSTDIR\Uninstall God's Pandora.exe" "_?=$INSTDIR"
 SectionEnd
 
 Section /o "-Start at sign-in" SecLogin
@@ -474,6 +474,11 @@ SectionEnd
 
 
 ; ── uninstall ──
+Var UnDataDir
+Function un.onInit
+  ReadRegStr $UnDataDir HKCU "Software\God's Pandora" "DataDir"
+FunctionEnd
+
 Section "un.God's Pandora (app)" UnSecMain
   SectionIn RO
   nsExec::Exec 'taskkill /F /IM "God$\'s Pandora.exe"'
@@ -482,15 +487,17 @@ Section "un.God's Pandora (app)" UnSecMain
   RMDir /r "$SMPROGRAMS\God's Pandora"
   DeleteRegValue HKCU "Software\Microsoft\Windows\CurrentVersion\Run" "God's Pandora"
   RMDir /r "$INSTDIR"
+  ; the uninstaller runs in place, so it removes its own file a moment after it closes (hidden, no console window)
+  ExecShell "open" "$SYSDIR\cmd.exe" '/c ping -n 3 127.0.0.1 >nul & del /f /q "$INSTDIR\Uninstall God$\'s Pandora.exe" & rmdir /s /q "$INSTDIR"' SW_HIDE
   DeleteRegKey HKCU "${UNINSTKEY}"
   DeleteRegKey HKCU "Software\God's Pandora"
 SectionEnd
 
 Section /o "un.Also delete my library, keys and downloaded models" UnSecData
-  ReadRegStr $0 HKCU "Software\God's Pandora" "DataDir"
-  ${If} $0 != ""
-    RMDir /r "$0"
+  ${If} $UnDataDir != ""
+    RMDir /r "$UnDataDir"
   ${EndIf}
+  RMDir /r "$APPDATA\God's Eye"
   RMDir /r "$APPDATA\God's Pandora"
   DeleteRegValue HKCU "Software\God's Pandora" "DataDir"
 SectionEnd

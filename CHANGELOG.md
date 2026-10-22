@@ -1,5 +1,13 @@
 # Changelog
 
+## 0.5.0 — New look
+- Redesigned app: calm grouped sidebar (Create, Edit, Campaigns, Build, World, Library, System) instead of the crowded top bar; serif display type (Instrument Serif) with Inter for the interface; new top bar with Free / Hybrid / Cloud switch.
+- New Home: looping video hero with the living Pandora box, big prompt box, studio tiles with hover video, "Made in Pandora" reel, idea-to-finished-video strip and recent creations.
+- Every tool tab gets a cinematic banner with its own title and background.
+- Pandy: the Pandora Agent is now a cartoon widget on the right edge — eyes follow the cursor, drag it up and down, click to open the full agent in a side drawer.
+- Engine install: uses a supported Python (3.10–3.14) automatically; on Windows without one it downloads a private Python 3.12 — fixes "Microsoft Visual C++ 14.0 is required" on new Python versions such as 3.15.
+- Uninstaller runs in place, so Windows Smart App Control no longer blocks its temporary copy (Un_*.exe); "delete my data" now also removes a custom data folder.
+
 ## Unreleased
 - Removed "Hey Pandora" and voice dictation. Text prompts, the Agent and the Pandora Voice tab (text-to-speech, music, sound effects) are unchanged.
 - Installer: choose the install folder and the library/models folder.

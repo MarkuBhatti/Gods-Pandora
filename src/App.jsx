@@ -33,59 +33,23 @@ import AdMultiplier from './pages/AdMultiplier.jsx';
 import { StoreProvider } from './lib/store.jsx';
 import Home from './pages/Home.jsx';
 import ErrorBoundary from './ErrorBoundary.jsx';
+import { NAV, ALL, TABS, Icon, Em, bg } from './lib/ui.jsx';
+import Pandy from './lib/Pandy.jsx';
 
-const TOPNAV = [
-  ['create',     'Pandora Studio',      '✦'],
-  ['agent',      'Pandora Agent',       '🤖'],
-  ['canvas',     'Pandora Node Canvas', '⚛'],
-  ['film',       'Pandora Film',        '🎬'],
-  ['cut',        'Pandora AutoEdit',    '🎞'],
-  ['color',      'Pandora Color',       '🎨'],
-  ['photo',      'Pandora Photo',       '📷'],
-  ['fashion',    'Pandora Fashion',     '✂'],
-  ['product',    'Pandora Product',     '◍'],
-  ['marketing',  'Pandora Marketing',   '📣'],
-  ['admulti',    'Pandora Ad Multiplier','📈'],
-  ['genjutsu',   'Pandora Shapeshift',    '🌀'],
-  ['shorts',     'Pandora Shorts',      '📱'],
-  ['explainer',  'Pandora Explainer',   '🎓'],
-  ['influencer', 'Pandora Influencer',  '🌟'],
-  ['voice',      'Pandora Voice',       '🎙'],
-  ['apps',       'Pandora Apps',        '⊞'],
-  ['appbuild',   'Pandora App Building','🛠'],
-  ['designdocs', 'Pandora Design Docs', '📐'],
-  ['digiproduct','Pandora Digital Products',    '📦'],
-  ['forge',      'Pandora Forge',       '⚒'],
-  ['spatial',    'Pandora 3D & Spatial','🧊'],
-  ['touchdesigner', 'Pandora TouchDesigner', '⬡'],
-];
-
-const SIDENAV = [
-  ['home',       'Pandora Home',         '⌂'],
-  ['— MARKET —'],
-  ['aimarket',   'Pandora AI Market',    '🌐'],
-  ['— WORLD —'],
-  ['styles',     'Pandora Styles','❖'],
-  ['characters', 'Pandora Characters',   '☺'],
-  ['locations',  'Pandora Locations',    '⌖'],
-  ['products',   'Pandora Products & Brand', '📦'],
-  ['— SYSTEM —'],
-  ['library',    'Pandora Gallery',      '▦'],
-  ['market',     'Pandora Models', '🛒'],
-  ['models',     'Pandora Core & Cloud',       '⬢'],
-  ['update',     'Pandora Update',       '⬆'],
-  ['connect',    'Pandora Connect',      '🔌'],
-  ['settings',   'Pandora Cloud & Settings',     '⚙'],
-];
-
-// "Pandora Film" → small PANDORA tag + "Film" so the long names stay compact in the bars
-// every tab gets its own colour for its app-icon squircle
-const HUE = Object.fromEntries([...TOPNAV, ...SIDENAV.filter((x) => x[1])].map(([id], i) => [id, (i * 47 + 200) % 360]));
-
-function NavLabel({ label }) {
-  if (!label.startsWith('Pandora ')) return label;
-  return <span className="nl"><span className="pfx">Pandora</span><span>{label.slice(8)}</span></span>;
+// Tab banner (title with an italic accent, one line, cinematic background) shown above each tool page
+function Banner({ page }) {
+  const t = TABS[page]; const meta = ALL.find((x) => x.id === page);
+  if (!t || !meta) return null;
+  return (
+    <section className="pg-banner">
+      <div className="pg-banner-bg" style={{ backgroundImage: `url(${bg(t[2])})` }} />
+      <div className="pg-eyebrow">{meta.g ? meta.g + ' · ' : ''}{meta.label}</div>
+      <h1 className="pg-title"><Em text={t[0]} /></h1>
+      <p className="pg-line">{t[1]}</p>
+    </section>
+  );
 }
+const NO_BANNER = new Set(['home', 'create', 'canvas']);
 
 function Page({ page }) {
   return (
@@ -194,6 +158,10 @@ export default function App() {
   }, []);
   const lite = perf === 'on' || (perf === 'auto' && weak);
   useEffect(() => { document.body.classList.toggle('perf-lite', lite); }, [lite]);
+  const [mode, setMode] = useState(() => { try { return localStorage.getItem('pandora.mode') || 'free'; } catch { return 'free'; } });
+  const setModeAll = (m) => { setMode(m); try { localStorage.setItem('pandora.mode', m); } catch { /* ignore */ } window.dispatchEvent(new CustomEvent('pandora:mode', { detail: m })); };
+  // the tab banner already shows the title → hide the page's own first heading
+  useEffect(() => { const h = document.querySelector('.page-in.has-banner .page-body h1'); if (h) h.classList.add('dup-title'); });
   const cyclePerf = () => {
     const next = perf === 'auto' ? 'on' : perf === 'on' ? 'off' : 'auto';
     setPerf(next); try { localStorage.setItem('pandora.perf', next); } catch { /* ignore */ }
@@ -205,67 +173,60 @@ export default function App() {
        <NavProvider setPage={setPage}>
         <SetupWizard />
         <InstallWelcome />
-        <CommandPalette pages={[...TOPNAV, ...SIDENAV.filter((x) => x[1])]} onGo={setPage} />
+        <CommandPalette pages={ALL.map((x) => [x.id, x.label, '›'])} onGo={setPage} />
         <Onboarding />
-        <nav className="sidebar">
+        <nav className="sidebar sb2">
           <div className="logo">
             <div className="side-box"><PandoraBox size={54} sparks={false} /></div>
             <div className="wordmark"><span><b>GOD'S</b> <span className="eye">PANDORA</span></span></div>
             <div className="tagline">Every model. Every medium. One creative universe.</div>
           </div>
+          <button className="sb-search" onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))}><Icon name="search" /><span>Search tools</span><kbd>Ctrl K</kbd></button>
           <div className="navscroll">
-            {SIDENAV.map(([id, label, icon]) =>
-              label === undefined
-                ? <div key={id} className="navhead">{id.replace(/—/g, '').trim()}</div>
-                : (
-                  <button
-                    key={id}
-                    className={'navbtn' + (page === id ? ' active' : '')} style={{ '--h': HUE[id] }}
-                    onClick={() => setPage(id)}
-                  >
-                    <span>{icon}</span> <NavLabel label={label} />
+            {NAV.map(([g, items]) => (
+              <div key={g || 'top'} className="sb-grp">
+                {g && <div className="sb-h">{g}</div>}
+                {items.map(([id, label, icon, c, badge]) => (
+                  <button key={id} title={label} className={'sb-item' + (page === id ? ' on' : '')} onClick={() => setPage(id)}>
+                    <span className="sb-ic" style={{ '--c': c }}><Icon name={icon} /></span><span className="sb-l">{label}</span>
+                    {badge && <span className={'sb-badge ' + badge}>{badge === 'free' ? 'FREE' : 'NEW'}</span>}
                     {id === 'update' && updReady && <span className="upd-dot" title="Update available" />}
                   </button>
-                )
-            )}
+                ))}
+              </div>
+            ))}
           </div>
-          {updReady && (
-            <button className="upd-pill" onClick={() => setPage('update')}>
-              ⬆ v{upd.info?.version} {upd.status === 'downloaded' ? 'ready — restart' : 'available'}
-            </button>
-          )}
-          <JobsIndicator />
-          <div className="side-foot">
-            <button className={"perf-pill" + (lite ? " on" : "")} onClick={cyclePerf} title="Lite mode freezes the animated backgrounds and blur so the app stays fast on any PC. Auto = on for low-end PCs and low battery.">
-              ⚡ Lite · {perf === 'auto' ? 'Auto' : perf === 'on' ? 'On' : 'Off'}
-            </button>
-            <button className="mode-pill kbd-hint" onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))} title="Quick jump (Ctrl K)">⌕ Jump <kbd>Ctrl K</kbd></button>
+          <div className="sb-foot">
+            <button className={'perf-pill' + (lite ? ' on' : '')} onClick={cyclePerf} title="Lite mode freezes the animated backgrounds and blur so the app stays fast on any PC. Auto = on for low-end PCs and low battery.">⚡ Lite · {perf === 'auto' ? 'Auto' : perf === 'on' ? 'On' : 'Off'}</button>
           </div>
         </nav>
         <div className="wrap">
-          <header className="topbar">
+          <header className="topbar tb2">
             <span className="histnav">
-              <button className="navbtn hist" disabled={!canBack} onClick={back} title="Back (Alt+←)">←</button>
-              <button className="navbtn hist" disabled={!canFwd} onClick={forward} title="Forward (Alt+→)">→</button>
-              <button className={'navbtn hist' + (page === 'home' ? ' active' : '')} onClick={() => setPage('home')} title="Home (Alt+H)">⌂</button>
+              <button className="tb-btn" disabled={!canBack} onClick={back} title="Back (Alt+←)"><Icon name="left" /></button>
+              <button className="tb-btn" disabled={!canFwd} onClick={forward} title="Forward (Alt+→)"><Icon name="right" /></button>
             </span>
-            {TOPNAV.map(([id, label, icon]) => (
-              <button
-                key={id}
-                className={'navbtn' + (page === id ? ' active' : '')} style={{ '--h': HUE[id] }}
-                onClick={() => setPage(id)}
-              >
-                <span>{icon}</span> <NavLabel label={label} />
-              </button>
-            ))}
+            <span className="tb-crumb">{(() => { const m = ALL.find((x) => x.id === page); return page === 'home' || !m ? <b>Home</b> : <>{m.g} <i>/</i> <b>{m.label}</b></>; })()}</span>
+            <span className="tb-gap" />
+            <div className="tb-seg" title="Default for the Agent and new jobs: Free = only open-source models on this PC">
+              {[['free', 'Free · local'], ['hybrid', 'Hybrid'], ['cloud', 'Cloud']].map(([m, l]) => (
+                <button key={m} className={(mode === m ? 'on ' : '') + m} onClick={() => setModeAll(m)}>{l}</button>
+              ))}
+            </div>
+            {updReady && <button className="upd-pill" onClick={() => setPage('update')}>⬆ v{upd.info?.version} {upd.status === 'downloaded' ? 'ready' : 'available'}</button>}
+            <JobsIndicator />
           </header>
           <div className="stage">
             <MoodBackdrop scene={page} />
             <main className="main">
-              <div className="page-in" key={page}><Page page={page} /></div>
+              <div className={'page-in' + (NO_BANNER.has(page) ? '' : ' has-banner')} key={page}>
+                {!NO_BANNER.has(page) && <Banner page={page} />}
+                <div className="page-body"><Page page={page} /></div>
+              </div>
             </main>
           </div>
         </div>
+        <Pandy page={page} go={setPage} />
        </NavProvider>
       </StoreProvider>
     </ErrorBoundary>

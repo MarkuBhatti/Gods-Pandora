@@ -28,11 +28,52 @@ const PORT = 8756;
 // Python can't read inside app.asar — the engine folder is unpacked next to it (build.asarUnpack)
 function enginePath() { return path.join(__dirname, '..', 'engine').replace('app.asar' + path.sep, 'app.asar.unpacked' + path.sep); }
 function modelsDir(userData) { const d = path.join(userData, 'models'); fs.mkdirSync(d, { recursive: true }); return d; }
-function python() {
-  for (const cmd of ['python3', 'python', 'py']) {
-    try { if (spawnSync(cmd, ['--version']).status === 0) return cmd; } catch { /* try next */ }
+// Python versions with ready-made wheels for torch / diffusers / pyyaml on Windows. A brand-new or pre-release
+// Python (e.g. 3.15) has none, so pip tries to compile packages and fails ("Microsoft Visual C++ 14.0 is required").
+const GOOD_PY = ['3.12', '3.13', '3.11', '3.10', '3.14'];
+const PRIVATE_PY_VER = '3.12.10';
+const privatePy = (userData) => path.join(userData, 'python-' + PRIVATE_PY_VER, 'tools', 'python.exe');
+function pyVersion(cmd, args = []) {
+  try {
+    const r = spawnSync(cmd, [...args, '-c', 'import sys;print("%d.%d"%sys.version_info[:2])'], { timeout: 20000 });
+    return r.status === 0 ? String(r.stdout || '').trim() : null;
+  } catch { return null; }
+}
+// best compatible Python on this PC: Pandora's own private copy, then py-launcher versions, then PATH
+function findPython(userData) {
+  const cands = [];
+  if (userData && fs.existsSync(privatePy(userData))) cands.push([privatePy(userData), []]);
+  if (process.platform === 'win32') for (const v of GOOD_PY) cands.push(['py', ['-' + v]]);
+  cands.push(['python3', []], ['python', []]);
+  let best = null; let other = null;
+  for (const [cmd, args] of cands) {
+    const v = pyVersion(cmd, args); if (!v) continue;
+    const rank = GOOD_PY.indexOf(v);
+    if (rank < 0) { other = other || v; continue; }
+    if (!best || rank < best.rank) best = { cmd, args, v, rank };
+    if (rank === 0) break;
   }
-  return null;
+  return best ? { ...best, other } : { other };
+}
+function python() { const p = findPython(null); return p && p.cmd ? p.cmd : null; }
+// Windows: download a private, isolated Python 3.12 (official python.org NuGet build, no installer, no admin)
+async function ensurePrivatePython(userData) {
+  const exe = privatePy(userData);
+  if (fs.existsSync(exe)) return exe;
+  if (process.platform !== 'win32') return null;
+  const dir = path.dirname(path.dirname(exe)); fs.mkdirSync(dir, { recursive: true });
+  const pkg = path.join(dir, 'python.zip');
+  log(`Downloading a private Python ${PRIVATE_PY_VER} for the engine (about 15 MB, one time)…\n`);
+  const r = await fetch(`https://www.nuget.org/api/v2/package/python/${PRIVATE_PY_VER}`, { redirect: 'follow' });
+  if (!r.ok) throw new Error('Could not download Python (' + r.status + ')');
+  fs.writeFileSync(pkg, Buffer.from(await r.arrayBuffer()));
+  const tar = path.join(process.env.SystemRoot || 'C:\\Windows', 'System32', 'tar.exe');
+  let ok = fs.existsSync(tar) && spawnSync(tar, ['-xf', pkg, '-C', dir], { timeout: 180000 }).status === 0;
+  if (!ok) ok = spawnSync('powershell', ['-NoProfile', '-Command', `Expand-Archive -LiteralPath '${pkg.replace(/'/g, "''")}' -DestinationPath '${dir.replace(/'/g, "''")}' -Force`], { timeout: 300000 }).status === 0;
+  try { fs.unlinkSync(pkg); } catch { /* ignore */ }
+  if (!ok || !fs.existsSync(exe)) throw new Error('Could not unpack the private Python.');
+  log('Private Python ready.\n');
+  return exe;
 }
 
 function log(line) { state.log.push(line); if (state.log.length > 200) state.log.shift(); }
@@ -40,21 +81,36 @@ function log(line) { state.log.push(line); if (state.log.length > 200) state.log
 module.exports = {
   status(userData) {
     const venvReady = userData ? fs.existsSync(venvPy(path.join(userData, 'engine-venv'))) : false;
-    return { ...state, installed: state.installed || venvReady, python: !!python(), port: PORT };
+    return { ...state, installed: state.installed || venvReady, python: process.platform === 'win32' || !!python(), port: PORT };
   },
 
   // pip-installs the engine requirements into a dedicated venv inside userData
   install(userData) {
-    return new Promise((resolve) => {
-      const py = python();
-      if (!py) return resolve({ ok: false, error: 'Python 3.10+ not found. Install it from python.org, then retry.' });
+    return new Promise(async (resolve) => {
       const venv = path.join(userData, 'engine-venv');
+      // an engine built on an unsupported Python (e.g. 3.15) can never install its packages → rebuild it
+      if (fs.existsSync(venvPy(venv))) {
+        const vv = pyVersion(venvPy(venv));
+        if (vv && !GOOD_PY.includes(vv)) { log(`The engine was set up with Python ${vv}, which has no ready-made packages yet — rebuilding it with a supported Python…\n`); try { fs.rmSync(venv, { recursive: true, force: true }); } catch { /* ignore */ } }
+      }
+      let found = findPython(userData);
+      let pyCmd = found.cmd ? [found.cmd, ...found.args] : null;
+      if (!pyCmd) {
+        try { const exe = await ensurePrivatePython(userData); if (exe) pyCmd = [exe]; } catch (e) { log(String(e.message || e) + '\n'); }
+      }
+      if (!pyCmd) {
+        return resolve({ ok: false, error: found.other
+          ? `Your Python is ${found.other}, which is too new for the AI packages. Install Python 3.12 from python.org, then click Install engine again.`
+          : 'Python 3.10–3.13 not found. Install Python 3.12 from python.org, then click Install engine again.' });
+      }
+      log('Using Python: ' + pyCmd.join(' ') + (found.v ? ' (' + found.v + ')' : '') + '\n');
+      const py = pyCmd[0]; const pyArgs = pyCmd.slice(1);
       // NVIDIA GPU → install the CUDA build of PyTorch first (PyPI's Windows wheel is CPU-only)
       let nvidia = false;
       try { nvidia = spawnSync('nvidia-smi', ['-L']).status === 0; } catch { /* no driver */ }
       const TORCH_INDEX = 'https://download.pytorch.org/whl/cu130';
       const steps = [
-        ...(fs.existsSync(venvPy(venv)) ? [] : [[py, ['-m', 'venv', venv]]]),
+        ...(fs.existsSync(venvPy(venv)) ? [] : [[py, [...pyArgs, '-m', 'venv', venv]]]),
         [venvPy(venv), ['-m', 'pip', 'install', '--upgrade', 'pip']],
       ];
       if (nvidia && process.platform !== 'darwin') {
@@ -63,7 +119,7 @@ module.exports = {
         steps.push([venvPy(venv), ['-m', 'pip', 'install', '--upgrade', ...(cudaOk ? [] : ['--force-reinstall']), 'torch', 'torchvision', '--index-url', TORCH_INDEX]]);
         log('NVIDIA GPU detected — installing CUDA PyTorch from ' + TORCH_INDEX + '\n');
       }
-      steps.push([venvPy(venv), ['-m', 'pip', 'install', '-r', path.join(enginePath(), 'requirements.txt')]]);
+      steps.push([venvPy(venv), ['-m', 'pip', 'install', '--prefer-binary', '-r', path.join(enginePath(), 'requirements.txt')]]);
       const run = (i) => {
         if (i >= steps.length) {
           state.installed = true;
@@ -88,8 +144,8 @@ module.exports = {
   start(userData, token) {
     if (proc) return { ok: true, already: true };
     const venv = path.join(userData, 'engine-venv');
-    const py = fs.existsSync(venvPy(venv)) ? venvPy(venv) : python();
-    if (!py) return { ok: false, error: 'Python not found.' };
+    const py = fs.existsSync(venvPy(venv)) ? venvPy(venv) : null;
+    if (!py) return { ok: false, error: 'Install the local engine first (Pandora Core & Cloud → Install engine).' };
     wantRunning = true;
     lastStart = { userData, token };
     proc = spawn(py, [path.join(enginePath(), 'server.py'), '--port', String(PORT), '--models-dir', modelsDir(userData)], {

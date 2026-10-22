@@ -19,7 +19,7 @@ const TEMPLATES = [
 const ICON = { you: '🗣', heard: '👂', start: '🚀', thinking: '…', say: '💬', tool: '🛠', plan: '🗺', asset: '✅', progress: '⏳', warn: '⚠', done: '🎉', error: '❌', cancelled: '⏹' };
 const TOOL_LABEL = { propose_plan: 'Planning the production', write_document: 'Writing', generate_image: 'Generating image', generate_video: 'Generating video shot', generate_voiceover: 'Recording voice-over', auto_edit: 'Auto-editing the video', color_grade: 'Colour grading', make_presentation: 'Building the presentation', list_assets: 'Checking assets', finish: 'Packaging deliverables' };
 
-export default function PandoraAgent() {
+export default function PandoraAgent({ compact = false }) {
   const [goal, setGoal] = useState('');
   const [brain, setBrain] = useState('claude');
   const [hasClaude, setHasClaude] = useState(null);
@@ -28,7 +28,8 @@ export default function PandoraAgent() {
   const [videos, setVideos] = useState(3);
   const [audio, setAudio] = useState(1);
   const [review, setReview] = useState(true);
-  const [mode, setMode] = useState('hybrid');
+  const [mode, setMode] = useState(() => { try { return localStorage.getItem('pandora.mode') || 'free'; } catch { return 'free'; } });
+  useEffect(() => { const f = (e) => e.detail && setMode(e.detail); window.addEventListener('pandora:mode', f); return () => window.removeEventListener('pandora:mode', f); }, []);
   const [allowDl, setAllowDl] = useState(true);
   const [routes, setRoutes] = useState(null);
   const [events, setEvents] = useState([]);
@@ -99,8 +100,8 @@ export default function PandoraAgent() {
   const mediaAssets = assets.filter((a) => a.kind === 'image' || a.kind === 'video');
 
   return (
-    <div>
-      <h1 style={{ marginBottom: 2 }}>🤖 Pandora Agent</h1>
+    <div className={compact ? 'agent-compact' : ''}>
+      {!compact && <h1 style={{ marginBottom: 2 }}>🤖 Pandora Agent</h1>}
       <p className="sub" style={{ marginTop: 0 }}>Prefer chatting in Claude or ChatGPT? Connect them in <a style={{ cursor: 'pointer', color: 'var(--accent)' }} onClick={() => window.dispatchEvent(new CustomEvent('pandora:go', { detail: 'connect' }))}>Pandora Connect</a>. Tell it the job. It plans, writes, generates images and video, edits, colour-grades, builds the presentation and hands you a complete launch package — using the models you've connected.</p>
 
       <div className="two-col">
