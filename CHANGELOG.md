@@ -4,6 +4,7 @@
 - Removed "Hey Pandora" and voice dictation. Text prompts, the Agent and the Pandora Voice tab (text-to-speech, music, sound effects) are unchanged.
 - Installer: choose the install folder and the library/models folder.
 - FLUX.2 klein is picked on 8 GB GPUs.
+- Model downloads: Wan 2.2, LTX and other video models in the official diffusers format are recognised as running directly in Pandora (no more "needs ComfyUI / Ollama" message). ComfyUI, GGUF and single-file copies are detected and Pandora offers the official Pandora-ready version instead; 14B video models warn about the ~24 GB GPU need.
 
 ## 0.4.0 — 2026-10-16 · Pandora Cut + "never a problem" update
 

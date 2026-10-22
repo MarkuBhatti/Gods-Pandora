@@ -304,7 +304,7 @@ function HfTab() {
         ))}
       </div>
       {!busy && items.length === 0 && !error && <p className="sub">No results.</p>}
-      <p className="sub" style={{ fontSize: 11 }}>“Runs in God's Pandora” = diffusers image/video models the built-in engine loads. Audio, 3D and LLM models download into app storage for ComfyUI, Ollama, LM Studio, Blender add-ons or their own apps.</p>
+      <p className="sub" style={{ fontSize: 11 }}>“Runs in God's Pandora” = diffusers image and video models (FLUX, SDXL, Wan, LTX…) the built-in engine loads. Audio, 3D and LLM models download into app storage for ComfyUI, Ollama, LM Studio, Blender add-ons or their own apps.</p>
     </div>
   );
 }

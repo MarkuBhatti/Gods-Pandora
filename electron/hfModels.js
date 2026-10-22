@@ -58,7 +58,7 @@ async function feed({ token, perLab = 12 } = {}) {
       items.push({
         id: m.id, type, pipeline: m.pipeline_tag, createdAt: m.createdAt,
         likes: m.likes || 0, downloads: m.downloads || 0, license: lic || 'see card',
-        engine: type === 'image' && tags.includes('diffusers'),
+        engine: (type === 'image' || type === 'video') && tags.includes('diffusers'), // the built-in engine runs diffusers image AND video models (Wan, LTX…)
         link: 'https://huggingface.co/' + m.id,
       });
     }
@@ -91,18 +91,46 @@ function plannedBytes(files) {
   return total;
 }
 
+// Pandora-ready (diffusers) twins of popular models that are often re-uploaded in ComfyUI / GGUF form
+const READY_TWIN = [
+  [/wan[-_ ]?2[._]?2.*(ti2v|5b)|wan_2\.2_comfyui|wan2\.2.*comfy/i, 'Wan-AI/Wan2.2-TI2V-5B-Diffusers'],
+  [/wan[-_ ]?2[._]?2.*t2v.*a14b/i, 'Wan-AI/Wan2.2-T2V-A14B-Diffusers'],
+  [/wan[-_ ]?2[._]?2.*i2v.*a14b/i, 'Wan-AI/Wan2.2-I2V-A14B-Diffusers'],
+  [/wan[-_ ]?2[._]?1.*1\.3b/i, 'Wan-AI/Wan2.1-T2V-1.3B-Diffusers'],
+  [/flux[-_.]?2.*klein/i, 'black-forest-labs/FLUX.2-klein-4B'],
+  [/ltx[-_ ]?(video|2)/i, 'Lightricks/LTX-Video'],
+];
 async function info(repo, token) {
   const q = ['gated', 'usedStorage', 'sha', 'lastModified', 'pipeline_tag', 'tags'].map((e) => 'expand[]=' + e).join('&');
   const j = await getJSON(`${API}/${repo}?${q}`, token);
-  let download = 0;
+  let download = 0; let hasIndex = null; let files = [];
   try {
     const tree = await getJSON(`${API}/${repo}/tree/main?recursive=true`, token);
-    if (Array.isArray(tree)) download = plannedBytes(tree.filter((f) => f.type === 'file'));
-  } catch (_) { /* fall back to full repo size */ }
+    if (Array.isArray(tree)) {
+      files = tree.filter((f) => f.type === 'file');
+      download = plannedBytes(files);
+      hasIndex = files.some((f) => f.path === 'model_index.json'); // diffusers layout = runs in Pandora's engine
+    }
+  } catch (_) { /* fall back to tags */ }
+  const tags = j.tags || [];
+  const pipe = j.pipeline_tag || '';
+  const visual = /image|video/.test(pipe) || /wan|flux|ltx|stable-diffusion|sdxl|hunyuan|cogvideo/i.test(repo);
+  const engine = visual && (hasIndex === true || (hasIndex === null && tags.includes('diffusers')));
+  // a ComfyUI / GGUF / single-file copy: point to the twin Pandora can run directly
+  let alt = null;
+  if (!engine && visual) {
+    const hit = READY_TWIN.find(([re]) => re.test(repo));
+    let cand = hit ? hit[1] : (!/-diffusers$/i.test(repo) ? repo + '-Diffusers' : null);
+    if (cand && cand.toLowerCase() !== repo.toLowerCase()) {
+      try { const t = await getJSON(`${API}/${cand}?expand[]=usedStorage`, token); if (t && (t.id || t.usedStorage)) alt = t.id || cand; } catch (_) { /* no twin */ }
+    }
+  }
+  const format = engine ? 'diffusers' : files.some((f) => /\.gguf$/i.test(f.path)) ? 'gguf' : /comfy/i.test(repo) || files.some((f) => /comfy/i.test(f.path)) ? 'comfyui' : files.length && files.every((f) => !/\//.test(f.path) || /^(assets|images|examples)\//.test(f.path)) ? 'single-file' : 'other';
   return {
     id: j.id || repo, gated: j.gated || false, sizeBytes: download || j.usedStorage || 0, repoBytes: j.usedStorage || 0,
     sha: j.sha || null, lastModified: j.lastModified || null,
-    engine: (j.tags || []).includes('diffusers') && /image/.test(j.pipeline_tag || ''),
+    engine, kind: /video/.test(pipe) || /wan|ltx|cogvideo|hunyuanvideo/i.test(repo) ? 'video' : /image/.test(pipe) ? 'image' : (pipe || 'other'),
+    format, alt,
   };
 }
 
