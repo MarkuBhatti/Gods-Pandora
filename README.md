@@ -3,17 +3,17 @@
 <h1 align="center">God's Pandora</h1>
 
 <p align="center"><b>Every model. Every medium. One creative universe.</b><br>
-A free, open-source AI creative studio for Windows: image, video, voice, 3D and motion.<br>
+A free, open-source AI creative studio for Windows and macOS: image, video, voice, 3D and motion.<br>
 Bring your own cloud keys, or run open-source models free on your own GPU. No credits, no markup.</p>
 
 <p align="center">
 <a href="https://github.com/MarkuBhatti/Gods-Pandora/releases/latest"><img src="https://img.shields.io/github/v/release/MarkuBhatti/Gods-Pandora?label=download&color=E7C08A&style=for-the-badge" alt="Download"></a>
 <a href="https://github.com/MarkuBhatti/Gods-Pandora/releases"><img src="https://img.shields.io/github/downloads/MarkuBhatti/Gods-Pandora/total?color=23232A&style=for-the-badge" alt="Downloads"></a>
 <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-23232A?style=for-the-badge" alt="MIT"></a>
-<img src="https://img.shields.io/badge/platform-Windows-23232A?style=for-the-badge" alt="Windows">
+<img src="https://img.shields.io/badge/platform-Windows%20%7C%20macOS-23232A?style=for-the-badge" alt="Windows | macOS">
 </p>
 
-<p align="center"><a href="https://github.com/MarkuBhatti/Gods-Pandora/releases/latest"><b>⬇ Download for Windows</b></a> · <a href="https://github.com/MarkuBhatti/Gods-Pandora/issues">Report a bug</a> · <a href="https://github.com/MarkuBhatti/Gods-Pandora/issues">Request a feature</a></p>
+<p align="center"><a href="https://github.com/MarkuBhatti/Gods-Pandora/releases/latest"><b>⬇ Download for Windows</b></a> · <a href="https://github.com/MarkuBhatti/Gods-Pandora/releases/latest"><b>⬇ Download for macOS</b></a> · <a href="https://github.com/MarkuBhatti/Gods-Pandora/issues">Report a bug</a> · <a href="https://github.com/MarkuBhatti/Gods-Pandora/issues">Request a feature</a></p>
 
 <p align="center"><img src="docs/screenshots/home.jpg" alt="God's Pandora home screen" width="100%"></p>
 
@@ -118,10 +118,11 @@ Your keys go directly from your machine to the provider. God's Pandora never see
 ### Option A — Download the installer (easiest)
 
 1. Go to [**Releases**](../../releases/latest)
-2. Download `Gods-Pandora-Setup-x.x.x.exe` (Windows 10/11, 64-bit)
+2. Download `Gods-Pandora-Setup-x.x.x.exe` (Windows 10/11) or `Gods-Pandora-x.x.x-arm64.dmg` / `-x64.dmg` (macOS, Apple Silicon / Intel)
 3. Run the installer → launch from Desktop or Start Menu
 
 > **Windows "Windows protected your PC" screen?** Click **More info → Run anyway**. Signed releases remove this once the certificate builds SmartScreen reputation — see [SIGNING.md](SIGNING.md).
+> **macOS "can't be opened / is damaged"?** The app isn't notarized yet. Drag it to Applications, then run `xattr -cr "/Applications/God's Pandora.app"` in Terminal once (or right-click → Open).
 
 ### Option B — Run from source
 
