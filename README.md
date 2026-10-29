@@ -42,12 +42,16 @@ Bring your own cloud keys, or run open-source models free on your own GPU. No cr
 
 <table>
 <tr>
+<td width="50%"><img src="docs/highlights/image-and-video.jpg" width="100%"><br><b>🖼 Image &amp; video from one prompt</b><br>Any model, one prompt box: FLUX, Wan, Kling, Veo and more in the cloud, or open models free on your GPU. Turn any still into motion.</td>
+<td width="50%"><img src="docs/highlights/film-studio.jpg" width="100%"><br><b>🎬 Film, shot by shot</b><br>Storyboard a film with 70 cameras, 70 lenses, 130 director styles and 40 film looks, then animate every shot.</td>
+</tr>
+<tr>
 <td width="50%"><img src="docs/highlights/07-phone-camera-rig.jpg" width="100%"><br><b>📱 Your phone is the camera</b><br>Scan a QR code and your phone becomes a live handheld camera in Blender. Walk the shot, then <b>Blocking → Film</b> turns the grey blocking into the finished scene.</td>
 <td width="50%"><img src="docs/highlights/20-claude-inside.jpg" width="100%"><br><b>🤖 Ask Claude, Pandora does it</b><br>Connect Claude (or Cursor, VS Code…) over MCP and it can generate, edit, grade and open anything in Pandora. Results land right in the chat and in your Gallery.</td>
 </tr>
 <tr>
 <td><img src="docs/highlights/21-drives-your-apps.jpg" width="100%"><br><b>🔗 It drives your other apps</b><br>The Pandora Agent connects to Blender, DaVinci Resolve and Premiere Pro through MCP and works inside them in the same job.</td>
-<td><img src="docs/highlights/12-image-to-3d.jpg" width="100%"><br><b>🧊 From a picture to a model</b><br>Text or image → textured GLB with Hunyuan3D-2 mini or Shap-E on your GPU, or Hunyuan3D v2 / TRELLIS in the cloud. Built-in 3D viewer.</td>
+<td><img src="docs/highlights/3d-generation.jpg" width="100%"><br><b>🧊 From a picture to a model</b><br>Text or image → textured GLB with Hunyuan3D-2 mini or Shap-E on your GPU, or Hunyuan3D v2 / TRELLIS in the cloud. Built-in 3D viewer.</td>
 </tr>
 <tr>
 <td><img src="docs/highlights/14-effects-engine.jpg" width="100%"><br><b>✨ 51 effects, zero plugins</b><br>GPU-rendered halftone, duotone, glitch, glass, light and poster type that slides behind your subject (offline AI subject mask). Layers, templates, video export.</td>
