@@ -113,7 +113,7 @@ Your keys go directly from your machine to the provider. God's Pandora never see
 **Requirements:** Node.js 18+, npm
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/gods-pandora.git
+git clone https://github.com/YOUR_GITHUB_USERNAME/Gods-Pandora.git
 cd gods-pandora
 npm install
 npm run dev
@@ -274,7 +274,7 @@ See [docs/10X-ROADMAP.md](docs/10X-ROADMAP.md) for the full 23-feature plan. Top
 Pull requests are welcome. For major changes, open an issue first.
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/gods-pandora.git
+git clone https://github.com/YOUR_GITHUB_USERNAME/Gods-Pandora.git
 cd gods-pandora
 npm install
 npm run dev   # hot-reload dev mode

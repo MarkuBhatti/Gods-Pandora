@@ -7,7 +7,7 @@ Double-click **SET-GITHUB-USER.bat** and type your GitHub username. It fills it 
 (auto-updates) and the README badges/links.
 
 ## 2 · Create the empty repo on GitHub
-github.com → **New repository** → name: `gods-pandora` → Public → **don't** add a README/licence → Create.
+github.com → **New repository** → name: `Gods-Pandora` → Public → **don't** add a README/licence → Create.
 
 ## 3 · Push (pick one)
 **GitHub Desktop (easiest):** File → Add local repository → choose this folder → **Publish repository**
@@ -17,7 +17,7 @@ github.com → **New repository** → name: `gods-pandora` → Public → **don'
 ```bash
 git add -A
 git commit -m "Set GitHub username"
-git remote add origin https://github.com/YOUR_GITHUB_USERNAME/gods-pandora.git
+git remote add origin https://github.com/YOUR_GITHUB_USERNAME/Gods-Pandora.git
 git branch -M main
 git push -u origin main
 ```

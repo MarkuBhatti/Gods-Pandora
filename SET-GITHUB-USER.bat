@@ -4,7 +4,7 @@ title God's Pandora - Set GitHub username
 echo.
 echo  This writes your GitHub username into package.json and README.md
 echo  so the in-app updater knows where your releases live
-echo  (https://github.com/USERNAME/gods-pandora/releases).
+echo  (https://github.com/USERNAME/Gods-Pandora/releases).
 echo.
 set /p GHUSER=Your GitHub username: 
 if "%GHUSER%"=="" (
