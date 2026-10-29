@@ -26,6 +26,18 @@ Bring your own cloud keys, or run open-source models free on your own GPU. No cr
 - **Download & run, no terminal.** Search Hugging Face and Civitai, press one button, and the model appears in your studio.
 - **One idea, end to end.** One brief becomes stills, motion, voice and a finished, graded cut.
 
+## What you can do
+
+| | What you can do |
+|---|---|
+| **🎨 Create** | **Image & video** from one prompt with any model · **Film** studio (shot-by-shot storyboards, 70 cameras, 70 lenses, 130 director styles) · **Photo** studio · **Voice & music** (voice-overs, dialogue, songs, sound effects) · **3D** (text or image → 3D model) · **Phone Camera** (your phone as a Blender camera) · **TouchDesigner** live visuals |
+| **✂ Edit** | **AutoEdit** cuts your footage to the beat · **Color** auto-grades and matches shots · **Photo Retouch** · **51 Effects** with an AI subject mask · **Motion Design** (kinetic titles, logo reveals, ad remakes) · **Shapeshift** (motion transfer, character swap, restyle) |
+| **📣 Campaigns** | **Marketing** (URL → ad, UGC, hooks) · **Ad Multiplier** (one ad → many variants) · **AI Influencer** · **Fashion** (virtual try-on, lookbooks) · **Product** shots · **Shorts** & **Explainers** |
+| **🧱 Build** | **Apps** (41 one-click tools like headshots, face swap, lipsync) · **App Forge** (describe an app and Claude builds it) · design docs & digital products |
+| **🌍 World** | **Identity Lock · Location Lock · Product Lock** keep the same face, place and product in every image and video |
+| **🔌 Connect** | **Pandora Agent** plans a whole job and uses every tool · **Claude / Cursor / ChatGPT** can drive Pandora over MCP · works inside **Blender, DaVinci Resolve and Premiere Pro** |
+| **🔓 Own it** | 1,000+ cloud models on **your own keys** (FAL, Replicate, OpenAI, Google, ElevenLabs, Stability, Higgsfield…) or **open models free on your GPU** · one-click **Model Market** (Hugging Face, Civitai) · **no credits, no markup**, files stay on your PC |
+
 ## Highlights
 
 <table>
