@@ -74,7 +74,8 @@ Bring your own cloud keys, or run open-source models free on your own GPU. No cr
 | <img src="docs/screenshots/create.jpg" width="100%"><br>**Pandora Studio:** any image, video or audio model, cloud or local | <img src="docs/screenshots/film.jpg" width="100%"><br>**Film:** shot-by-shot storyboards, 70 cameras, 70 lenses, 130 director styles |
 | <img src="docs/screenshots/fx.jpg" width="100%"><br>**Effects:** 51 real-time looks with an AI subject mask | <img src="docs/screenshots/camrig.jpg" width="100%"><br>**Phone Camera:** your phone as a Blender camera |
 | <img src="docs/screenshots/motion.jpg" width="100%"><br>**Motion Design:** kinetic titles, logo reveals and remakes | <img src="docs/screenshots/spatial.jpg" width="100%"><br>**3D & Spatial:** text / image → 3D, splats, 22 tools |
-| <img src="docs/screenshots/connect.jpg" width="100%"><br>**Connect:** plug Claude, Cursor or ChatGPT into Pandora | |
+| <img src="docs/screenshots/color.jpg" width="100%"><br>**Color:** auto balance + shot match, nodes, wheels, curves, qualifiers, LUTs, scopes | <img src="docs/screenshots/edit.jpg" width="100%"><br>**Edit:** a Resolve-style multi-track timeline |
+| <img src="docs/screenshots/cut.jpg" width="100%"><br>**AutoEdit:** pick a style, get a finished cut on the beat | <img src="docs/screenshots/connect.jpg" width="100%"><br>**Connect:** plug Claude, Cursor or ChatGPT into Pandora |
 
 ---
 
