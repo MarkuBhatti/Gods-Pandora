@@ -3,6 +3,7 @@
 const cp = require('child_process');
 const path = require('path');
 const fs = require('fs');
+const audioFamilies = require('./audioFamilies');
 
 // Every helper process runs hidden — the user never sees a console window pop up.
 const hide = (o) => ({ windowsHide: true, ...(o || {}) });
@@ -321,12 +322,80 @@ module.exports = {
           if (fs.existsSync(mi)) { className = JSON.parse(fs.readFileSync(mi, 'utf8'))._class_name || null; break; }
         }
       } catch { /* incomplete download */ }
+      let meta = {};
+      try { meta = JSON.parse(fs.readFileSync(path.join(hub, d, '.pandora-meta.json'), 'utf8')) || {}; } catch { /* older download */ }
+      const fam = audioFamilies.detect(repo);
+      const audio = audioFamilies.isAudio(repo, meta.pipeline_tag) || (!!className && /Audio|Music|Speech/i.test(className));
       let kind = 'other';
-      if (className) kind = /Video|Wan|LTX|CogVideo|Mochi|SkyReels|Animate|I2V|T2V/i.test(className) ? 'video' : 'image';
+      if (audio) kind = 'audio';
+      else if (className) kind = /Video|Wan|LTX|CogVideo|Mochi|SkyReels|Animate|I2V|T2V/i.test(className) ? 'video' : 'image';
       const downloading = downloads.has(repo);
       const complete = !downloading && isComplete(path.join(hub, d));
+      if (audio) {
+        // every family listed in audioFamilies.js runs in the built-in audio engine; any other diffusers audio pipeline too
+        const family = fam ? fam.id : (className ? 'diffusers-audio' : null);
+        return { repo, className, kind, family, audioType: fam ? fam.audioType : (/speech/.test(meta.pipeline_tag || '') ? 'speech' : 'music'),
+          runnable: !!family && complete, supported: !!family, complete, downloading };
+      }
       return { repo, className, kind, runnable: !!className && complete, complete, downloading };
     });
+  },
+
+  // ── Built-in audio engine: private runtimes for audio model families (see engine/audio_backends.py) ──
+  audioDir(userData) { const d = path.join(userData, 'audio-backends'); fs.mkdirSync(d, { recursive: true }); return d; },
+
+  audioEnv(userData, token) {
+    return { ...process.env, ...QUIET_ENV, HF_HOME: modelsDir(userData), PANDORA_AUDIO_DIR: module.exports.audioDir(userData),
+      TTS_HOME: path.join(modelsDir(userData), 'tts'), COQUI_TOS_AGREED: '1', ...(token ? { HF_TOKEN: token } : {}) };
+  },
+
+  // { families: { acestep: true|false, … }, sizesGB } — which families are set up
+  audioBackends(userData) {
+    const py = venvPy(path.join(userData, 'engine-venv'));
+    if (!fs.existsSync(py)) return Promise.resolve({ families: {}, engine: false });
+    return new Promise((resolve) => {
+      const p = spawn(py, [path.join(enginePath(), 'audio_backends.py'), 'status'], { env: module.exports.audioEnv(userData) });
+      let out = '';
+      const t = setTimeout(() => { try { p.kill(); } catch { /* ignore */ } }, 60000);
+      p.stdout.on('data', (d) => { out += d; });
+      p.on('error', () => { clearTimeout(t); resolve({ families: {}, engine: true }); });
+      p.on('close', () => {
+        clearTimeout(t);
+        try { resolve({ ...JSON.parse(out.trim().split('\n').pop()), engine: true }); } catch { resolve({ families: {}, engine: true }); }
+      });
+    });
+  },
+
+  // One-time setup of a family's runtime. onProgress({family, step, message, pct}) → resolves {ok, python, cwd} | {ok:false, error}
+  audioSetups: new Map(),
+  setupAudio(userData, family, onProgress = () => {}) {
+    if (module.exports.audioSetups.has(family)) return module.exports.audioSetups.get(family);
+    const run = new Promise((resolve) => {
+      const py = venvPy(path.join(userData, 'engine-venv'));
+      if (!fs.existsSync(py)) return resolve({ ok: false, error: 'Install the local engine first (Pandora Core & Cloud → Install engine).' });
+      const p = spawn(py, [path.join(enginePath(), 'audio_backends.py'), 'ensure', family], { env: module.exports.audioEnv(userData) });
+      let done = null; let err = ''; let buf = '';
+      p.stdout.on('data', (d) => {
+        buf += d.toString();
+        const lines = buf.split('\n'); buf = lines.pop();
+        for (const line of lines) {
+          let ev = null; try { ev = JSON.parse(line); } catch { log(line + '\n'); continue; }
+          if (ev.event === 'done') done = ev;
+          else if (ev.event === 'error') err = ev.message;
+          else onProgress({ family, step: ev.step, message: ev.message, pct: ev.pct });
+          if (ev.message) log('[audio:' + family + '] ' + ev.message + '\n');
+        }
+      });
+      p.stderr.on('data', (d) => { err = (err + d.toString()).slice(-800); log(d.toString()); });
+      p.on('error', (e) => resolve({ ok: false, error: e.message }));
+      p.on('close', (code) => {
+        const ok = !!done && code === 0;
+        onProgress({ family, done: true, ok });
+        resolve(ok ? { ok: true, ...done } : { ok: false, error: err.split('\n').filter(Boolean).slice(-2).join(' ') || 'Setup failed — see the engine log.' });
+      });
+    }).finally(() => module.exports.audioSetups.delete(family));
+    module.exports.audioSetups.set(family, run);
+    return run;
   },
 
   listModels(userData) {

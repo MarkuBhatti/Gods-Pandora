@@ -1,8 +1,18 @@
 import React, { useState } from 'react';
 import market from '../../data/aiMarket.json';
+import { useNav } from '../lib/nav.jsx';
+
+// open-source entries install inside Pandora: jump to Models with the search pre-filled (3D models: Generate 3D in 3D & Spatial)
+const HFCAT = { llm: 'llm', vision: 'llm', image: 'image', video: 'video', audio: 'audio', music: 'audio', speech: 'audio', voice: 'audio', '3d': '3d', threed: '3d', code: 'llm', avatar: 'video', embed: 'llm', translate: 'llm', docs: 'llm' };
+function getInPandora(go, e, cat) {
+  const q = String(e.name).split(/[\/(]/)[0].trim();
+  try { localStorage.setItem('ge.market.source', JSON.stringify('everywhere')); localStorage.setItem('ge.market.everyq', JSON.stringify(q)); localStorage.setItem('ge.market.everycat', JSON.stringify(HFCAT[cat] || 'all')); } catch (_) { /* */ }
+  go('market');
+}
 
 // 🌐 The AI Market — every major AI model category on earth, API and open-source.
 export default function AiMarket() {
+  const { go } = useNav();
   const [access, setAccess] = useState('all');
   const [q, setQ] = useState('');
   const total = market.categories.reduce((n, c) => n + c.entries.length, 0);
@@ -30,7 +40,10 @@ export default function AiMarket() {
                     <span className="badge" style={{ color: e.access === 'open' ? 'var(--gold)' : '#ff8a95' }}>{e.access === 'open' ? '⬇ open' : '☁ api'}</span>
                   </div>
                   <p className="sub" style={{ margin: '4px 0', fontSize: 11.5 }}>{e.org}</p>
-                  <a href={e.link} target="_blank" rel="noreferrer" className="badge" style={{ color: 'var(--gold)' }}>open ↗</a>
+                  <div className="row" style={{ gap: 6 }}>
+                    {e.access === 'open' && <button className="btn small" style={{ fontSize: 11, padding: '3px 9px' }} onClick={() => getInPandora(go, e, c.id)}>⬇ Get in Pandora</button>}
+                    <a href={e.link} target="_blank" rel="noreferrer" className="badge" style={{ color: 'var(--gold)' }}>{e.access === 'open' ? 'page ↗' : 'open ↗'}</a>
+                  </div>
                 </div>
               ))}
             </div>

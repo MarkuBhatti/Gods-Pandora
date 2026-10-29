@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState } from 'react';
+import React, { Suspense, lazy, useEffect, useRef, useState } from 'react';
 import Create from './pages/Create.jsx';
 import FilmStudio from './pages/FilmStudio.jsx';
 import PandoraCut from './pages/PandoraCut.jsx';
@@ -18,6 +18,7 @@ import AiMarket from './pages/AiMarket.jsx';
 import Studio3D from './pages/Studio3D.jsx';
 import StudioTD from './pages/StudioTD.jsx';
 import Onboarding from './pages/Onboarding.jsx';
+import EnginePrompt from './lib/EnginePrompt.jsx';
 import SetupWizard from './pages/SetupWizard.jsx';
 import InstallWelcome from './lib/InstallWelcome.jsx';
 import Updates from './pages/Updates.jsx';
@@ -33,8 +34,14 @@ import AdMultiplier from './pages/AdMultiplier.jsx';
 import { StoreProvider } from './lib/store.jsx';
 import Home from './pages/Home.jsx';
 import ErrorBoundary from './ErrorBoundary.jsx';
-import { NAV, ALL, TABS, Icon, Em, bg } from './lib/ui.jsx';
+import { NAV, ALL, TABS, Icon, Em, bg, pageBg, PAGEPOS } from './lib/ui.jsx';
+import Viewer from './lib/Viewer.jsx';
 import Pandy from './lib/Pandy.jsx';
+// heavy tools load only when opened (keeps start-up fast and memory low)
+const PandoraEdit = lazy(() => import('./pages/PandoraEdit.jsx'));
+const PandoraMotion = lazy(() => import('./pages/PandoraMotion.jsx'));
+const Effects = lazy(() => import('./pages/Effects.jsx'));
+const CamRig = lazy(() => import('./pages/CamRig.jsx'));
 
 // Tab banner (title with an italic accent, one line, cinematic background) shown above each tool page
 function Banner({ page }) {
@@ -42,19 +49,24 @@ function Banner({ page }) {
   if (!t || !meta) return null;
   return (
     <section className="pg-banner">
-      <div className="pg-banner-bg" style={{ backgroundImage: `url(${bg(t[2])})` }} />
+      <div className="pg-banner-bg" style={{ backgroundImage: `url("${pageBg(page, t[2])}")`, backgroundPosition: PAGEPOS[page] || undefined }} />
       <div className="pg-eyebrow">{meta.g ? meta.g + ' · ' : ''}{meta.label}</div>
       <h1 className="pg-title"><Em text={t[0]} /></h1>
       <p className="pg-line">{t[1]}</p>
     </section>
   );
 }
-const NO_BANNER = new Set(['home', 'create', 'canvas']);
+const NO_BANNER = new Set(['home', 'create', 'canvas', 'edit', 'fx']);
 
 function Page({ page }) {
   return (
-    <ErrorBoundary key={page}>
+    <ErrorBoundary key={page} inline>
+     <Suspense fallback={<div className="sub" style={{ padding: 40, textAlign: 'center' }}>Loading…</div>}>
       {page === 'home'        && <Home />}
+      {page === 'edit'        && <PandoraEdit />}
+      {page === 'motion'      && <PandoraMotion />}
+      {page === 'fx'          && <Effects />}
+      {page === 'camrig'      && <CamRig />}
       {page === 'create'      && <Create />}
       {page === 'film'        && <FilmStudio />}
       {page === 'cut'         && <PandoraCut />}
@@ -107,6 +119,7 @@ function Page({ page }) {
       {page === 'update'   && <Updates />}
       {page === 'spatial'       && <Studio3D />}
       {page === 'touchdesigner' && <StudioTD />}
+     </Suspense>
     </ErrorBoundary>
   );
 }
@@ -175,11 +188,12 @@ export default function App() {
         <InstallWelcome />
         <CommandPalette pages={ALL.map((x) => [x.id, x.label, '›'])} onGo={setPage} />
         <Onboarding />
+        <EnginePrompt />
         <nav className="sidebar sb2">
           <div className="logo">
             <div className="side-box"><PandoraBox size={54} sparks={false} /></div>
-            <div className="wordmark"><span><b>GOD'S</b> <span className="eye">PANDORA</span></span></div>
-            <div className="tagline">Every model. Every medium. One creative universe.</div>
+            <div className="wordmark"><span><b>God's</b> <span className="eye">Pandora</span></span></div>
+            <div className="tagline">Every model · Every medium</div>
           </div>
           <button className="sb-search" onClick={() => window.dispatchEvent(new KeyboardEvent('keydown', { key: 'k', ctrlKey: true }))}><Icon name="search" /><span>Search tools</span><kbd>Ctrl K</kbd></button>
           <div className="navscroll">
@@ -227,6 +241,7 @@ export default function App() {
           </div>
         </div>
         <Pandy page={page} go={setPage} />
+        <Viewer />
        </NavProvider>
       </StoreProvider>
     </ErrorBoundary>

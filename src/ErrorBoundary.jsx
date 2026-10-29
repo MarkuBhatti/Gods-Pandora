@@ -20,6 +20,21 @@ export default class ErrorBoundary extends React.Component {
   }
 
   render() {
+    if (this.state.error && this.props.inline) {
+      // a crashed page stays inside its own panel — the sidebar and every other tool keep working
+      return (
+        <div className="card" style={{ maxWidth: 640, margin: '40px auto', textAlign: 'center' }}>
+          <div style={{ fontSize: 36 }}>⚠</div>
+          <h3 style={{ margin: '6px 0' }}>This panel hit a problem</h3>
+          <p className="sub" style={{ fontSize: 12 }}>{String(this.state.error?.message || this.state.error).slice(0, 300)}</p>
+          <p className="sub" style={{ fontSize: 11 }}>Your work is saved. The rest of God's Pandora is still running.</p>
+          <div className="row" style={{ justifyContent: 'center', gap: 8 }}>
+            <button className="btn" onClick={() => this.reset()}>↺ Reload this panel</button>
+            <button className="btn ghost" onClick={() => window.dispatchEvent(new CustomEvent('pandora:go', { detail: 'home' }))}>Go Home</button>
+          </div>
+        </div>
+      );
+    }
     if (this.state.error) {
       return (
         <div style={{

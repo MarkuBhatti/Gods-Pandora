@@ -2,12 +2,32 @@ import React from 'react';
 
 // Design system bits shared by the new shell: line icons, grouped navigation and each tab's banner.
 const BGS = import.meta.glob('../assets/bg/*.jpg', { eager: true, import: 'default' });
-export const bg = (k) => BGS[`../assets/bg/${k}.jpg`] || BGS['../assets/bg/create.jpg'];
+export const SHOW = import.meta.glob('../assets/showcase/*.jpg', { eager: true, import: 'default' });
+export const show = (k) => SHOW[`../assets/showcase/${k}.jpg`];
+// tab banners use the creator's own showcase (Made in Pandora + photography); older art is the fallback
+const SHOWBG = { create: 'ai-floating-house', film: 'ai-rain-lot', shorts: 'ai-umbrellas', marketing: 'ai-billboards', influencer: 'ai-portrait-window', fashion: 'ph-veil',
+  product: 'ai-box-smoke', voice: 'ph-fire-portrait', styles: 'ai-gallery-room', chars: 'ai-portrait', locs: 'ph-aerial-river', library: 'ai-tv-wall', models: 'ai-corridor',
+  apps: 'ai-greenhouse', appbuild: 'ai-desk', forge: 'ai-hand-flame', canvas: 'ai-hall', designdocs: 'ph-ruin-aerial', digiproduct: 'ai-chair-light', explainer: 'ai-mirrors',
+  aimarket: 'ai-night-ufo', plugins: 'ai-cabin-night', mcp: 'ph-braided-river', settings: 'ph-peaks' };
+// banner + backdrop visual per tab, chosen to match what the tab does
+export const PAGEBG = { create: 'ai-floating-house', film: 'ai-rain-lot', photo: 'ph-beach-portrait', voice: 'ph-musicians', spatial: 'ph-mountains', camrig: 'bh-window-man',
+  touchdesigner: 'ai-tv-wall', edit: 'bh-blue-room', cut: 'ai-desk', color: 'ph-boat-sunset', motion: 'ai-hall', fx: 'ph-veil', canvas: 'ph-light-dancer', genjutsu: 'ai-mirrors',
+  marketing: 'ai-billboards', admulti: 'ai-runway', influencer: 'ai-portrait-window', fashion: 'ph-fire-portrait', product: 'ai-box-smoke', shorts: 'ai-umbrellas',
+  explainer: 'ai-chair-light', apps: 'ai-greenhouse', appbuild: 'ai-corridor', forge: 'ai-hand-flame', designdocs: 'ph-ruin-aerial', digiproduct: 'ph-dusk-rooftop',
+  styles: 'ph-red-gate', characters: 'ph-boy', locations: 'ph-aerial-river', products: 'ph-dune-room', library: 'ai-gallery-room', market: 'bh-ice-river',
+  aimarket: 'ph-glacier', models: 'ai-cabin-night', connect: 'ph-braided-river', update: 'ph-ice', settings: 'ph-peaks', agent: 'bh-hands', home: 'ai-night-ufo',
+  gen3d: 'ph-ruin-water', studio3d: 'ph-snow-valley' };
+// focal point for banners whose subject isn't centred (faces sit high in portraits)
+export const PAGEPOS = { fashion: '50% 24%', photo: '50% 30%', influencer: '50% 30%', characters: '50% 30%', canvas: '50% 35%', camrig: '50% 40%', agent: '50% 50%' };
+export const pageBg = (id, fallbackKey) => show(PAGEBG[id]) || bg(fallbackKey || id);
+export const bg = (k) => show(SHOWBG[k]) || BGS[`../assets/bg/${k}.jpg`] || BGS['../assets/bg/create.jpg'];
 
 const P = {
   home: '<path d="M3 11 12 4l9 7v9a1 1 0 0 1-1 1h-5v-6H9v6H4a1 1 0 0 1-1-1z"/>',
   spark: '<path d="M12 3v4M12 17v4M3 12h4M17 12h4M6 6l2.5 2.5M15.5 15.5 18 18M18 6l-2.5 2.5M8.5 15.5 6 18"/>',
   film: '<rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 5v14M17 5v14M3 9h4M3 15h4M17 9h4M17 15h4"/>',
+  timeline: '<rect x="3" y="4" width="18" height="16" rx="2"/><path d="M3 10h18M3 15h18M8 4v6M14 10v5M10 15v5"/><path d="M16 2v6" stroke-width="2.4"/>',
+  motion: '<path d="M4 17c3-9 6-9 8-5s5 4 8-5"/><circle cx="4" cy="17" r="1.6"/><circle cx="20" cy="7" r="1.6"/><path d="M3 21h18"/>',
   scissors: '<circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M8.1 8.1 20 20M8.1 15.9 20 4"/>',
   palette: '<path d="M12 3a9 9 0 1 0 0 18c1.2 0 2-.8 2-2 0-1.4-1.2-1.6-1.2-3 0-1 .8-2 2-2H17a4 4 0 0 0 4-4c0-4-4-7-9-7z"/><circle cx="7.5" cy="11" r="1"/><circle cx="10" cy="7" r="1"/><circle cx="15" cy="7.5" r="1"/>',
   camera: '<path d="M4 7h3l2-3h6l2 3h3v12H4z"/><circle cx="12" cy="13" r="4"/>',
@@ -47,17 +67,17 @@ export function Icon({ name, size = 14 }) {
 
 // 37 tabs → calm groups (the Agent lives in the Pandy widget on the right)
 export const NAV = [
-  ['', [['home', 'Home', 'home', '#f3c06b']]],
-  ['Create', [['create', 'Studio', 'spark', '#f3c06b'], ['film', 'Film', 'film', '#ff8a5c'], ['photo', 'Photo', 'camera', '#5fd4ff'], ['voice', 'Voice & Music', 'mic', '#45d68a'], ['spatial', '3D & Spatial', 'cube', '#8b6bff'], ['touchdesigner', 'TouchDesigner', 'hex', '#ff6b9d']]],
-  ['Edit', [['cut', 'AutoEdit', 'scissors', '#ffb86b', 'free'], ['color', 'Color', 'palette', '#ff6b9d', 'free'], ['genjutsu', 'Shapeshift', 'swirl', '#b98bff']]],
-  ['Campaigns', [['marketing', 'Marketing', 'mega', '#ffb86b'], ['admulti', 'Ad Multiplier', 'layers', '#45d68a'], ['influencer', 'AI Influencer', 'star', '#ff6b9d'], ['fashion', 'Fashion', 'shirt', '#f3c06b'], ['product', 'Product', 'box', '#5fd4ff'], ['shorts', 'Shorts', 'phone', '#ff8a5c'], ['explainer', 'Explainer', 'cap', '#8b6bff']]],
-  ['Build', [['apps', 'Apps', 'grid', '#5fd4ff'], ['appbuild', 'App Building', 'wrench', '#ffb86b'], ['forge', 'Forge', 'anvil', '#ff8a5c'], ['canvas', 'Node Canvas', 'node', '#8b6bff'], ['designdocs', 'Design Docs', 'ruler', '#45d68a'], ['digiproduct', 'Digital Products', 'box', '#f3c06b']]],
-  ['World', [['styles', 'Styles', 'brush', '#ff6b9d'], ['characters', 'Characters', 'user', '#f3c06b'], ['locations', 'Locations', 'pin', '#5fd4ff'], ['products', 'Products & Brand', 'box', '#45d68a']]],
-  ['Library', [['library', 'Gallery', 'img', '#f3c06b'], ['market', 'Models', 'cart', '#8b6bff', 'new'], ['aimarket', 'AI Market', 'globe', '#5fd4ff']]],
+  ['', [['home', 'Home', 'home', '#E7C08A']]],
+  ['Create', [['create', 'Studio', 'spark', '#E7C08A'], ['film', 'Film', 'film', '#ff8a5c'], ['photo', 'Photo', 'camera', '#5fd4ff'], ['voice', 'Voice & Music', 'mic', '#45d68a'], ['spatial', '3D & Spatial', 'cube', '#8b6bff'], ['camrig', 'Phone Camera', 'camera', '#F3DDB7', 'new'], ['touchdesigner', 'TouchDesigner', 'hex', '#ff6b9d']]],
+  ['Edit', [['edit', 'Edit', 'timeline', '#00d4ff', 'new'], ['cut', 'AutoEdit', 'scissors', '#ffb86b', 'free'], ['color', 'Color', 'palette', '#ff6b9d', 'free'], ['motion', 'Motion Design', 'motion', '#b98bff', 'new'], ['fx', 'Effects', 'spark', '#F3DDB7', 'new'], ['genjutsu', 'Shapeshift', 'swirl', '#b98bff']]],
+  ['Campaigns', [['marketing', 'Marketing', 'mega', '#ffb86b'], ['admulti', 'Ad Multiplier', 'layers', '#45d68a'], ['influencer', 'AI Influencer', 'star', '#ff6b9d'], ['fashion', 'Fashion', 'shirt', '#E7C08A'], ['product', 'Product', 'box', '#5fd4ff'], ['shorts', 'Shorts', 'phone', '#ff8a5c'], ['explainer', 'Explainer', 'cap', '#8b6bff']]],
+  ['Build', [['apps', 'Apps', 'grid', '#5fd4ff'], ['appbuild', 'App Building', 'wrench', '#ffb86b'], ['forge', 'Forge', 'anvil', '#ff8a5c'], ['canvas', 'Node Canvas', 'node', '#8b6bff'], ['designdocs', 'Design Docs', 'ruler', '#45d68a'], ['digiproduct', 'Digital Products', 'box', '#E7C08A']]],
+  ['World', [['styles', 'Styles', 'brush', '#ff6b9d'], ['characters', 'Characters', 'user', '#E7C08A'], ['locations', 'Locations', 'pin', '#5fd4ff'], ['products', 'Products & Brand', 'box', '#45d68a']]],
+  ['Library', [['library', 'Gallery', 'img', '#E7C08A'], ['market', 'Models', 'cart', '#8b6bff', 'new'], ['aimarket', 'AI Market', 'globe', '#5fd4ff']]],
   ['System', [['models', 'Core & Cloud', 'chip', '#45d68a'], ['connect', 'Connect', 'plug', '#ff8a5c'], ['update', 'Update', 'up', '#5fd4ff'], ['settings', 'Settings', 'cog', '#8e8c9e']]],
 ];
 export const ALL = NAV.flatMap(([g, items]) => items.map(([id, label, icon, c, badge]) => ({ id, label, icon, c, g, badge })));
-ALL.push({ id: 'agent', label: 'Pandora Agent', icon: 'star', c: '#f3c06b', g: 'Agent' });
+ALL.push({ id: 'agent', label: 'Pandora Agent', icon: 'star', c: '#E7C08A', g: 'Agent' });
 
 // Banner per tab: [title with one *italic* word, one line, background]
 export const TABS = {
@@ -68,7 +88,10 @@ export const TABS = {
   spatial: ['Into the *third* dimension', 'Image to 3D, Gaussian splats and 22 linked 3D tools.', 'models'],
   touchdesigner: ['Live, *reactive* visuals', 'Drive TouchDesigner over OSC and WebSocket. AI writes the parameters.', 'canvas'],
   cut: ['Edit at the *speed of thought*', 'Drop clips and music, get a finished cut — on the beat, highlights first. Free on any PC.', 'shorts'],
-  color: ['Grade like *Resolve*', 'Auto balance, shot matching and 16 looks. The preview is exactly what renders.', 'film'],
+  color: ['Grade like *Resolve*', 'Nodes, colour wheels, curves, qualifiers, LUTs and scopes — the preview is exactly what renders.', 'film'],
+  edit: ['Cut like *Resolve*', 'A real multi-track timeline — trim, blade, ripple, transitions, titles and 145 effects. Or let it edit for you.', 'film'],
+  camrig: ['Your phone is the *camera*', 'Move your phone to fly the Blender camera — real handheld moves, recorded as keyframes, then turned into the finished shot.', 'film'],
+  motion: ['Make it *move*', 'Kinetic titles, lower thirds, logo reveals and charts — designed from one sentence, rendered on your PC.', 'explainer'],
   genjutsu: ['Become *anyone*', 'Motion transfer, swaps and restyles. One clip in, endless versions out.', 'influencer'],
   marketing: ['Ads that *convert*', 'URL to ad, UGC, hooks, avatar spokespeople and A/B batches.', 'marketing'],
   admulti: ['One ad, *a hundred* versions', 'Turn your winning ad into many variants — new hooks, faces, places and formats.', 'marketing'],

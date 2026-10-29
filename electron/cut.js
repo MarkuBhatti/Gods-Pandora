@@ -9,6 +9,7 @@
 // a friendly error. No GPU, no API key, no internet needed.
 const cp = require('child_process');
 const path = require('path');
+const { typed } = require('./libpath');
 const fs = require('fs');
 const os = require('os');
 
@@ -410,7 +411,7 @@ async function autoEdit(userData, opts, onProgress = () => {}) {
     graph.push(`[${ai}:a]atrim=0:${outLen.toFixed(3)},asetpts=PTS-STARTPTS,afade=t=in:d=0.25,afade=t=out:st=${Math.max(0, outLen - 1.5).toFixed(3)}:d=1.5[aout]`);
     audioMap = ['-map', '[aout]', '-c:a', 'aac', '-b:a', '192k'];
   }
-  const out = path.join(opts.outDir || outDirFor(userData), Date.now() + '-pandora-cut.mp4');
+  const out = typed(path.join(opts.outDir || outDirFor(userData), Date.now() + '-pandora-cut.mp4'));
   args.push('-filter_complex', graph.join(';'), '-map', `[${last}]`, ...audioMap,
     '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-pix_fmt', 'yuv420p', '-movflags', '+faststart', '-t', outLen.toFixed(3), out);
 
@@ -462,7 +463,7 @@ async function jumpCut(userData, opts, onProgress = () => {}) {
   const sel = keep.map(([a, b]) => `between(t,${a.toFixed(3)},${b.toFixed(3)})`).join('+');
   const vchain = [`select='${sel}'`, 'setpts=N/FRAME_RATE/TB', ...vf, 'format=yuv420p'].join(',');
   const achain = `aselect='${sel}',asetpts=N/SR/TB`;
-  const out = path.join(opts.outDir || outDirFor(userData), Date.now() + '-pandora-jumpcut.mp4');
+  const out = typed(path.join(opts.outDir || outDirFor(userData), Date.now() + '-pandora-jumpcut.mp4'));
   const total = info.duration - removed;
   const r = await run(ff, ['-y', '-i', opts.file, '-vf', vchain, '-af', achain, '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', out], {
     onStderr: (t) => { const m = t.match(/time=(\d+):(\d+):([\d.]+)/); if (m) { const sec = (+m[1]) * 3600 + (+m[2]) * 60 + parseFloat(m[3]); onProgress({ stage: 'Rendering', pct: Math.min(99, 22 + Math.round(sec / total * 77)) }); } },
@@ -479,13 +480,16 @@ async function renderGrade(userData, opts, onProgress = () => {}) {
   if (!opts.file || !fs.existsSync(opts.file)) throw new Error('Choose a video or photo to grade.');
   const info = await probe(ff, opts.file);
   const cubeFile = tempCube(opts.cube);
-  const finish = (Array.isArray(opts.finish) ? opts.finish : []).filter((f) => /^[a-z0-9_]+=[\w.:=\/-]+$/i.test(f));
-  const vf = [...(cubeFile ? [`lut3d=file='${ffPath(cubeFile)}'`] : []), ...finish].join(',') || 'null';
+  const W = Math.max(2, Math.round((info.width || 1920) / 2) * 2), H = Math.max(2, Math.round((info.height || 1080) / 2) * 2);
+  const finish = (Array.isArray(opts.finish) ? opts.finish : []).filter((f) => typeof f === 'string' && f.length < 2000);
+  const pre = [`scale=${W}:${H},setsar=1`, ...(cubeFile ? [`lut3d=file='${ffPath(cubeFile)}'`] : [])];
+  const { graph, out: lab } = fxChain('0:v', [...pre, ...finish], W, H, 'g');
+  const fc = `${graph};[${lab}]${info.image ? 'null' : 'format=yuv420p'}[vout]`;
   const base = path.basename(opts.file).replace(/\.[^.]+$/, '').replace(/[^\w-]+/g, '_').slice(0, 40);
-  const out = path.join(opts.outDir || outDirFor(userData), `${Date.now()}-${base}-graded${info.image ? '.jpg' : '.mp4'}`);
-  const args = ['-y', '-i', opts.file, '-vf', info.image ? vf : vf + ',format=yuv420p'];
+  const out = typed(path.join(opts.outDir || outDirFor(userData), `${Date.now()}-${base}-graded${info.image ? '.jpg' : '.mp4'}`));
+  const args = ['-y', '-i', opts.file, '-filter_complex', fc, '-map', '[vout]'];
   if (info.image) args.push('-frames:v', '1', '-q:v', '2', out);
-  else args.push('-map', '0:v:0', '-map', '0:a?', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-c:a', 'copy', '-movflags', '+faststart', out);
+  else args.push('-map', '0:a?', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-c:a', 'aac', '-b:a', '192k', '-movflags', '+faststart', out);
   onProgress({ stage: 'Rendering', pct: 3 });
   const r = await run(ff, args, {
     onStderr: (t) => { const m = t.match(/time=(\d+):(\d+):([\d.]+)/); if (m && info.duration) { const sec = (+m[1]) * 3600 + (+m[2]) * 60 + parseFloat(m[3]); onProgress({ stage: 'Rendering', pct: Math.min(99, 3 + Math.round(sec / info.duration * 96)) }); } },
@@ -507,7 +511,7 @@ async function autoColor(userData, opts, onProgress = () => {}) {
   if (opts.matchRef && fs.existsSync(opts.matchRef)) ref = await colorStats(ff, await probe(ff, opts.matchRef));
   const grade = gradeChain(stats, ref, opts) || 'null';
   const ext = info.image ? '.png' : '.mp4';
-  const out = path.join(opts.outDir || outDirFor(userData), Date.now() + '-pandora-graded' + ext);
+  const out = typed(path.join(opts.outDir || outDirFor(userData), Date.now() + '-pandora-graded' + ext));
   const args = ['-y', '-i', opts.file, '-vf', grade + (info.image ? '' : ',format=yuv420p')];
   if (info.image) args.push('-frames:v', '1', out);
   else args.push('-map', '0:v:0', '-map', '0:a?', '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '18', '-c:a', 'copy', '-movflags', '+faststart', out);
@@ -553,4 +557,21 @@ function friendly(stderr) {
   return 'Rendering failed' + (tail ? ': ' + tail.slice(0, 220) : '. Try fewer clips or a different transition.');
 }
 
-module.exports = { animateStill, findFfmpeg, ensureFfmpeg, autoEdit, autoColor, previewGrade, beats, cancelAll, frame, jumpCut, renderGrade, LOOKS: Object.keys(LOOKS) };
+// Effects can be plain filters ("gblur=sigma=4") or small graphs with {in} {out} {u} {W} {H} placeholders.
+// Turns a list of them into filter_complex text starting at [inLabel]; returns the graph and its output label.
+function fxChain(inLabel, filters, W, H, uid) {
+  const parts = []; let cur = inLabel; let pending = []; let n = 0;
+  const lab = () => `${uid}_${n++}`;
+  const flush = () => { if (pending.length) { const o = lab(); parts.push(`[${cur}]${pending.join(',')}[${o}]`); cur = o; pending = []; } };
+  for (let f of filters || []) {
+    f = String(f || '').trim(); if (!f) continue;
+    f = f.replace(/\{W\}/g, String(W)).replace(/\{H\}/g, String(H));
+    if (f.includes('{in}')) { flush(); const o = lab(); const u = lab(); parts.push(f.replace('{in}', `[${cur}]`).replace('{out}', `[${o}]`).replace(/\{u\}/g, u)); cur = o; }
+    else pending.push(f);
+  }
+  flush();
+  return { graph: parts.join(';'), out: cur };
+}
+
+module.exports = { animateStill, findFfmpeg, ensureFfmpeg, autoEdit, autoColor, previewGrade, beats, cancelAll, frame, jumpCut, renderGrade, LOOKS: Object.keys(LOOKS),
+  run, probe, scenes, silences, tempCube, ffPath, friendly, outDirFor, fxChain };

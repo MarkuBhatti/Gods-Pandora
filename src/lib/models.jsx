@@ -46,16 +46,28 @@ export function useAllModels() {
     const dlSet = new Set(downloaded.filter((d) => d.complete !== false).map((d) => d.repo));
     const partSet = new Set(downloaded.filter((d) => d.complete === false && !d.downloading).map((d) => d.repo));
     const custom = (db.customModels || []).map((m) => ({ ...m, custom: true }));
-    const base = [...catalog.models, ...custom].map((m) => (m.provider === 'local' ? { ...m, downloaded: dlSet.has(m.endpoint), partial: partSet.has(m.endpoint) } : m));
-    const known = new Set(base.filter((m) => m.provider === 'local').map((m) => m.endpoint));
+    const onPC = (m) => m.provider === 'local' || m.provider === 'localaudio';
+    const base = [...catalog.models, ...custom].map((m) => (onPC(m) ? { ...m, downloaded: dlSet.has(m.endpoint), partial: partSet.has(m.endpoint) } : m));
+    const known = new Set(base.filter(onPC).map((m) => m.endpoint));
     const dl = downloaded
-      .filter((d) => (d.runnable || d.className) && !known.has(d.repo))
-      .map((d) => ({
-        id: 'dl-' + d.repo, name: d.repo.split('/').pop() + ' (downloaded · ' + d.kind + ')', provider: 'local', kind: d.kind,
-        endpoint: d.repo, refInput: 'reference_images', maxRefs: d.kind === 'video' ? 1 : 4,
-        downloaded: dlSet.has(d.repo), partial: partSet.has(d.repo),
-      }));
+      .filter((d) => (d.runnable || d.className || d.kind === 'audio') && !known.has(d.repo))
+      .map((d) => (d.kind === 'audio'
+        // music / voice / sound models run in the built-in audio engine
+        ? { id: 'dl-' + d.repo, name: d.repo.split('/').pop() + ' (downloaded · ' + (d.audioType || 'audio') + ')', provider: 'localaudio', kind: 'audio',
+            endpoint: d.repo, family: d.family, audioType: d.audioType, supported: d.supported !== false, refInput: null,
+            downloaded: dlSet.has(d.repo), partial: partSet.has(d.repo) }
+        : { id: 'dl-' + d.repo, name: d.repo.split('/').pop() + ' (downloaded · ' + d.kind + ')', provider: 'local', kind: d.kind,
+            endpoint: d.repo, refInput: 'reference_images', maxRefs: d.kind === 'video' ? 1 : 4,
+            downloaded: dlSet.has(d.repo), partial: partSet.has(d.repo) }));
     dl.forEach((m) => known.add(m.endpoint));
+    // open-source audio models the built-in audio engine runs — listed even before they are downloaded
+    const dirAudio = directory.openSource
+      .filter((m) => m.type === 'audio' && m.audioEngine && !known.has(m.repo))
+      .map((m) => ({
+        id: 'os-' + m.repo, name: m.name + ' (free download · ' + (m.audioType || 'audio') + ')', provider: 'localaudio', kind: 'audio',
+        endpoint: m.repo, family: m.family, audioType: m.audioType, vram: m.vram, refInput: null, downloaded: false,
+      }));
+    dirAudio.forEach((m) => known.add(m.endpoint));
     const dir = directory.openSource
       .filter((m) => m.engine && !known.has(m.repo))
       .map((m) => ({
@@ -68,7 +80,7 @@ export function useAllModels() {
         id: 'file-' + f.file, name: f.name + ' (' + (f.baseModel || 'checkpoint') + ')', provider: 'local', kind: 'image',
         endpoint: f.file, base: f.baseModel || '', refInput: 'reference_images', maxRefs: 4, downloaded: true, fromMarket: true,
       }));
-    return [...base, ...ckpts, ...dl, ...dir];
+    return [...base, ...ckpts, ...dl, ...dir, ...dirAudio];
   }, [db.customModels, downloaded, marketFiles]);
 }
 
@@ -84,16 +96,38 @@ export const VOICES = {
   localaudio: [['v2/en_speaker_6', 'English · male narrator'], ['v2/en_speaker_9', 'English · female'], ['v2/en_speaker_3', 'English · male casual'], ['v2/hi_speaker_2', 'Hindi / Urdu · female'], ['v2/hi_speaker_5', 'Hindi / Urdu · male'], ['v2/es_speaker_1', 'Spanish'], ['v2/fr_speaker_1', 'French'], ['v2/de_speaker_1', 'German'], ['v2/it_speaker_1', 'Italian'], ['v2/pt_speaker_1', 'Portuguese'], ['v2/ru_speaker_1', 'Russian'], ['v2/tr_speaker_1', 'Turkish'], ['v2/zh_speaker_1', 'Chinese'], ['v2/ja_speaker_1', 'Japanese'], ['v2/ko_speaker_1', 'Korean'], ['v2/pl_speaker_1', 'Polish']],
 };
 
+// voices for the built-in audio engine, per model family (value is passed to engine/audio_gen.py as "voice")
+export const AUDIO_VOICES = {
+  bark: VOICES.localaudio,
+  kokoro: [['af_heart', 'US English · female (Heart)'], ['af_bella', 'US English · female (Bella)'], ['af_nicole', 'US English · soft female (Nicole)'],
+    ['am_michael', 'US English · male (Michael)'], ['am_fenrir', 'US English · deep male (Fenrir)'], ['am_puck', 'US English · lively male (Puck)'],
+    ['bf_emma', 'British English · female (Emma)'], ['bm_george', 'British English · male (George)'], ['bm_fable', 'British English · male (Fable)'],
+    ['hf_alpha', 'Hindi · female'], ['hm_omega', 'Hindi · male'], ['ef_dora', 'Spanish · female'], ['em_alex', 'Spanish · male'],
+    ['ff_siwis', 'French · female'], ['if_sara', 'Italian · female'], ['im_nicola', 'Italian · male'], ['pf_dora', 'Portuguese · female'], ['pm_alex', 'Portuguese · male']],
+  chatterbox: [['en', 'English'], ['hi', 'Hindi'], ['ar', 'Arabic'], ['es', 'Spanish'], ['fr', 'French'], ['de', 'German'], ['it', 'Italian'], ['pt', 'Portuguese'],
+    ['ru', 'Russian'], ['tr', 'Turkish'], ['zh', 'Chinese'], ['ja', 'Japanese'], ['ko', 'Korean'], ['nl', 'Dutch'], ['pl', 'Polish'], ['sv', 'Swedish'],
+    ['da', 'Danish'], ['fi', 'Finnish'], ['no', 'Norwegian'], ['el', 'Greek'], ['he', 'Hebrew'], ['ms', 'Malay'], ['sw', 'Swahili']],
+  xtts: [['en:Ana Florence', 'English · female (Ana)'], ['en:Claribel Dervla', 'English · female (Claribel)'], ['en:Damien Black', 'English · male (Damien)'],
+    ['en:Craig Gutsy', 'English · male (Craig)'], ['hi:Ana Florence', 'Hindi · female'], ['hi:Damien Black', 'Hindi · male'], ['ar:Ana Florence', 'Arabic · female'],
+    ['es:Ana Florence', 'Spanish · female'], ['fr:Ana Florence', 'French · female'], ['de:Damien Black', 'German · male'], ['tr:Ana Florence', 'Turkish · female'],
+    ['ru:Damien Black', 'Russian · male'], ['pt:Ana Florence', 'Portuguese · female'], ['it:Ana Florence', 'Italian · female'], ['zh-cn:Ana Florence', 'Chinese · female'],
+    ['ja:Ana Florence', 'Japanese · female'], ['ko:Ana Florence', 'Korean · female']],
+  parler: [['A clear, expressive female voice with a moderate pace, recorded in a quiet room with very high quality.', 'Clear female narrator'],
+    ['A calm, deep male voice speaking slowly and warmly, very close-sounding and high quality.', 'Deep calm male'],
+    ['An energetic young female voice speaking quickly with lots of excitement, high quality.', 'Energetic female'],
+    ['A confident male news presenter voice with a steady pace and clear articulation, studio quality.', 'News presenter (male)']],
+};
+
 export const PROVIDER_NAMES = {
   fal: 'FAL.ai', replicate: 'Replicate', higgsfield: 'Higgsfield', huggingface: 'Hugging Face',
-  openai: 'OpenAI', google: 'Google', stability: 'Stability', elevenlabs: 'ElevenLabs', local: 'Local engine', system: 'System voice', localaudio: 'Local audio',
+  openai: 'OpenAI', google: 'Google', stability: 'Stability', elevenlabs: 'ElevenLabs', local: 'Local engine', system: 'System voice', localaudio: 'Built-in audio engine',
 };
 
 // ── Model readiness ──────────────────────────────────────────────────────────
 // One shared store (polled once for the whole app) that knows which API keys are saved, which local
 // models are fully downloaded / still downloading, and whether the local engine is installed.
 // Every model picker shows the status and Generate stays disabled until the model is ready.
-const rd = { keys: {}, progress: {}, active: [], engine: null, files: null, subs: new Set(), started: false };
+const rd = { keys: {}, progress: {}, active: [], engine: null, files: null, audio: null, audioProg: {}, subs: new Set(), started: false };
 const emit = () => rd.subs.forEach((f) => f({ ...rd }));
 if (typeof window !== 'undefined') window.__pandoraRd = rd; // handy for support/debugging
 function startReadiness() {
@@ -107,6 +141,21 @@ function startReadiness() {
   };
   poll(); setInterval(poll, 4000);
   window.addEventListener('focus', poll);
+  // built-in audio engine: which model families are set up (checked less often — it starts a small process)
+  const pollAudio = async () => { try { rd.audio = (await window.api.audio?.backends?.()) || rd.audio; emit(); } catch (_) {} };
+  rd.pollAudio = pollAudio;
+  pollAudio();
+  if (rd.audioWired) return;
+  rd.audioWired = true;
+  setInterval(pollAudio, 60000);
+  try {
+    window.api.audio?.onSetupProgress?.((p) => {
+      if (!p || !p.family) return;
+      rd.audioProg = { ...rd.audioProg, [p.family]: p.done ? { done: true } : { ...(rd.audioProg[p.family] || {}), ...p } };
+      emit();
+      if (p.done && rd.pollAudio) rd.pollAudio();
+    });
+  } catch (_) {}
   try {
     window.api.engine?.onProgress?.((p) => {
       if (!p || !p.repo) return;
@@ -130,10 +179,7 @@ const keyFor = (m) => m.keyName || m.provider;
 // → { state, ok, label, short, fix: {label, action} }
 export function readiness(m, r = rd) {
   if (!m) return { state: 'none', ok: false, label: 'Choose a model', short: '' };
-  if (m.provider === 'localaudio') {
-    if (r.engine && r.engine.installed === false) return { state: 'engine', ok: false, label: 'Free local audio needs the local engine', short: '⚙', fix: { label: 'Install engine', go: 'models' } };
-    return { state: 'ready', ok: true, label: 'Free on your PC · first use downloads the model (~1–2 GB)', short: '🆓' };
-  }
+  if (m.provider === 'localaudio') return audioReadiness(m, r);
   if (m.provider === 'system') return { state: 'ready', ok: true, label: 'Free · offline system voice', short: '🆓' };
   if (m.provider === 'local') {
     if (m.fromMarket) return { state: 'ready', ok: true, label: 'Ready · installed on this PC', short: '✅' };
@@ -160,9 +206,42 @@ export function readiness(m, r = rd) {
     : { state: 'nokey', ok: false, label: `${prov} API key not connected`, short: '🔒', fix: { label: 'Add key', go: 'settings' } };
 }
 
+// families whose engine is set up once before first use (see electron/audioFamilies.js)
+export const AUDIO_SETUP = { acestep: 'ACE-Step', kokoro: 'Kokoro', chatterbox: 'Chatterbox', f5: 'F5-TTS', xtts: 'XTTS', parler: 'Parler-TTS' };
+const SETUP_GB = { acestep: 7, kokoro: 0.5, chatterbox: 5, f5: 5, xtts: 5, parler: 5 };
+
+// Built-in audio engine models: engine → download → one-time engine setup → ready
+function audioReadiness(m, r) {
+  if (r.engine && r.engine.installed === false) return { state: 'engine', ok: false, label: "The built-in audio engine needs the local engine", short: '⚙', fix: { label: 'Install engine', go: 'models' } };
+  if (m.supported === false) return { state: 'unsupported', ok: false, label: "This model family isn't supported by the built-in audio engine yet", short: '⛔' };
+  const repo = m.endpoint;
+  const downloading = (Array.isArray(r.active) && r.active.includes(repo)) || !!r.progress?.[repo];
+  if (downloading) {
+    const p = r.progress?.[repo];
+    const pct = p && p.total ? Math.min(100, Math.floor((p.bytes / p.total) * 100)) : null;
+    return { state: 'downloading', ok: false, pct, label: 'Downloading' + (pct != null ? ` ${pct}%` : '…') + ' — you can generate once it finishes', short: '⏳' + (pct != null ? pct + '%' : '') };
+  }
+  if (!m.downloaded && !m.autoDownload) {
+    if (m.partial) return { state: 'partial', ok: false, label: 'Download incomplete — resume it to use this model', short: '⚠', fix: { label: 'Resume download', download: repo } };
+    return { state: 'missing', ok: false, label: 'Not downloaded yet (free' + (m.vram ? ' · needs ' + m.vram + ' GPU' : '') + ')', short: '⬇', fix: { label: 'Download', download: repo } };
+  }
+  const fam = m.family;
+  if (fam && AUDIO_SETUP[fam]) {
+    const prog = r.audioProg?.[fam];
+    if (prog && !prog.done) {
+      const pct = prog.pct != null ? prog.pct : null;
+      return { state: 'settingup', ok: false, pct, label: `Setting up the ${AUDIO_SETUP[fam]} engine — ${prog.step || 'working'}${pct != null ? ` ${pct}%` : '…'}`, short: '⏳' };
+    }
+    if (r.audio && r.audio.families && r.audio.families[fam] === false) {
+      return { state: 'setup', ok: false, label: `One-time setup of the ${AUDIO_SETUP[fam]} engine inside God's Pandora (~${SETUP_GB[fam]} GB)`, short: '⚙', fix: { label: 'Set up', setup: fam } };
+    }
+  }
+  return { state: 'ready', ok: true, label: m.downloaded ? 'Ready · runs free on your PC (built-in audio engine)' : 'Free on your PC · first use downloads the model', short: m.downloaded ? '✅' : '🆓' };
+}
+
 export function modelLabel(m, r = rd) {
   const s = readiness(m, r).short;
-  if (m.provider === 'local') return (s ? s + ' ' : '') + m.name;
+  if (m.provider === 'local' || m.provider === 'localaudio') return (s ? s + ' ' : '') + m.name;
   return (s ? s + ' ' : '') + m.name + ' — ' + (PROVIDER_NAMES[m.provider] || m.provider) + (m.custom ? ' · custom' : '');
 }
 
@@ -175,6 +254,17 @@ export function ModelStatus({ model, compact = false }) {
   const doFix = async () => {
     if (!s.fix) return;
     if (s.fix.go) { window.dispatchEvent(new CustomEvent('pandora:go', { detail: s.fix.go })); return; }
+    if (s.fix.setup) {
+      setMsg('');
+      const fam = s.fix.setup;
+      rd.audioProg = { ...rd.audioProg, [fam]: { family: fam, step: 'Starting' } }; emit();
+      const res = await window.api.audio.setup(fam).catch((e) => ({ ok: false, error: e.message }));
+      rd.audioProg = { ...rd.audioProg, [fam]: { done: true } };
+      if (res && !res.ok) setMsg(res.error || 'Setup failed');
+      else if (rd.audio && rd.audio.families) rd.audio = { ...rd.audio, families: { ...rd.audio.families, [fam]: true } };
+      emit(); rd.pollAudio && rd.pollAudio();
+      return;
+    }
     if (s.fix.download) {
       setMsg('');
       rd.active = [...new Set([...(rd.active || []), s.fix.download])]; emit();
@@ -188,7 +278,7 @@ export function ModelStatus({ model, compact = false }) {
     <div className={'mstat mstat-' + s.state + (compact ? ' compact' : '')} role="status">
       <span className="mstat-dot" />
       <span className="mstat-txt">{s.label}</span>
-      {s.state === 'downloading' && s.pct != null && <span className="mstat-bar"><i style={{ width: s.pct + '%' }} /></span>}
+      {(s.state === 'downloading' || s.state === 'settingup') && s.pct != null && <span className="mstat-bar"><i style={{ width: s.pct + '%' }} /></span>}
       {s.fix && <button type="button" className="btn small" onClick={doFix}>{s.fix.label}</button>}
       {s.state === 'downloading' && <button type="button" className="btn ghost small" onClick={cancel}>Pause</button>}
       {msg && <span className="mstat-err">{msg}</span>}

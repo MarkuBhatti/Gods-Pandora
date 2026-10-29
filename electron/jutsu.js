@@ -117,6 +117,11 @@ async function genjutsuPresets(keys) {
 
 async function genjutsu({ mode, provider, video, refs = [], prompt = '', resolution = '720p', presetId, styleText, editModel, localModel }, keys, onProgress = () => {}, generateImage, local = {}) {
   if (!video) throw new Error('Choose a source video (4–30 seconds).');
+  // Blocking → Film: a grey 3D previs render (Blender etc.) becomes the finished shot. Same pipeline as Restyle,
+  // with an instruction that keeps the exact camera, layout and scale and paints a photoreal frame.
+  const blocking = mode === 'blocking'; if (blocking) mode = 'restyle';
+  const BLOCK = (p) => `This frame is a rough 3D blocking / previs render with simple grey shapes. Turn it into a finished, photoreal cinematic film frame: ${p || 'realistic materials, natural light, film grain'}. Keep the exact camera angle, lens, horizon, composition, object positions, sizes and silhouettes; replace the grey placeholder shapes with real people, animals, objects and environment. Match the look of the other reference images if given.`;
+  if (blocking) { styleText = styleText || 'photoreal cinematic'; }
 
   if (provider === 'local') {
     // Offline Shapeshift on your GPU with Wan-Animate-2 (drives a reference image with the video's motion).
@@ -129,7 +134,7 @@ async function genjutsu({ mode, provider, video, refs = [], prompt = '', resolut
       onProgress({ stage: mode === 'swap' ? 'swapping in your reference (first frame)' : 'restyling first frame' });
       const instr = mode === 'swap'
         ? `Replace the main subject in the first image with the person/object from the other reference image(s). Keep the exact pose, framing, background and lighting. ${prompt}`
-        : `Redraw this exact frame in ${styleText} style. Keep the same people, poses, composition, camera angle and background layout. ${prompt}`;
+        : (blocking ? BLOCK(prompt) : `Redraw this exact frame in ${styleText} style. Keep the same people, poses, composition, camera angle and background layout. ${prompt}`);
       image = await generateImage(firstFrame, instr.trim(), refs.slice(1), editModel);
     }
     if (!image) throw new Error('Add a character reference image.');
@@ -142,7 +147,7 @@ async function genjutsu({ mode, provider, video, refs = [], prompt = '', resolut
     const { status, json } = await requestJSON('http://127.0.0.1:8756/animate', {
       method: 'POST', timeoutMs: 3 * 60 * 60 * 1000,
       body: { model_id: localModel || 'Wan-AI/Wan2.2-Animate-2-14B-Distilled-Diffusers', image_path: imagePath, video_path: video,
-              prompt: mode === 'restyle' ? `${styleText} style. ${prompt}` : prompt, width: area[0], height: area[1] },
+              prompt: blocking ? `Photoreal cinematic film shot, smooth real camera move. ${prompt}` : mode === 'restyle' ? `${styleText} style. ${prompt}` : prompt, width: area[0], height: area[1] },
     });
     if (status !== 200 || !json || json.error) throw new Error('Local Shapeshift: ' + ((json && json.error) || 'HTTP ' + status));
     return { dataUrl: json.video };
@@ -158,7 +163,7 @@ async function genjutsu({ mode, provider, video, refs = [], prompt = '', resolut
     const videoUrl = await upload('higgsfield', video, key);
     const imageUrls = [];
     for (const r of refs.slice(0, mode === 'restyle' ? 5 : 8)) imageUrls.push(await upload('higgsfield', r, key));
-    const body = { video_url: videoUrl, image_urls: imageUrls, prompt: prompt || '', resolution };
+    const body = { video_url: videoUrl, image_urls: imageUrls, prompt: blocking ? ('Photoreal cinematic film shot from a 3D blocking render; keep the exact camera move and layout. ' + (prompt || '')) : (prompt || ''), resolution };
     if (mode === 'restyle') body.preset_id = presetId;
     onProgress({ stage: 'generating' });
     const res = await fetch(`${HF}/higgsfield/genjutsu/${endpoint}/v1.0`, {
@@ -193,7 +198,7 @@ async function genjutsu({ mode, provider, video, refs = [], prompt = '', resolut
       onProgress({ stage: 'restyling first frame' });
       const firstFrame = refs[0]; // renderer sends the video's first frame as refs[0] for restyle
       if (!firstFrame) throw new Error('Could not read the first frame of the video.');
-      image = await generateImage(firstFrame, `Redraw this exact frame in ${styleText} style. Keep the same people, poses, composition, camera angle and background layout. ${prompt}`.trim(), refs.slice(1), editModel);
+      image = await generateImage(firstFrame, (blocking ? BLOCK(prompt) : `Redraw this exact frame in ${styleText} style. Keep the same people, poses, composition, camera angle and background layout. ${prompt}`).trim(), refs.slice(1), editModel);
     }
     if (!image) throw new Error('Add a character / object reference image.');
     onProgress({ stage: 'uploading' });

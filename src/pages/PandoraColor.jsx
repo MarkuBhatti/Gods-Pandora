@@ -2,8 +2,11 @@ import React, { useEffect, useMemo, useState } from 'react';
 import { useJob, RunButton, ErrorBox, friendlyError } from '../lib/job.jsx';
 import { useStore, uid } from '../lib/store.jsx';
 import Media from '../lib/Media.jsx';
-import { DEFAULTS, sampleStats, autoParams, autoChoices, buildLUT, lutToCube, ffmpegFinish } from '../lib/grade.js';
-import { loadImageData, downscale, useProcessed, Viewer, Histogram, SliderGroup, ChoiceGallery, lookChoices, Tabs, Slider } from '../lib/GradeUI.jsx';
+import { DEFAULTS, sampleStats, autoParams, autoChoices, buildLUT, lutToCube, ffmpegFinish, composite, parseCube } from '../lib/grade.js';
+import { loadImageData, downscale, useProcessed, Viewer, SliderGroup, ChoiceGallery, lookChoices, Tabs, Slider } from '../lib/GradeUI.jsx';
+import { WheelsPanel, CurvesPanel, Scopes, QualifierPanel, qualFromPixel } from '../lib/ColorTools.jsx';
+import { EFFECTS, FX_CATS, fxById } from '../lib/effects.js';
+import { usePersist } from '../lib/qol.jsx';
 
 // Pandora Color — a colourist's toolkit in one tab:
 //   Auto Balance + "auto grade" choices (Resolve Auto Balance / Colourlab Auto-colour)
@@ -11,6 +14,8 @@ import { loadImageData, downscale, useProcessed, Viewer, Histogram, SliderGroup,
 //   Reference colour match with strength (Retouch4Me Color Match / Resolve Shot Match)
 //   Primaries, tone, split-toning, finishing (Resolve primaries + Lightroom tone)
 //   Export the grade as a .cube LUT, render one clip or the whole batch.
+//   Resolve-style: serial node tree, Lift/Gamma/Gain/Offset wheels, custom + hue curves, HSL qualifier,
+//   LUT nodes, waveform / parade / vectorscope scopes, and 145 effects.
 const base = (f) => String(f || '').split(/[\\/]/).pop();
 const isImg = (f) => /\.(png|jpe?g|webp|bmp)$/i.test(f || '');
 const creative = (p) => { const { wb, levels, match, exposure, ...rest } = p; return { ...rest, exposure: 0 }; };
@@ -25,7 +30,17 @@ export default function PandoraColor() {
   const [t, setT] = useState(null);
   const [orig, setOrig] = useState(null);
   const [stats, setStats] = useState(null);
-  const [params, setParams] = useState({ ...DEFAULTS });
+  const newNode = (name, p = {}) => ({ id: uid(), name, on: true, p: { ...DEFAULTS, ...p } });
+  const [nodes, setNodes] = useState(() => [newNode('Balance'), newNode('Look')]);
+  const [ni, setNi] = useState(0);
+  const [fx, setFx] = useState([]);
+  const [scope, setScope] = usePersist('color.scope', 'wave');
+  const [picking, setPicking] = useState(false);
+  const [fxQ, setFxQ] = useState(''); const [fxCat, setFxCat] = useState('');
+  const cn = Math.min(ni, nodes.length - 1);
+  const params = nodes[cn].p;
+  const setParams = (v) => setNodes((ns) => ns.map((n, i) => (i === cn ? { ...n, p: typeof v === 'function' ? v(n.p) : v } : n)));
+  const comp = useMemo(() => composite(nodes, fx), [nodes, fx]);
   const [active, setActive] = useState('none');
   const [panel, setPanel] = useState('auto');
   const [ref, setRef] = useState(null); // { file, url, lab }
@@ -54,11 +69,16 @@ export default function PandoraColor() {
   const addClips = (files) => { const list = (files || []).filter(Boolean); if (!list.length) return; setClips((c) => [...new Set([...c, ...list])]); if (!cur) open(list[0]); };
 
   const thumb = useMemo(() => (orig ? downscale(orig, 220) : null), [orig]);
-  const [out, busy] = useProcessed(orig, params, null);
+  const [out, busy] = useProcessed(orig, comp, null);
   const set = (patch) => { setParams((p) => ({ ...p, ...patch })); setActive('custom'); };
 
   const autoList = useMemo(() => (stats ? autoChoices(stats) : []), [stats]);
   const looks = useMemo(() => lookChoices(params, myLooks.map((m) => ({ id: 'my-' + m.id, name: '★ ' + m.name, p: m.p }))), [params.wb, params.levels, params.match, params.exposure, myLooks]);
+  // node tree helpers — every node is a full grade; nodes run in order (serial), like Resolve
+  const addNode = () => { setNodes((ns) => [...ns, newNode('Node ' + (ns.length + 1))]); setNi(nodes.length); };
+  const delNode = (i) => { if (nodes.length < 2) return; setNodes((ns) => ns.filter((_, j) => j !== i)); setNi((x) => Math.max(0, Math.min(x, nodes.length - 2))); };
+  const pickPixel = ({ x, y }) => { if (!orig) return; const px = Math.min(orig.width - 1, Math.max(0, Math.round(x * orig.width))), py = Math.min(orig.height - 1, Math.max(0, Math.round(y * orig.height))); const o = (py * orig.width + px) * 4; set({ qual: qualFromPixel(orig.data[o], orig.data[o + 1], orig.data[o + 2]) }); setPicking(false); };
+  const importLut = async () => { try { const f = await window.api.pickLut(); if (!f) return; const text = await window.api.cut.readText(f); set({ lut: parseCube(text, base(f)) }); } catch (e) { setError(friendlyError(e) || e.message); } };
 
   const pickRef = async () => {
     const f = await window.api.pickMedia(); if (!f?.[0]) return;
@@ -80,13 +100,16 @@ export default function PandoraColor() {
 
   // per-clip params: re-balance each clip and re-aim the reference match at that clip's own colours
   async function paramsFor(file) {
-    if (!perClipBalance || file === cur) return params;
+    if (!perClipBalance || file === cur) return comp;
     const fr = await window.api.cut.frame({ file, max: 640 });
     const st = sampleStats(await loadImageData(fr.dataUrl, 640));
-    const p = { ...params };
-    if (params.wb || params.levels) Object.assign(p, autoParams(st), { vibrance: params.vibrance });
-    if (params.match) p.match = { ...params.match, src: st.lab };
-    return p;
+    const ns = nodes.map((n) => {
+      const p = { ...n.p };
+      if (n.p.wb || n.p.levels) Object.assign(p, autoParams(st), { vibrance: n.p.vibrance });
+      if (n.p.match) p.match = { ...n.p.match, src: st.lab };
+      return { ...n, p };
+    });
+    return composite(ns, fx);
   }
 
   async function renderList(files) {
@@ -97,7 +120,7 @@ export default function PandoraColor() {
         try {
           setProgress({ stage: `Grading ${i + 1} of ${files.length}`, pct: 0 });
           const p = await paramsFor(files[i]);
-          const r = await window.api.cut.renderGrade({ jobId, file: files[i], cube: lutToCube(buildLUT(p, 33)), finish: ffmpegFinish(p) });
+          const r = await window.api.cut.renderGrade({ jobId, file: files[i], cube: lutToCube(buildLUT(p, 33)), finish: ffmpegFinish(p, { video: !isImg(files[i]) }) });
           setResults((x) => [...x, r.file]);
           update((d) => { d.generations.unshift({ id: uid(), file: r.file, kind: r.image ? 'image' : 'video', prompt: `[Pandora Color] ${base(files[i])}`, model: 'Pandora Color (ffmpeg)', at: new Date().toISOString() }); return d; });
         } catch (e) { if (/FFMPEG_MISSING/.test(String(e.message))) { setFf(false); return; } const m = friendlyError(e); if (m && m !== 'cancelled') setError(m); break; }
@@ -125,7 +148,7 @@ export default function PandoraColor() {
       <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'nowrap' }}>
         <div>
           <h1 style={{ marginBottom: 2 }}>🎨 Pandora Color</h1>
-          <p className="sub" style={{ margin: 0 }}>Auto balance, pick a grade from real previews, match any reference, fine-tune like a colourist — then render or export a LUT. Free and offline.</p>
+          <p className="sub" style={{ margin: 0 }}>Nodes, colour wheels, curves, qualifiers, LUTs and scopes — plus auto balance, shot match and {EFFECTS.length} effects. Render or export a LUT. Free and offline.</p>
         </div>
       </div>
 
@@ -158,7 +181,7 @@ export default function PandoraColor() {
 
         {/* viewer */}
         <div className="card g-view">
-          <Viewer before={orig} after={out} busy={busy} />
+          <Viewer before={orig} after={out} busy={busy} brush={picking ? { r: 0.006 } : null} onPoint={picking ? pickPixel : undefined} />
           {frameInfo && !frameInfo.image && frameInfo.duration > 0 && (
             <div className="g-scrub">
               <span className="sub">Frame</span>
@@ -167,9 +190,9 @@ export default function PandoraColor() {
             </div>
           )}
           <div className="row" style={{ alignItems: 'flex-end', marginTop: 8 }}>
-            <Histogram img={out || orig} />
+            <Scopes img={out || orig} mode={scope} setMode={setScope} />
             <div style={{ flex: 1 }}>
-              <Slider label="Grade strength" value={params.mix / 100} min={0} max={1} onChange={(v) => set({ mix: Math.round(v * 100) })} fmt={(v) => Math.round(v * 100) + '%'} />
+              <Slider label="Node strength" value={params.mix / 100} min={0} max={1} onChange={(v) => set({ mix: Math.round(v * 100) })} fmt={(v) => Math.round(v * 100) + '%'} />
               <div className="row" style={{ marginTop: 6 }}>
                 <RunButton job={job} label="🎨 Render this clip" busyLabel={progress ? `${progress.stage} ${progress.pct ?? ''}%` : 'Rendering…'} onRun={() => renderList([cur])} disabled={!cur} />
                 {clips.length > 1 && !job.running && <button className="btn ghost" onClick={() => renderList(clips)}>Grade all {clips.length}</button>}
@@ -187,7 +210,20 @@ export default function PandoraColor() {
 
         {/* panels */}
         <div className="card g-panel">
-          <Tabs value={panel} onChange={setPanel} tabs={[['auto', 'Auto'], ['looks', 'Looks'], ['primaries', 'Primaries'], ['tone', 'Split-tone'], ['finish', 'Finish'], ['match', 'Match'], ['save', 'Save / LUT']]} />
+          <div className="nodes">
+            {nodes.map((n, i) => (
+              <div key={n.id} className={'node' + (i === cn ? ' on' : '') + (n.on ? '' : ' off')} onClick={() => setNi(i)} title="Click to edit this node">
+                <b>{String(i + 1).padStart(2, '0')}</b>
+                <input value={n.name} onChange={(e) => setNodes((ns) => ns.map((x, j) => (j === i ? { ...x, name: e.target.value } : x)))} onClick={(e) => e.stopPropagation()} />
+                <span className="node-tags">{n.p.qual ? '◎' : ''}{n.p.lut ? 'LUT' : ''}{n.p.wheels ? '◐' : ''}{n.p.curves || n.p.hueSat || n.p.hueHue ? '∿' : ''}</span>
+                <button title={n.on ? 'Bypass node' : 'Enable node'} onClick={(e) => { e.stopPropagation(); setNodes((ns) => ns.map((x, j) => (j === i ? { ...x, on: !x.on } : x))); }}>{n.on ? '●' : '○'}</button>
+                {nodes.length > 1 && <button title="Delete node" onClick={(e) => { e.stopPropagation(); delNode(i); }}>✕</button>}
+                {i < nodes.length - 1 && <i className="node-link" />}
+              </div>
+            ))}
+            <button className="node-add" onClick={addNode} title="Add serial node (Alt+S in Resolve)">＋ Node</button>
+          </div>
+          <Tabs value={panel} onChange={setPanel} tabs={[['auto', 'Auto'], ['looks', 'Looks'], ['primaries', 'Primaries'], ['wheels', 'Wheels'], ['curves', 'Curves'], ['qual', 'Qualifier'], ['tone', 'Split-tone'], ['finish', 'Finish'], ['fx', `Effects${fx.length ? ' ' + fx.length : ''}`], ['match', 'Match'], ['lut', 'LUTs'], ['save', 'Save']]} />
           {!orig && <p className="sub" style={{ marginTop: 10 }}>Open a clip to see live previews of every grade.</p>}
           {orig && panel === 'auto' && (<>
             <p className="sub" style={{ fontSize: 12 }}>Auto Balance fixes white balance, exposure and black/white points. Then pick the direction you like:</p>
@@ -201,6 +237,26 @@ export default function PandoraColor() {
             <h4 className="g-h">Light</h4><SliderGroup group="light" params={params} set={set} />
             <h4 className="g-h">Colour</h4><SliderGroup group="color" params={params} set={set} />
             <button className="btn ghost small" onClick={() => stats && set(autoParams(stats))}>⚖ Auto Balance</button>
+          </>)}
+          {orig && panel === 'wheels' && (<><h4 className="g-h">Primaries — colour wheels</h4><WheelsPanel params={params} set={set} /><p className="sub" style={{ fontSize: 11 }}>Lift = shadows · Gamma = midtones · Gain = highlights · Offset = everything. Drag the dot for colour, the bar for brightness. Shift-drag = fine.</p></>)}
+          {orig && panel === 'curves' && (<><h4 className="g-h">Curves</h4><CurvesPanel params={params} set={set} /></>)}
+          {orig && panel === 'qual' && (<><h4 className="g-h">Qualifier (HSL key) — node {cn + 1}</h4><QualifierPanel params={params} set={set} picking={picking} setPicking={setPicking} /></>)}
+          {orig && panel === 'lut' && (<>
+            <h4 className="g-h">LUT in this node</h4>
+            <p className="sub" style={{ fontSize: 11 }}>Load any 3D .cube LUT — camera log-to-Rec.709 conversions (S-Log, V-Log, C-Log, LogC), film emulations or LUTs from other apps.</p>
+            <div className="row"><button className="btn small" onClick={importLut}>📂 Load .cube</button>{params.lut && <><span className="badge">{params.lut.name} · {params.lut.size}³</span><button className="btn ghost small" onClick={() => set({ lut: null })}>Remove</button></>}</div>
+            <p className="sub" style={{ fontSize: 11 }}>Tip: put a log-conversion LUT in node 01 and do your look in the nodes after it.</p>
+          </>)}
+          {orig && panel === 'fx' && (<>
+            <h4 className="g-h">Effects ({EFFECTS.length})</h4>
+            {fx.map((x, i) => { const e = fxById(x.id); return e && (
+              <div key={i} className="ed-fxrow">
+                <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'nowrap' }}><label className="row" style={{ gap: 6, margin: 0 }}><input type="checkbox" style={{ width: 'auto' }} checked={x.on !== false} onChange={(ev) => setFx((f) => f.map((y, j) => (j === i ? { ...y, on: ev.target.checked } : y)))} /><span className={'ed-fxk ' + e.kind} />{e.name}</label><button className="ed-mini" onClick={() => setFx((f) => f.filter((_, j) => j !== i))}>✕</button></div>
+                <input type="range" min="0" max="1" step="0.01" value={x.amt ?? 1} onChange={(ev) => setFx((f) => f.map((y, j) => (j === i ? { ...y, amt: +ev.target.value } : y)))} />
+              </div>); })}
+            <input value={fxQ} onChange={(e) => setFxQ(e.target.value)} placeholder="Search effects…" style={{ marginTop: 6 }} />
+            <div className="row" style={{ gap: 3, margin: '6px 0' }}><button className={'chip mini' + (!fxCat ? ' on' : '')} onClick={() => setFxCat('')}>All</button>{FX_CATS.map((c) => <button key={c} className={'chip mini' + (fxCat === c ? ' on' : '')} onClick={() => setFxCat(c)}>{c}</button>)}</div>
+            <div className="ed-fxlist" style={{ maxHeight: 260, overflow: 'auto' }}>{EFFECTS.filter((e) => (!fxCat || e.cat === fxCat) && (!fxQ || e.name.toLowerCase().includes(fxQ.toLowerCase())) && (!isImg(cur) || e.kind !== 'time')).map((e) => <button key={e.id} className="ed-fx" onClick={() => setFx((f) => [...f, { id: e.id, amt: e.kind === 'color' ? 1 : 0.6 }])}><span className={'ed-fxk ' + e.kind} />{e.name}<small>{e.kind === 'time' ? 'plays in render' : e.cat}</small></button>)}</div>
           </>)}
           {orig && panel === 'tone' && (<><h4 className="g-h">Split-toning (shadows / highlights)</h4><SliderGroup group="split" params={params} set={set} /></>)}
           {orig && panel === 'finish' && (<><h4 className="g-h">Finishing</h4><SliderGroup group="finish" params={params} set={set} /></>)}
@@ -216,9 +272,10 @@ export default function PandoraColor() {
             {myLooks.length > 0 && <div className="row" style={{ flexWrap: 'wrap' }}>{myLooks.map((m) => <span key={m.id} className="badge">★ {m.name} <a style={{ cursor: 'pointer', marginLeft: 4 }} onClick={() => update((d) => { d.settings.myLooks = d.settings.myLooks.filter((x) => x.id !== m.id); return d; })}>✕</a></span>)}</div>}
             <h4 className="g-h">Export LUT</h4>
             <p className="sub" style={{ fontSize: 11 }}>A .cube LUT of this grade for DaVinci Resolve, Premiere, Final Cut, Photoshop or OBS.</p>
-            <button className="btn ghost small" onClick={() => window.api.cut.saveCube(lutToCube(buildLUT(params, 33), lookName || 'Pandora look'), lookName || 'pandora-look')}>⬇ Export .cube</button>
+            <button className="btn ghost small" onClick={() => window.api.cut.saveCube(lutToCube(buildLUT(comp, 33), lookName || 'Pandora look'), lookName || 'pandora-look')}>⬇ Export .cube</button>
+            <p className="sub" style={{ fontSize: 11 }}>The LUT holds every node's colour (wheels, curves, qualifiers, LUTs, colour effects). Grain, blur and other image effects aren't part of a LUT.</p>
           </>)}
-          <div className="row" style={{ marginTop: 12 }}><button className="btn ghost small" onClick={() => { setParams({ ...DEFAULTS }); setActive('none'); }}>↺ Reset</button></div>
+          <div className="row" style={{ marginTop: 12 }}><button className="btn ghost small" onClick={() => { setParams({ ...DEFAULTS }); setActive('none'); }}>↺ Reset node</button><button className="btn ghost small" onClick={() => { setNodes([newNode('Balance'), newNode('Look')]); setNi(0); setFx([]); setActive('none'); }}>Reset all</button></div>
         </div>
       </div>
     </div>

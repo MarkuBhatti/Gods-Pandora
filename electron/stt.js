@@ -123,8 +123,10 @@ async function transcribeCloud(key, file, mime, { language, translate }) {
 async function transcribe(userData, keys, opts, onStatus = () => {}) {
   const ext = /wav/.test(opts.mime || '') ? '.wav' : /ogg/.test(opts.mime || '') ? '.ogg' : /mp4|m4a/.test(opts.mime || '') ? '.m4a' : '.webm';
   const dir = path.join(os.tmpdir(), 'pandora-voice'); fs.mkdirSync(dir, { recursive: true });
-  const file = path.join(dir, 'rec-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6) + ext);
-  fs.writeFileSync(file, Buffer.from(String(opts.audio || ''), 'base64'));
+  // a media file on disk (timeline auto-captions) is read in place — it is never deleted
+  const own = !(opts.file && fs.existsSync(opts.file));
+  const file = own ? path.join(dir, 'rec-' + Date.now() + '-' + Math.random().toString(36).slice(2, 6) + ext) : opts.file;
+  if (own) fs.writeFileSync(file, Buffer.from(String(opts.audio || ''), 'base64'));
   const lang = opts.language && opts.language !== 'auto' ? opts.language : null;
   const pref = opts.engine || 'auto';
   const haveLocal = fs.existsSync(venvPy(userData));
@@ -140,7 +142,7 @@ async function transcribe(userData, keys, opts, onStatus = () => {}) {
       if (String(e.message) === 'LOCAL_ENGINE_MISSING') throw new Error('Free voice input needs the local engine (Pandora Core & Cloud → Install engine), or add an OpenAI key for cloud voice input.');
       throw e;
     }
-  } finally { try { fs.unlinkSync(file); } catch (_) {} }
+  } finally { if (own) { try { fs.unlinkSync(file); } catch (_) {} } }
 }
 
 // warm up the worker + model in the background (so the first "Hey Pandora" isn't slow)

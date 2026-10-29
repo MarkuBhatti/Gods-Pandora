@@ -1,5 +1,6 @@
 import ToolArt from '../lib/ToolArt.jsx';
 import React, { useState } from 'react';
+import Gen3D from './Gen3D.jsx';
 
 const TOOLS = [
   // ── API / Cloud ──
@@ -175,6 +176,11 @@ const TOOLS = [
     tags: ['local', 'full-pipeline', 'animation', 'rendering'],
   },
   {
+    id: 'hunyuan3d', name: 'Hunyuan3D-2 mini', org: 'Tencent', access: 'open', free: true, freeNote: 'Runs inside Pandora — one click',
+    desc: 'Image or text → detailed 3D mesh. Best open-source quality on a ~6 GB GPU.', keyUrl: '', docsUrl: 'https://github.com/Tencent-Hunyuan/Hunyuan3D-2',
+    outputs: ['GLB'], tags: ['open-source', 'image-to-3d', 'text-to-3d', 'mesh'], run: 'hunyuan3d-2mini',
+  },
+  {
     id: 'openshape',
     name: 'OpenShape',
     org: 'OpenShape',
@@ -188,7 +194,7 @@ const TOOLS = [
     tags: ['open-source', 'language-guided'],
   },
   {
-    id: 'shap-e',
+    id: 'shap-e', run: 'shap-e',
     name: 'Shap-E (OpenAI)',
     org: 'OpenAI',
     access: 'open',
@@ -300,6 +306,7 @@ export default function Studio3D() {
   const [freeOnly, setFreeOnly] = useState(false);
   const [tag, setTag] = useState('');
   const [q, setQ] = useState('');
+  const [pick, setPick] = useState(null);
 
   const filtered = TOOLS.filter((t) => {
     if (access !== 'all' && t.access !== access) return false;
@@ -312,9 +319,9 @@ export default function Studio3D() {
   const apiTools  = filtered.filter((t) => t.access === 'api');
   const openTools = filtered.filter((t) => t.access === 'open');
 
-  const ToolCard = ({ t }) => (
+  const ToolCard = ({ t, i }) => (
     <div className="card tool-card-lite" style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-      <ToolArt tool={{ id: t.name, name: t.name, desc: (t.desc || t.description || '') + ' 3d', kind: '3d', imageInputs: [] }} />
+      <ToolArt tool={{ id: t.name, name: t.name, desc: (t.desc || t.description || '') + ' 3d', kind: '3d', imageInputs: [] }} i={i} page="spatial" />
       <div className="row" style={{ justifyContent: 'space-between' }}>
         <strong style={{ fontSize: 13 }}>{t.name}</strong>
         <div className="row" style={{ gap: 4 }}>
@@ -335,12 +342,13 @@ export default function Studio3D() {
         ))}
       </div>
       <div className="row" style={{ gap: 6, marginTop: 4 }}>
-        <a href={t.keyUrl} target="_blank" rel="noreferrer" className="btn small" style={{ fontSize: 11, padding: '4px 10px', textDecoration: 'none' }}>
-          {t.access === 'open' ? '⬇ Download / Run' : '🔑 Get API Key ↗'}
-        </a>
-        <a href={t.docsUrl} target="_blank" rel="noreferrer" className="btn ghost small" style={{ fontSize: 11, padding: '4px 10px', textDecoration: 'none' }}>
+        {t.access === 'open' && t.run && <button className="btn small" style={{ fontSize: 11, padding: '4px 10px' }} onClick={() => setPick({ id: t.run, prepare: true, at: Date.now() })}>⬇ Download &amp; run in Pandora</button>}
+        {t.access === 'open' && !t.run && t.id !== 'blender' && <button className="btn small" style={{ fontSize: 11, padding: '4px 10px' }} title="This project needs its own install; Pandora's built-in Hunyuan3D-2 does the same job" onClick={() => setPick({ id: 'hunyuan3d-2mini', at: Date.now() })}>▶ Run similar in Pandora</button>}
+        {t.access !== 'open' && <a href={t.keyUrl} target="_blank" rel="noreferrer" className="btn small" style={{ fontSize: 11, padding: '4px 10px', textDecoration: 'none' }}>🔑 Get API Key ↗</a>}
+        {t.id === 'blender' && <a href={t.keyUrl} target="_blank" rel="noreferrer" className="btn small" style={{ fontSize: 11, padding: '4px 10px', textDecoration: 'none' }}>Get Blender ↗</a>}
+        {t.docsUrl && <a href={t.docsUrl} target="_blank" rel="noreferrer" className="btn ghost small" style={{ fontSize: 11, padding: '4px 10px', textDecoration: 'none' }}>
           Docs ↗
-        </a>
+        </a>}
       </div>
     </div>
   );
@@ -352,6 +360,8 @@ export default function Studio3D() {
         {TOOLS.length} tools · {TOOLS.filter((t) => t.free).length} with free tiers · {TOOLS.filter((t) => t.access === 'open').length} open-source / local.
         Text → mesh, image → 3D, NeRF capture, Gaussian splatting, avatars, environments.
       </p>
+
+      <Gen3D pick={pick} />
 
       {/* Filters */}
       <div className="row" style={{ marginBottom: 14, flexWrap: 'wrap', gap: 6 }}>
@@ -371,7 +381,7 @@ export default function Studio3D() {
         <>
           <h3>☁ Cloud API ({apiTools.length})</h3>
           <div className="grid" style={{ marginBottom: 20 }}>
-            {apiTools.map((t) => <ToolCard key={t.id} t={t} />)}
+            {apiTools.map((t, i) => <ToolCard key={t.id} t={t} i={i} />)}
           </div>
         </>
       )}
@@ -381,7 +391,7 @@ export default function Studio3D() {
         <>
           <h3>⬇ Open-Source / Local ({openTools.length})</h3>
           <div className="grid" style={{ marginBottom: 20 }}>
-            {openTools.map((t) => <ToolCard key={t.id} t={t} />)}
+            {openTools.map((t, i) => <ToolCard key={t.id} t={t} i={apiTools.length + i} />)}
           </div>
         </>
       )}

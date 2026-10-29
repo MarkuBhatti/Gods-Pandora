@@ -1,5 +1,6 @@
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { LOOKS, DEFAULTS, buildLUT, applyLUT, applySpatial, applyStrokes, histogram } from './grade.js';
+import { applyFx, fxById } from './effects.js';
 
 // ── image helpers ──
 export function loadImageData(src, maxSide = 1600) {
@@ -34,6 +35,9 @@ export function render(orig, params, { spatial = true, strokes = null, lutSize =
   applyLUT(out, buildLUT(params, lutSize));
   if (spatial) applySpatial(out, { clarity: params.clarity, sharpen: params.sharpen, vignette: params.vignette, grain: params.grain, smooth: params.smooth, blemish: params.blemish, evenTone: params.evenTone });
   if (strokes && strokes.length) applyStrokes(out, strokes);
+  // image effects (colour effects are already inside the LUT)
+  const sp = spatial && Array.isArray(params.fx) ? params.fx.filter((x) => x.on !== false && fxById(x.id)?.kind === 'spatial') : [];
+  if (sp.length) return applyFx(out, sp);
   return out;
 }
 

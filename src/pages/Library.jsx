@@ -32,10 +32,10 @@ export default function Library() {
 
   return (
     <div>
-      <h1>Pandora Gallery</h1>
+      <div className="row" style={{ justifyContent: 'space-between' }}><h1>Pandora Gallery</h1><button className="btn ghost small" title="Images, Videos, Audio, 3D… each in its own folder" onClick={() => window.api.libraryFolder()}>📁 Open library folder</button></div>
       <p className="sub">Everything you've generated, saved locally. Remix, animate, extend, or save any result into a character, location or product so it stays connected everywhere.</p>
       <div className="row" style={{ marginBottom: 12 }}>
-        {['all', 'image', 'video', 'audio'].map((k) => (
+        {['all', 'image', 'video', 'audio', '3d'].map((k) => (
           <button key={k} className={'chip' + (kind === k ? ' on' : '')} onClick={() => setKind(k)}>{k}</button>
         ))}
         <select style={{ width: 220 }} value={who} onChange={(e) => setWho(e.target.value)}>
@@ -99,7 +99,7 @@ function Lightbox({ items, index, onIndex, onClose }) {
             <span className="sub">{index + 1} / {items.length}</span>
             <button className="btn ghost small" disabled={index === 0} onClick={() => onIndex(index - 1)}>←</button>
             <button className="btn ghost small" disabled={index === items.length - 1} onClick={() => onIndex(index + 1)}>→</button>
-            <button className="btn ghost small" onClick={() => window.api.reveal(g.file)}>Open</button>
+            <button className="btn ghost small" onClick={() => window.api.reveal(g.file)}>📁 File location</button>
             <button className="btn small" onClick={onClose}>✕ Close</button>
           </span>
         </div>

@@ -13,6 +13,7 @@ import colorTheory from '../../data/colorTheory.json';
 import { useStore, uid } from '../lib/store.jsx';
 import Media from '../lib/Media.jsx';
 import MicButton from '../lib/Voice.jsx';
+import { OpenButtons } from '../lib/Viewer.jsx';
 import GuideBook from './GuideBook.jsx';
 
 // Film Studio: multi-shot projects with a full cinematography deck —
@@ -109,9 +110,9 @@ export default function FilmStudio() {
       {/* Quick-start templates */}
       <h3>Quick-start templates</h3>
       <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', marginBottom: 24 }}>
-        {TEMPLATES.map((tpl) => (
+        {TEMPLATES.map((tpl, ti) => (
           <button key={tpl.title} className="card tool-card-lite" style={{ textAlign: 'left', cursor: 'pointer' }} onClick={() => createFromTemplate(tpl)}>
-            <ToolArt tool={{ id: tpl.title, name: tpl.title, desc: 'film storyboard video', kind: 'video', imageInputs: [] }} />
+            <ToolArt tool={{ id: tpl.title, name: tpl.title, desc: 'film storyboard video', kind: 'video', imageInputs: [] }} i={ti} page="film" />
             <div style={{ fontSize: 13, fontWeight: 700, color: 'var(--text)', marginBottom: 4 }}>{tpl.title}</div>
             <div style={{ fontSize: 11, color: 'var(--muted)', marginBottom: 6 }}>{tpl.shots.length} shots pre-configured</div>
             {tpl.director && <div style={{ fontSize: 10, color: 'var(--gold)', letterSpacing: .5 }}>Dir. style: {tpl.director}</div>}
@@ -305,7 +306,7 @@ function ShotCard({ index, shot, prevShot, project, db, patch }) {
       <div className="row" style={{ marginTop: 12 }}>
         <RunButton small job={job} label={shot.file ? '↻ Regenerate' : '✦ Generate shot'} onRun={generate} disabled={!shot.prompt.trim() || !model || !gate.ok} />
         {model && !gate.ok && !busy && <span className="sub" style={{ fontSize: 11 }}>🔒 {gate.reason}</span>}
-        {shot.file && <button className="btn ghost small" onClick={() => window.api.reveal(shot.file)}>Open</button>}
+        {shot.file && <OpenButtons file={shot.file} />}
         {shot.file && <button className="btn ghost small" onClick={() => window.api.resolveSend([shot.file])}>Send to Resolve</button>}
       </div>
       <ErrorBox error={error} />

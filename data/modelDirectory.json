@@ -314,208 +314,246 @@
       "repo": "m-a-p/YuE2-3B",
       "link": "https://huggingface.co/m-a-p/YuE2-3B",
       "type": "audio",
-      "note": "Newest lyrics-to-song model with editing — download-only (runs in its own app / ComfyUI)",
+      "note": "Newest lyrics-to-song model with editing — not yet supported by the built-in audio engine",
       "vram": "12 GB+",
       "added": "2026-09",
       "license": "CC-BY-NC-4.0",
-      "engine": false
+      "engine": false,
+      "audioEngine": false
     },
     {
       "name": "IndexTTS 2.5",
       "repo": "IndexTeam/IndexTTS-2.5",
       "link": "https://huggingface.co/IndexTeam/IndexTTS-2.5",
       "type": "audio",
-      "note": "Zero-shot voice cloning, emotion control, cross-lingual TTS — download-only (runs in its own app / ComfyUI)",
+      "note": "Zero-shot voice cloning, emotion control, cross-lingual TTS — not yet supported by the built-in audio engine",
       "vram": "8 GB+",
       "added": "2026-08",
       "license": "see card",
-      "engine": false
+      "engine": false,
+      "audioEngine": false
     },
     {
       "name": "MiniMax Music 3",
       "repo": "MiniMaxAI/MiniMax-Music3",
       "link": "https://huggingface.co/MiniMaxAI/MiniMax-Music3",
       "type": "audio",
-      "note": "Text-to-music (diffusers) — download-only (runs in its own app / ComfyUI)",
+      "note": "Text-to-music (diffusers) — not yet supported by the built-in audio engine",
       "vram": "16 GB+",
       "added": "2026-08",
       "license": "see card",
-      "engine": false
+      "engine": false,
+      "audioEngine": false
     },
     {
       "name": "Higgs TTS 3 4B",
       "repo": "bosonai/higgs-tts-3-4b",
       "link": "https://huggingface.co/bosonai/higgs-tts-3-4b",
       "type": "audio",
-      "note": "Expressive, controllable voice-agent TTS — download-only (runs in its own app / ComfyUI)",
+      "note": "Expressive, controllable voice-agent TTS — not yet supported by the built-in audio engine",
       "vram": "12 GB+",
       "added": "2026-06",
       "license": "see card",
-      "engine": false
+      "engine": false,
+      "audioEngine": false
     },
     {
       "name": "Supertonic 3",
       "repo": "Supertone/supertonic-3",
       "link": "https://huggingface.co/Supertone/supertonic-3",
       "type": "audio",
-      "note": "On-device multilingual TTS (ONNX) — download-only (runs in its own app / ComfyUI)",
+      "note": "On-device multilingual TTS (ONNX) — not yet supported by the built-in audio engine",
       "vram": "CPU",
       "added": "2026-05",
       "license": "OpenRAIL",
-      "engine": false
+      "engine": false,
+      "audioEngine": false
     },
     {
       "name": "Stable Audio 3 Medium",
       "repo": "stabilityai/stable-audio-3-medium",
       "link": "https://huggingface.co/stabilityai/stable-audio-3-medium",
       "type": "audio",
-      "note": "Music + sound effects from text — download-only (runs in its own app / ComfyUI)",
+      "note": "Music + sound effects from text — not yet supported by the built-in audio engine",
       "vram": "12 GB+",
       "added": "2026-05",
       "license": "Stability license",
-      "engine": false
+      "engine": false,
+      "audioEngine": false
     },
     {
       "name": "Stable Audio 3 Small SFX",
       "repo": "stabilityai/stable-audio-3-small-sfx",
       "link": "https://huggingface.co/stabilityai/stable-audio-3-small-sfx",
       "type": "audio",
-      "note": "Fast sound-effect generation — download-only (runs in its own app / ComfyUI)",
+      "note": "Fast sound-effect generation — not yet supported by the built-in audio engine",
       "vram": "6 GB+",
       "added": "2026-05",
       "license": "Stability license",
-      "engine": false
+      "engine": false,
+      "audioEngine": false
     },
     {
       "name": "Magenta RealTime 2",
       "repo": "google/magenta-realtime-2",
       "link": "https://huggingface.co/google/magenta-realtime-2",
       "type": "audio",
-      "note": "Real-time interactive music generation — download-only (runs in its own app / ComfyUI)",
+      "note": "Real-time interactive music generation — not yet supported by the built-in audio engine",
       "vram": "8 GB+",
       "added": "2026-05",
       "license": "CC-BY-4.0",
-      "engine": false
+      "engine": false,
+      "audioEngine": false
     },
     {
       "name": "OmniVoice",
       "repo": "k2-fsa/OmniVoice",
       "link": "https://huggingface.co/k2-fsa/OmniVoice",
       "type": "audio",
-      "note": "Voice cloning + voice design in 600+ languages — download-only (runs in its own app / ComfyUI)",
+      "note": "Voice cloning + voice design in 600+ languages — not yet supported by the built-in audio engine",
       "vram": "6 GB+",
       "added": "2026-03",
       "license": "see card",
-      "engine": false
+      "engine": false,
+      "audioEngine": false
     },
     {
       "name": "Fish Audio S2 Pro",
       "repo": "fishaudio/s2-pro",
       "link": "https://huggingface.co/fishaudio/s2-pro",
       "type": "audio",
-      "note": "Instruction-following expressive multilingual TTS — download-only (runs in its own app / ComfyUI)",
+      "note": "Instruction-following expressive multilingual TTS — not yet supported by the built-in audio engine",
       "vram": "12 GB+",
       "added": "2026-03",
       "license": "see card",
-      "engine": false
+      "engine": false,
+      "audioEngine": false
     },
     {
       "name": "Qwen3-TTS 1.7B CustomVoice",
       "repo": "Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice",
       "link": "https://huggingface.co/Qwen/Qwen3-TTS-12Hz-1.7B-CustomVoice",
       "type": "audio",
-      "note": "Multilingual TTS with custom voices — download-only (runs in its own app / ComfyUI)",
+      "note": "Multilingual TTS with custom voices — not yet supported by the built-in audio engine",
       "vram": "6 GB+",
       "added": "2026-01",
       "license": "Apache-2.0",
-      "engine": false
+      "engine": false,
+      "audioEngine": false
     },
     {
       "name": "ACE-Step 1.5",
       "repo": "ACE-Step/Ace-Step1.5",
       "link": "https://huggingface.co/ACE-Step/Ace-Step1.5",
       "type": "audio",
-      "note": "Full songs with vocals from text + lyrics — download-only (runs in its own app / ComfyUI)",
+      "note": "Full songs with vocals from text + lyrics — runs in God's Pandora (built-in audio engine)",
       "vram": "8 GB+",
       "added": "2026-01",
       "license": "MIT",
-      "engine": false
+      "engine": false,
+      "family": "acestep",
+      "audioType": "music",
+      "audioEngine": true
     },
     {
       "name": "Chatterbox",
       "repo": "ResembleAI/chatterbox",
       "link": "https://huggingface.co/ResembleAI/chatterbox",
       "type": "audio",
-      "note": "Voice cloning TTS, 23 languages, emotion control — download-only (runs in its own app / ComfyUI)",
+      "note": "Voice cloning TTS, 23 languages, emotion control — runs in God's Pandora (built-in audio engine)",
       "vram": "6 GB+",
       "added": "2025-04",
       "license": "MIT",
-      "engine": false
+      "engine": false,
+      "family": "chatterbox",
+      "audioType": "speech",
+      "audioEngine": true
     },
     {
       "name": "Kokoro 82M",
       "repo": "hexgrad/Kokoro-82M",
       "link": "https://huggingface.co/hexgrad/Kokoro-82M",
       "type": "audio",
-      "note": "Tiny, fast, high-quality TTS — runs on CPU — download-only (runs in its own app / ComfyUI)",
+      "note": "Tiny, fast, high-quality TTS — runs on CPU — runs in God's Pandora (built-in audio engine)",
       "vram": "CPU / 2 GB",
       "added": "2024-12",
       "license": "Apache-2.0",
-      "engine": false
+      "engine": false,
+      "family": "kokoro",
+      "audioType": "speech",
+      "audioEngine": true
     },
     {
       "name": "MusicGen Large",
       "repo": "facebook/musicgen-large",
       "link": "https://huggingface.co/facebook/musicgen-large",
       "type": "audio",
-      "note": "Meta music generation from text",
+      "note": "Meta music generation from text — runs in God's Pandora (built-in audio engine)",
       "vram": "8 GB+",
-      "engine": false
+      "engine": false,
+      "family": "musicgen",
+      "audioType": "music",
+      "audioEngine": true
     },
     {
       "name": "Stable Audio Open",
       "repo": "stabilityai/stable-audio-open-1.0",
       "link": "https://huggingface.co/stabilityai/stable-audio-open-1.0",
       "type": "audio",
-      "note": "Samples, SFX, loops",
+      "note": "Samples, SFX, loops — runs in God's Pandora (built-in audio engine)",
       "vram": "8 GB+",
-      "engine": false
+      "engine": false,
+      "family": "stableaudio",
+      "audioType": "music",
+      "audioEngine": true
     },
     {
       "name": "Bark",
       "repo": "suno/bark",
       "link": "https://huggingface.co/suno/bark",
       "type": "audio",
-      "note": "Expressive TTS w/ laughter, singing",
+      "note": "Expressive TTS w/ laughter, singing — runs in God's Pandora (built-in audio engine)",
       "vram": "8 GB+",
-      "engine": false
+      "engine": false,
+      "family": "bark",
+      "audioType": "speech",
+      "audioEngine": true
     },
     {
       "name": "XTTS-v2",
       "repo": "coqui/XTTS-v2",
       "link": "https://huggingface.co/coqui/XTTS-v2",
       "type": "audio",
-      "note": "Voice cloning TTS, 17 languages",
+      "note": "Voice cloning TTS, 17 languages — runs in God's Pandora (built-in audio engine)",
       "vram": "6 GB+",
-      "engine": false
+      "engine": false,
+      "family": "xtts",
+      "audioType": "speech",
+      "audioEngine": true
     },
     {
       "name": "F5-TTS",
       "repo": "SWivid/F5-TTS",
       "link": "https://huggingface.co/SWivid/F5-TTS",
       "type": "audio",
-      "note": "SOTA open zero-shot voice cloning",
+      "note": "SOTA open zero-shot voice cloning — runs in God's Pandora (built-in audio engine)",
       "vram": "8 GB+",
-      "engine": false
+      "engine": false,
+      "family": "f5",
+      "audioType": "speech",
+      "audioEngine": true
     },
     {
       "name": "Parler-TTS",
       "repo": "parler-tts/parler-tts-large-v1",
       "link": "https://huggingface.co/parler-tts/parler-tts-large-v1",
       "type": "audio",
-      "note": "Controllable described-voice TTS",
+      "note": "Controllable described-voice TTS — runs in God's Pandora (built-in audio engine)",
       "vram": "6 GB+",
-      "engine": false
+      "engine": false,
+      "family": "parler",
+      "audioType": "speech",
+      "audioEngine": true
     },
     {
       "name": "Whisper large-v3",

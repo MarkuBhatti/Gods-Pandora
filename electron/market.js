@@ -49,6 +49,8 @@ async function hfSearch({ q = '', category = 'all', sort = 'trending', limit = 4
       downloads: m.downloads || 0, likes: m.likes || 0, createdAt: m.createdAt,
       license: (tags.find((t) => t.startsWith('license:')) || '').replace('license:', '') || 'see card',
       engine: tags.includes('diffusers') && /image|video/.test(TYPE_OF_TASK[m.pipeline_tag] || ''),
+      // music / voice / sound models the built-in audio engine runs (ACE-Step, Kokoro, Chatterbox, MusicGen, Bark…)
+      audioEngine: require('./audioFamilies').isAudio(m.id, m.pipeline_tag) && (!!require('./audioFamilies').detect(m.id) || tags.includes('diffusers')),
       link: 'https://huggingface.co/' + m.id,
     });
   }));

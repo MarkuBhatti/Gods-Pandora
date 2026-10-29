@@ -1,5 +1,29 @@
 # Changelog
 
+## 0.6.0 — Effects studio
+- New **Effects** tab (Edit group): 51 real-time effects for photos and videos — glass & water, motion, glitch, particles & light, atmosphere, print, film & darkroom, collage, artist techniques and painterly looks. GPU-rendered with an offline AI subject mask, so effects can keep the subject sharp, wrap light around it or put titles behind it.
+- Every effect is editable (sliders, colours, presets, animate any slider), stackable as layers, saveable as templates (.json), with before/after compare and PNG / video export.
+- Effects: cleaner subject cut-outs (two-pass edge-aware refinement) with **Subject edge** controls — edge softness, shrink ↔ grow, hair & detail, and a Show-mask view. Zoom burst no longer leaves a halo around the subject.
+- 30 ready-made effect templates (20 new: Wedding glow, Hyper speed, Vaporwave VHS, Comic hero, Noir film, Cathedral light, Neon city trails, Galaxy dust, Old master portrait, Retro arcade, Pop poster, Smoke & fire and more).
+- **Phone Camera** (Create): scan a QR code and your phone becomes a handheld camera for Blender — tilt/pan/roll from the phone's motion sensors, on-screen pads to walk, crane and slide, lens slider, and ● REC records the real hand move as camera keyframes. Includes a one-click Blender add-on (Sidebar → Pandora). Works over home Wi-Fi with a per-install certificate.
+- **Shapeshift → Blocking → Film**: turn a grey Blender blocking render into the finished shot — keeps the exact camera move and layout (cloud: Higgsfield / FAL Wan 2.2; free: local Wan-Animate).
+- **Creative app bridges** (Connect): detect Blender, DaVinci Resolve and Premiere Pro; one-click Blender MCP in Claude Desktop; guided setup for the Resolve and Premiere MCP servers, so Claude can drive Pandora and your editing / 3D apps together.
+- **Pandora Agent drives your apps**: switch on Blender, DaVinci Resolve or Premiere Pro under Connect → "Pandora Agent can use" and the agent starts their MCP servers itself and uses their tools in the same job as Pandora's own (generate, edit, grade). Test button per app, "Import from Claude Desktop" for servers you already installed, screenshots from apps saved into the project. Works with the Claude brain or a local Ollama / LM Studio model.
+- **Claude full access** (Connect, on by default): Claude can generate, edit images, grade, auto-edit, write, browse your Gallery, show previews (images and video frames) right in its own chat, open results in Pandora's viewer and drive connected apps (Blender / Resolve / Premiere) through Pandora. Everything Claude makes also lands in your Gallery. Turn it off to bring back per-chat limits.
+- First launch: after setup, Pandora asks to install the free local engine right away (one click, live progress, can continue in the background); it asks again on later launches until installed, unless you choose "Don't ask again".
+- **Generate 3D** (3D & Spatial): text or image → GLB, free on your GPU with Hunyuan3D-2 mini (best) or Shap-E (light), or in the cloud with Hunyuan3D v2 / TRELLIS (FAL). Built-in 3D viewer (orbit, zoom, textures), results saved to library/3D and the Gallery (new 3D filter).
+- Open-source cards now have **Download & run in Pandora** — the model installs and downloads inside the app and appears in the generator; projects that need their own install get "Run similar in Pandora" instead of sending you to a website. AI Market open-source models get "Get in Pandora", which opens Models with the search filled in so they install in-app.
+- **Motion · Remake a reference** (Katana-style): drop any reference edit (ad, launch video, motion piece) — Pandora reads its beats, timing, layouts and transitions and rebuilds it with your brief and your images (products, logo, app screens). Every frame is drawn as code — no video generation. Works with Claude or a local model.
+- **Motion · AI Code Scenes**: describe a moment and the AI writes the animation itself as canvas code (runs isolated, no file or internet access); edit the code by hand if you like. New media templates: Photo (Ken Burns), Product Hero, App Screen (device), Media Collage.
+- **New brand identity v1.0**: the original painted Pandora box logo, refined — regraded into the brand palette with a chrome rim and sand lid-glow (app icon, living 3D box, new splash); Fraunces (display) · Geist (UI) · Geist Mono, a refined Obsidian / Bone / Solar Sand / Ember / Haze palette across the app, and a full brand guide (design/gods-pandora-brand-identity.html).
+- The living Pandora box now shows the original painted artwork at full, sharp detail (lossless), cut out cleanly and moving in a slow circle with a gentle sway, breathing aura, light sweep and rising sparks.
+- Dark title bar that matches the app (native minimise / maximise / close kept); drag the window by the top bar.
+- Smoother: videos and images in the gallery stream from disk instead of being copied through memory, and importing large files no longer pauses the window.
+- Launch polish: the brand type system (Fraunces · Geist · Geist Mono) now runs through every screen, the whole interface moves to the Obsidian / Bone / Solar Sand palette (no more cyan or violet leftovers), calm brand backdrops replace the old neon scenes, and every tool card shows a frame from the showcase.
+- Home and every tab banner now use the creator's own showcase — images made in Pandora and photography by Haider Bhatti — with visuals matched to what each tab does, and a new "Inside the box" overview on Home — Create, Edit, Campaigns, Build, World and Library all laid out open, every studio with its visual, headline and one-line summary.
+- Your library is now sorted on disk by type: `library/Images`, `Videos`, `Audio`, `3D`, `Documents` (new creations; older files stay where they are).
+- **Open** now shows the result inside Pandora (image, video or audio viewer); a separate **📁 File location** button shows it in Explorer, and the viewer has "Open with…" for your default Windows app. Gallery has "Open library folder". Effects exports default to the matching library folder.
+
 ## 0.5.0 — New look
 - Redesigned app: calm grouped sidebar (Create, Edit, Campaigns, Build, World, Library, System) instead of the crowded top bar; serif display type (Instrument Serif) with Inter for the interface; new top bar with Free / Hybrid / Cloud switch.
 - New Home: looping video hero with the living Pandora box, big prompt box, studio tiles with hover video, "Made in Pandora" reel, idea-to-finished-video strip and recent creations.
@@ -8,7 +32,7 @@
 - Engine install: uses a supported Python (3.10–3.14) automatically; on Windows without one it downloads a private Python 3.12 — fixes "Microsoft Visual C++ 14.0 is required" on new Python versions such as 3.15.
 - Uninstaller runs in place, so Windows Smart App Control no longer blocks its temporary copy (Un_*.exe); "delete my data" now also removes a custom data folder.
 
-## Unreleased
+## 0.5.1 — Built-in audio engine
 - Removed "Hey Pandora" and voice dictation. Text prompts, the Agent and the Pandora Voice tab (text-to-speech, music, sound effects) are unchanged.
 - Installer: choose the install folder and the library/models folder.
 - FLUX.2 klein is picked on 8 GB GPUs.

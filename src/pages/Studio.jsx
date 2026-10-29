@@ -175,9 +175,9 @@ export default function Studio({ studioId, top = null }) {
       <div style={{ marginTop: 18 }}>
         {!tool ? (
           <div className="grid">
-            {studio.tools.map((t) => (
+            {studio.tools.map((t, i) => (
               <button key={t.id} className="card tool-card" onClick={() => setTool(t)}>
-                <ToolArt tool={t} />
+                <ToolArt tool={t} i={i} page={studioId} />
                 <div className="tool-body">
                   <div className="row" style={{ justifyContent: 'space-between', gap: 6 }}>
                     <strong>{t.name}</strong><span className="badge">{t.kind}</span>

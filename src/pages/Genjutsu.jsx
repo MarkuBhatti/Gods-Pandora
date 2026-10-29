@@ -16,6 +16,7 @@ const MODES = [
   ['motion', '🕺 Motion transfer', 'Your character performs the exact motion, timing and camera of the source video.'],
   ['swap', '🔁 Object swap', 'Replace a person (or object) in the video with your reference while keeping the scene and lighting.'],
   ['restyle', '🎨 Restyle', 'Redraw the whole video in a new visual style, keeping motion and composition.'],
+  ['blocking', '🎥 Blocking → Film', 'Turn a grey 3D blocking render (Blender, phone-camera move) into the finished photoreal shot — same camera move and layout.'],
 ];
 const OPEN_STYLES = ['Cel-shaded anime', 'Studio Ghibli watercolor', 'Pixar-style 3D', 'Claymation', 'LEGO bricks', 'Comic-book ink', 'Oil painting', 'Pencil sketch',
   'Cyberpunk neon', 'Vintage 16mm film', 'Low-poly 3D', 'Paper cut-out', 'Pixel art', 'Ukiyo-e woodblock', 'Chrome sculpture', 'Stained glass', 'Felt puppet', 'Noir black-and-white', 'Vaporwave', 'Marble statue'];
@@ -36,6 +37,7 @@ export default function Shapeshift() {
   const [presetId, setPresetId] = useState('');
   const [styleText, setStyleText] = useState(OPEN_STYLES[0]);
   const [editId, setEditId] = useState('');
+  const isRestyle = mode === 'restyle' || mode === 'blocking';
   const job = useJob();
   const busy = job.running;
   const [status, setStatus] = useState('');
@@ -58,7 +60,7 @@ export default function Shapeshift() {
     return typeof off === 'function' ? off : undefined;
   }, []);
   useEffect(() => {
-    if (mode !== 'restyle' || provider !== 'higgsfield' || presets.length) return;
+    if (!isRestyle || provider !== 'higgsfield' || presets.length) return;
     window.api.jutsu.presets().then((p) => { setPresets(p); if (p[0]) setPresetId(p[0].id); }).catch((e) => setError(String(e.message || e)));
   }, [mode, provider]);
 
@@ -72,7 +74,7 @@ export default function Shapeshift() {
     } catch (e) { setError(String(e.message || e)); }
   };
 
-  const maxRefs = mode === 'restyle' ? (provider === 'local' ? 3 : 5) : provider === 'fal' ? 1 : provider === 'local' ? (mode === 'motion' ? 1 : 3) : 8;
+  const maxRefs = isRestyle ? (provider === 'local' ? 3 : 5) : provider === 'fal' ? 1 : provider === 'local' ? (mode === 'motion' ? 1 : 3) : 8;
   const addRefs = (files) => setRefs((r) => [...new Set([...r, ...files])].slice(0, maxRefs));
 
   async function run() {
@@ -81,7 +83,7 @@ export default function Shapeshift() {
     await job.start(async (jobId) => {
     try {
       let sendRefs = refs;
-      if ((mode === 'restyle' && provider === 'fal') || (provider === 'local' && mode !== 'motion')) {
+      if ((isRestyle && provider === 'fal') || (provider === 'local' && mode !== 'motion')) {
         const first = await window.api.saveDataUrl(await frameAt(video, 0.1), 'genjutsu-first-frame');
         sendRefs = [first, ...refs];
       }
@@ -91,7 +93,7 @@ export default function Shapeshift() {
       });
       setResult(res.file);
       const label = MODES.find((m) => m[0] === mode)[1];
-      update((d) => { d.generations.unshift({ id: uid(), file: res.file, kind: 'video', prompt: `[Shapeshift ${label}] ${mode === 'restyle' ? (provider === 'fal' ? styleText : (presets.find((p) => p.id === presetId)?.name || '')) : ''} ${prompt}`.trim(), model: provider === 'fal' ? 'Wan 2.2 Animate (FAL)' : provider === 'local' ? 'Wan-Animate-2 (local GPU)' : 'Higgsfield (cloud)', at: new Date().toISOString() }); return d; });
+      update((d) => { d.generations.unshift({ id: uid(), file: res.file, kind: 'video', prompt: `[Shapeshift ${label}] ${isRestyle ? (provider === 'fal' ? styleText : (presets.find((p) => p.id === presetId)?.name || '')) : ''} ${prompt}`.trim(), model: provider === 'fal' ? 'Wan 2.2 Animate (FAL)' : provider === 'local' ? 'Wan-Animate-2 (local GPU)' : 'Higgsfield (cloud)', at: new Date().toISOString() }); return d; });
     } catch (e) { const m = friendlyError(e); if (m) setError(m); }
     });
     setStatus('');
@@ -101,18 +103,18 @@ export default function Shapeshift() {
   const engineModel = provider === 'local'
     ? { name: 'Wan-Animate-2 14B', provider: 'local', endpoint: WAN_REPO, downloaded: dl.some((d) => d.repo === WAN_REPO && d.complete !== false), partial: dl.some((d) => d.repo === WAN_REPO && d.complete === false) }
     : { name: provider === 'fal' ? 'Wan 2.2 Animate (FAL)' : 'Higgsfield', provider };
-  const gate = useModelGate(engineModel, mode === 'motion' && provider === 'local' ? null : (provider === 'higgsfield' && mode === 'restyle' ? null : editModel));
+  const gate = useModelGate(engineModel, mode === 'motion' && provider === 'local' ? null : (provider === 'higgsfield' && isRestyle ? null : editModel));
   const ready = gate.ok && video && info && info.duration >= 4 && (
     provider === 'local'
-      ? (mode === 'motion' ? refs.length > 0 : !!editModel && (mode === 'restyle' ? !!styleText : refs.length > 0))
-      : mode === 'restyle' ? (provider === 'higgsfield' ? !!presetId : !!styleText && !!editModel) : refs.length > 0);
+      ? (mode === 'motion' ? refs.length > 0 : !!editModel && (isRestyle ? !!styleText : refs.length > 0))
+      : isRestyle ? (provider === 'higgsfield' ? !!presetId : !!styleText && !!editModel) : refs.length > 0);
 
   return (
     <div>
       <h1>🌀 Pandora Shapeshift</h1>
       <p className="sub">Transform any video. Runs on your own GPU (Wan-Animate-2), on open-source Wan 2.2 Animate through FAL, or on Higgsfield with a Higgsfield key.</p>
       <div className="row" style={{ marginBottom: 12 }}>
-        {MODES.map(([id, label]) => <button key={id} className={'chip' + (mode === id ? ' on' : '')} onClick={() => { setMode(id); setRefs((r) => r.slice(0, id === 'restyle' ? 5 : provider === 'fal' ? 1 : 8)); }}>{label}</button>)}
+        {MODES.map(([id, label]) => <button key={id} className={'chip' + (mode === id ? ' on' : '')} onClick={() => { setMode(id); setRefs((r) => r.slice(0, (id === 'restyle' || id === 'blocking') ? 5 : provider === 'fal' ? 1 : 8)); }}>{label}</button>)}
       </div>
       <p className="sub" style={{ fontSize: 12 }}>{MODES.find((m) => m[0] === mode)[2]}</p>
 
@@ -121,7 +123,7 @@ export default function Shapeshift() {
           <label>Engine</label>
           <div className="row">
             <button className={'chip' + (provider === 'local' ? ' on' : '')} onClick={() => { setProvider('local'); setResolution('720p'); setRefs((r) => r.slice(0, mode === 'motion' ? 1 : 3)); }}>💻 Local GPU · Wan-Animate-2 (offline)</button>
-            <button className={'chip' + (provider === 'fal' ? ' on' : '')} onClick={() => { setProvider('fal'); setRefs((r) => r.slice(0, mode === 'restyle' ? 5 : 1)); }}>Open · Wan 2.2 Animate (FAL key)</button>
+            <button className={'chip' + (provider === 'fal' ? ' on' : '')} onClick={() => { setProvider('fal'); setRefs((r) => r.slice(0, isRestyle ? 5 : 1)); }}>Open · Wan 2.2 Animate (FAL key)</button>
             <button className={'chip' + (provider === 'higgsfield' ? ' on' : '')} onClick={() => setProvider('higgsfield')}>☁ Higgsfield (Higgsfield key)</button>
           </div>
           <ModelStatus model={engineModel} />
@@ -148,7 +150,7 @@ export default function Shapeshift() {
           {video && <div className="result-box" style={{ marginTop: 8 }}><Media file={video} kind="video" controls /></div>}
           {info && <p className="sub" style={{ fontSize: 11 }}>{info.width}×{info.height} · {info.duration.toFixed(1)} s{info.duration > 30 ? ' · only the first 30 s are used' : ''}</p>}
 
-          {mode === 'restyle' && provider === 'higgsfield' && (
+          {isRestyle && provider === 'higgsfield' && (
             <>
               <label>Style</label>
               <div className="preset-grid">
@@ -171,11 +173,13 @@ export default function Shapeshift() {
               <p className="sub" style={{ fontSize: 11 }}>Best: FLUX.2 [klein] or Qwen-Image (multi-reference editing).</p>
             </>
           )}
-          {mode === 'restyle' && provider !== 'higgsfield' && (
+          {isRestyle && provider !== 'higgsfield' && (
             <>
+              {mode === 'blocking' ? <p className="sub" style={{ margin: '4px 0' }}>Render your Blender viewport (View → Viewport Render Animation, 4–10 s), drop it above, add a look reference image and describe the real scene in the prompt. Tip: plan the camera move with the Phone Camera tab.</p> : <>
               <label>Style</label>
               <div className="row">{OPEN_STYLES.map((s) => <button key={s} className={'chip mini' + (styleText === s ? ' on' : '')} onClick={() => setStyleText(s)}>{s}</button>)}</div>
               <input style={{ marginTop: 6 }} value={styleText} onChange={(e) => setStyleText(e.target.value)} placeholder="or describe your own style" />
+              </>}
               <label>Image-edit model (restyles the first frame)</label>
               <select value={editModel?.id || ''} onChange={(e) => setEditId(e.target.value)}>
                 {editModels.map((m) => <option key={m.id} value={m.id}>{modelLabel(m, rdy)}</option>)}
@@ -206,7 +210,7 @@ export default function Shapeshift() {
         </div>
 
         <div className="card">
-          <h3 style={{ marginTop: 0 }}>{mode === 'restyle' ? 'Character references (optional, up to 5)' : provider === 'fal' ? 'Character / object (1 image)' : 'References (1–8 images)'}</h3>
+          <h3 style={{ marginTop: 0 }}>{isRestyle ? 'Character references (optional, up to 5)' : provider === 'fal' ? 'Character / object (1 image)' : 'References (1–8 images)'}</h3>
           <p className="sub" style={{ fontSize: 11 }}>Pick a saved character, influencer or product — or add photos.</p>
           <div className="row">
             {ents.map((e) => <button key={e.type + e.id} className="chip mini" onClick={() => addRefs(e.refs.slice(0, maxRefs))}>{e.icon} {e.name}</button>)}

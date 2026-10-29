@@ -57,7 +57,7 @@ function ParamRow({ param, value, onChange, onSend }) {
 }
 
 // ── Template card ────────────────────────────────────────────────────────────
-function TemplateCard({ tmpl, onSelect, onLaunch }) {
+function TemplateCard({ tmpl, idx, onSelect, onLaunch }) {
   const catColors = {
     'Generative': '#9b59b6', 'Audio-Visual': '#e67e22', 'Shader Art': '#3498db',
     'AI Generative': '#e74c3c', 'Simulation': '#1abc9c', '3D': '#8b6bff', 'Data Visual': '#2ecc71'
@@ -68,7 +68,7 @@ function TemplateCard({ tmpl, onSelect, onLaunch }) {
       onMouseEnter={(e) => e.currentTarget.style.borderColor = col}
       onMouseLeave={(e) => e.currentTarget.style.borderColor = ''}
     >
-      <ToolArt tool={{ id: tmpl.name || tmpl.title || tmpl.id, name: tmpl.name || tmpl.title, desc: (tmpl.description || tmpl.desc || '') + ' ' + (tmpl.category || ''), kind: 'td', imageInputs: [] }} />
+      <ToolArt tool={{ id: tmpl.name || tmpl.title || tmpl.id, name: tmpl.name || tmpl.title, desc: (tmpl.description || tmpl.desc || '') + ' ' + (tmpl.category || ''), kind: 'td', imageInputs: [] }} i={idx} page="touchdesigner" />
       <div className="row" style={{ justifyContent: 'space-between', marginBottom: 6 }}>
         <span style={{ fontSize: 22 }}>{tmpl.icon}</span>
         <span style={{ fontSize: 10, fontWeight: 700, color: col, background: col + '18', border: '1px solid ' + col + '44', borderRadius: 10, padding: '2px 8px' }}>{tmpl.category}</span>
@@ -340,8 +340,8 @@ export default function StudioTD() {
               ))}
             </div>
             <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 10 }}>
-              {filtered.map((t) => (
-                <TemplateCard key={t.id} tmpl={t}
+              {filtered.map((t, ti) => (
+                <TemplateCard key={t.id} tmpl={t} idx={ti}
                   onSelect={(tmpl) => { setActiveTmpl(tmpl); setParams((p) => ({ ...p, [tmpl.id]: p[tmpl.id] || {} })); }}
                   onLaunch={launchTD}
                 />

@@ -1,9 +1,11 @@
+import { fxColorFn, fxFilters } from './effects.js';
 // Pandora grade engine — one source of truth for colour.
 // Every global adjustment (balance, colour match, primaries, tone, split-tone, looks) is baked into a 3D LUT,
 // so the live preview in the app and the final ffmpeg render (lut3d) are pixel-identical.
 // Spatial effects (clarity, sharpen, skin retouch, brushes, vignette, grain) run separately on pixels.
 //
 // Ideas borrowed (and re-implemented from scratch): DaVinci Resolve primaries + Auto Balance + Shot Match,
+// Lift/Gamma/Gain/Offset colour wheels, custom + hue curves, HSL qualifier, LUT nodes and a serial node tree,
 // Colourlab AI reference matching + film-look library, Retouch4Me Color Match (reference transfer + LUT export),
 // Imagen personal profiles ("My Looks"), Evoto skin retouch, Lightroom-style tone sliders.
 
@@ -16,7 +18,13 @@ export const DEFAULTS = {
   wb: null,     // { r, g, b } gains from Auto Balance
   levels: null, // { lo, hi } from Auto Balance
   match: null,  // { src: labStats, ref: labStats, amount: 0..100 }
+  wheels: null, // { lift:{x,y,m}, gamma:{x,y,m}, gain:{x,y,m}, offset:{x,y,m} }  (Resolve primaries wheels)
+  curves: null, // { y:[[x,y]…], r:[…], g:[…], b:[…] }  custom curves, 0..1
+  hueSat: null, hueHue: null, lumSat: null, // [[x,y]…] hue/lum curves, y 0.5 = neutral
+  qual: null,   // { h, hw, s0, s1, l0, l1, soft, invert } HSL qualifier — limits this node to a colour range
+  lut: null,    // { size, data, name } an imported .cube applied in this node
 };
+export const WHEEL0 = { x: 0, y: 0, m: 0 };
 
 // Looks = parameter presets (so every look is fully editable afterwards)
 export const LOOKS = [
@@ -83,8 +91,70 @@ function tone(x, p) {
   return x;
 }
 
-// The global pixel transform (0..1 RGB in → out)
-export function makeTransform(p0) {
+// ── curves: monotone cubic (Fritsch–Carlson) through the control points → 1024-entry table ──
+export function curveTable(pts, periodic = false, N = 1024) {
+  let P = (pts || []).map(([x, y]) => [clamp(x), clamp(y)]).sort((a, b) => a[0] - b[0]);
+  if (periodic) { if (!P.length) return null; P = [...P.map(([x, y]) => [x - 1, y]), ...P, ...P.map(([x, y]) => [x + 1, y])]; }
+  if (P.length < 2) return null;
+  const n = P.length, dx = [], m = [], t = new Float32Array(n);
+  for (let i = 0; i < n - 1; i++) { dx[i] = Math.max(1e-6, P[i + 1][0] - P[i][0]); m[i] = (P[i + 1][1] - P[i][1]) / dx[i]; }
+  t[0] = m[0]; t[n - 1] = m[n - 2];
+  for (let i = 1; i < n - 1; i++) t[i] = m[i - 1] * m[i] <= 0 ? 0 : (m[i - 1] + m[i]) / 2;
+  for (let i = 0; i < n - 1; i++) { if (m[i] === 0) { t[i] = t[i + 1] = 0; continue; } const a = t[i] / m[i], b = t[i + 1] / m[i], h = a * a + b * b; if (h > 9) { const k = 3 / Math.sqrt(h); t[i] = k * a * m[i]; t[i + 1] = k * b * m[i]; } }
+  const out = new Float32Array(N); let k = 0;
+  for (let j = 0; j < N; j++) {
+    const x = j / (N - 1);
+    if (x <= P[0][0]) { out[j] = P[0][1]; continue; } if (x >= P[n - 1][0]) { out[j] = P[n - 1][1]; continue; }
+    while (k < n - 2 && x > P[k + 1][0]) k++;
+    const h = dx[k], u = (x - P[k][0]) / h, u2 = u * u, u3 = u2 * u;
+    out[j] = (2 * u3 - 3 * u2 + 1) * P[k][1] + (u3 - 2 * u2 + u) * h * t[k] + (-2 * u3 + 3 * u2) * P[k + 1][1] + (u3 - u2) * h * t[k + 1];
+  }
+  return out;
+}
+const isIdentity = (pts) => !pts || (pts.length === 2 && pts[0][0] === 0 && pts[0][1] === 0 && pts[1][0] === 1 && pts[1][1] === 1);
+const isFlat = (pts) => !pts || !pts.length || pts.every(([, y]) => Math.abs(y - 0.5) < 1e-3);
+const look1 = (tab, x) => tab[Math.max(0, Math.min(1023, Math.round(x * 1023)))];
+function rgb2hsl(r, g, b) {
+  const mx = Math.max(r, g, b), mn = Math.min(r, g, b); const l = (mx + mn) / 2; let h = 0, s = 0;
+  if (mx !== mn) { const d = mx - mn; s = l > 0.5 ? d / (2 - mx - mn) : d / (mx + mn); h = mx === r ? (g - b) / d + (g < b ? 6 : 0) : mx === g ? (b - r) / d + 2 : (r - g) / d + 4; h /= 6; }
+  return [h, s, l];
+}
+function hsl2rgb(h, s, l) {
+  if (!s) return [l, l, l];
+  const f = (p, q, t) => { t = (t % 1 + 1) % 1; return t < 1 / 6 ? p + (q - p) * 6 * t : t < 1 / 2 ? q : t < 2 / 3 ? p + (q - p) * (2 / 3 - t) * 6 : p; };
+  const q = l < 0.5 ? l * (1 + s) : l + s - l * s, p = 2 * l - q;
+  return [f(p, q, h + 1 / 3), f(p, q, h), f(p, q, h - 1 / 3)];
+}
+const wheelVec = (w) => { if (!w || (!w.x && !w.y)) return [0, 0, 0]; const ang = (Math.atan2(w.y, w.x) * 180) / Math.PI; const rad = Math.min(1, Math.hypot(w.x, w.y)); const v = hue2rgb((ang + 360) % 360); return [v[0] * rad, v[1] * rad, v[2] * rad]; };
+function lutSample({ size, data }, r, g, b) {
+  const n = size - 1, s2 = size * size; const R = clamp(r) * n, G = clamp(g) * n, B = clamp(b) * n;
+  const r0 = R | 0, g0 = G | 0, b0 = B | 0, r1 = Math.min(n, r0 + 1), g1 = Math.min(n, g0 + 1), b1 = Math.min(n, b0 + 1); const fr = R - r0, fg = G - g0, fb = B - b0;
+  const o = [0, 0, 0];
+  for (let c = 0; c < 3; c++) {
+    const v = (x, y, z) => data[(z * s2 + y * size + x) * 3 + c];
+    const c0 = (v(r0, g0, b0) * (1 - fr) + v(r1, g0, b0) * fr) * (1 - fg) + (v(r0, g1, b0) * (1 - fr) + v(r1, g1, b0) * fr) * fg;
+    const c1 = (v(r0, g0, b1) * (1 - fr) + v(r1, g0, b1) * fr) * (1 - fg) + (v(r0, g1, b1) * (1 - fr) + v(r1, g1, b1) * fr) * fg;
+    o[c] = c0 * (1 - fb) + c1 * fb;
+  }
+  return o;
+}
+// Parse a .cube file (Resolve / Premiere / any 3D LUT) → { size, data } in .cube order (red fastest)
+export function parseCube(text, name = 'LUT') {
+  let size = 0; const vals = []; let dmin = [0, 0, 0], dmax = [1, 1, 1];
+  for (const raw of String(text || '').split(/\r?\n/)) {
+    const l = raw.trim(); if (!l || l[0] === '#') continue;
+    const m = l.match(/^LUT_3D_SIZE\s+(\d+)/i); if (m) { size = +m[1]; continue; }
+    if (/^DOMAIN_MIN/i.test(l)) { dmin = l.split(/\s+/).slice(1).map(Number); continue; }
+    if (/^DOMAIN_MAX/i.test(l)) { dmax = l.split(/\s+/).slice(1).map(Number); continue; }
+    if (/^[A-Z_]/i.test(l)) continue;
+    const p = l.split(/\s+/).map(Number); if (p.length >= 3 && p.every((x) => !Number.isNaN(x))) vals.push((p[0] - dmin[0]) / (dmax[0] - dmin[0]), (p[1] - dmin[1]) / (dmax[1] - dmin[1]), (p[2] - dmin[2]) / (dmax[2] - dmin[2]));
+  }
+  if (!size || vals.length < size * size * size * 3) throw new Error('That file is not a 3D .cube LUT (1D LUTs are not supported).');
+  return { size, data: Float32Array.from(vals.slice(0, size * size * size * 3)), name };
+}
+
+// The pixel transform of ONE node (0..1 RGB in → out)
+function makeSingle(p0) {
   const p = { ...DEFAULTS, ...p0 };
   const expM = Math.pow(2, p.exposure || 0);
   const tR = 1 + p.temp * 0.18 - p.tint * 0.03, tG = 1 - p.tint * 0.12, tB = 1 - p.temp * 0.18 - p.tint * 0.03;
@@ -92,6 +162,18 @@ export function makeTransform(p0) {
   const m = p.match && p.match.src && p.match.ref ? p.match : null;
   const mAmt = m ? (m.amount ?? 100) / 100 : 0;
   const mix = (p.mix ?? 100) / 100;
+  const lut = p.lut && p.lut.data ? p.lut : null;
+  let wh = null;
+  if (p.wheels) {
+    const W = p.wheels, v = (k) => wheelVec(W[k]), m = (k) => (W[k] && W[k].m) || 0;
+    const L = v('lift'), G = v('gamma'), N = v('gain'), O = v('offset');
+    wh = { lift: L.map((x) => m('lift') * 0.3 + x * 0.3), gamma: G.map((x) => m('gamma') * 0.6 + x * 0.6), gain: N.map((x) => 1 + m('gain') * 0.6 + x * 0.6), off: O.map((x) => m('offset') * 0.25 + x * 0.25) };
+    if (wh.lift.every((x) => !x) && wh.gamma.every((x) => !x) && wh.gain.every((x) => x === 1) && wh.off.every((x) => !x)) wh = null;
+  }
+  const cv = p.curves || {};
+  const cY = isIdentity(cv.y) ? null : curveTable(cv.y), cR = isIdentity(cv.r) ? null : curveTable(cv.r), cG = isIdentity(cv.g) ? null : curveTable(cv.g), cB = isIdentity(cv.b) ? null : curveTable(cv.b);
+  const hS = isFlat(p.hueSat) ? null : curveTable(p.hueSat, true), hH = isFlat(p.hueHue) ? null : curveTable(p.hueHue, true), lS = isFlat(p.lumSat) ? null : curveTable(p.lumSat);
+  const q = p.qual && p.qual.on !== false ? p.qual : null;
   return (r0, g0, b0) => {
     let r = r0, g = g0, b = b0;
     if (p.wb) { r *= p.wb.r; g *= p.wb.g; b *= p.wb.b; }
@@ -121,8 +203,60 @@ export function makeTransform(p0) {
       r += sh[0] * ws + hi[0] * wh; g += sh[1] * ws + hi[1] * wh; b += sh[2] * ws + hi[2] * wh;
     }
     r = clamp(r); g = clamp(g); b = clamp(b);
-    if (mix < 1) { r = r0 + (r - r0) * mix; g = g0 + (g - g0) * mix; b = b0 + (b - b0) * mix; }
+    if (lut) { const o = lutSample(lut, r, g, b); r = o[0]; g = o[1]; b = o[2]; }
+    if (wh) { // Lift / Gamma / Gain / Offset (Resolve primaries wheels)
+      const c = [r, g, b];
+      for (let i = 0; i < 3; i++) {
+        let v = c[i] * wh.gain[i];
+        v = v + wh.lift[i] * (1 - v);
+        v = Math.pow(clamp(v), 1 / Math.max(0.2, 1 + wh.gamma[i]));
+        c[i] = clamp(v + wh.off[i]);
+      }
+      r = c[0]; g = c[1]; b = c[2];
+    }
+    if (cY) { r = look1(cY, r); g = look1(cY, g); b = look1(cY, b); }
+    if (cR) r = look1(cR, r); if (cG) g = look1(cG, g); if (cB) b = look1(cB, b);
+    if (hS || hH || lS) {
+      let [h, s2, l] = rgb2hsl(clamp(r), clamp(g), clamp(b));
+      const h0 = h;
+      if (hH) h = h + (look1(hH, h0) - 0.5) * 0.5;
+      if (hS) s2 = s2 * look1(hS, h0) * 2;
+      if (lS) s2 = s2 * look1(lS, l) * 2;
+      [r, g, b] = hsl2rgb(h, clamp(s2), l);
+    }
+    r = clamp(r); g = clamp(g); b = clamp(b);
+    let kk = mix;
+    if (q) { // HSL qualifier: only colours inside the picked range get this node's correction
+      const [h, s2, l] = rgb2hsl(r0, g0, b0); const soft = Math.max(0.005, q.soft ?? 0.05);
+      const dh = Math.min(Math.abs(h - q.h), 1 - Math.abs(h - q.h));
+      const mh = q.hw >= 0.5 ? 1 : clamp(1 - (dh - q.hw) / soft);
+      const ms = clamp((s2 - (q.s0 ?? 0)) / soft + 1) * clamp(((q.s1 ?? 1) - s2) / soft + 1);
+      const ml = clamp((l - (q.l0 ?? 0)) / soft + 1) * clamp(((q.l1 ?? 1) - l) / soft + 1);
+      let m = clamp(mh * ms * ml); if (q.invert) m = 1 - m; kk *= m;
+    }
+    if (kk < 1) { r = r0 + (r - r0) * kk; g = g0 + (g - g0) * kk; b = b0 + (b - b0) * kk; }
     return [r, g, b];
+  };
+}
+
+// Whole grade: a single node, or a serial node tree { chain:[node params…], fx:[…] } + colour effects
+export function makeTransform(p) {
+  const nodes = p && Array.isArray(p.chain) ? p.chain : [p || {}];
+  const fs = nodes.map(makeSingle);
+  const fx = fxColorFn(p && p.fx);
+  if (fs.length === 1 && !fx) return fs[0];
+  return (r, g, b) => { let c = [r, g, b]; for (const f of fs) c = f(c[0], c[1], c[2]); return fx ? fx(c[0], c[1], c[2]) : c; };
+}
+
+// Combine a node list (+ effects) into one params object the preview, the LUT and the render all understand
+export function composite(nodes, fx = []) {
+  const on = (nodes || []).filter((n) => n && n.on !== false).map((n) => n.p || n);
+  const pick = (k, f = Math.max) => on.reduce((a, p) => f(a, p[k] || 0), 0);
+  const sum = (k) => on.reduce((a, p) => a + (p[k] || 0), 0);
+  return {
+    chain: on.length ? on : [{ ...DEFAULTS }], fx,
+    clarity: Math.max(-1, Math.min(1, sum('clarity'))), sharpen: pick('sharpen'), vignette: pick('vignette'), grain: pick('grain'),
+    smooth: pick('smooth'), blemish: pick('blemish'), evenTone: pick('evenTone'),
   };
 }
 
@@ -358,12 +492,13 @@ export function applyStrokes(img, strokes) {
 }
 
 // ffmpeg finishing filters that match the spatial preview (for video renders)
-export function ffmpegFinish(p) {
+export function ffmpegFinish(p, { video = true } = {}) {
   const f = [];
   if (p.clarity > 0) f.push(`unsharp=13:13:${(p.clarity * 1.2).toFixed(2)}:13:13:0`);
   if (p.clarity < 0) f.push(`gblur=sigma=${(-p.clarity * 2).toFixed(2)}`);
   if (p.sharpen > 0) f.push(`unsharp=5:5:${(p.sharpen * 1.5).toFixed(2)}:5:5:0`);
   if (p.vignette > 0) f.push(`vignette=angle=${(0.25 + p.vignette * 0.55).toFixed(3)}`);
   if (p.grain > 0) f.push(`noise=alls=${Math.round(p.grain * 22)}:allf=t`);
+  if (p.fx && p.fx.length) f.push(...fxFilters(p.fx, { video }));
   return f;
 }

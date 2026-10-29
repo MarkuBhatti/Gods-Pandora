@@ -49,7 +49,8 @@ async function generate(payload, keys, helpers) {
     if (soulOwner.soulId.trigger) finalPrompt = soulOwner.soulId.trigger + ' ' + soulOwner.name + ', ' + prompt;
   }
 
-  return impl.generate({ model, prompt: finalPrompt, refs, params, key });
+  return impl.generate({ model, prompt: finalPrompt, refs, params, key,
+    hfToken: keys.huggingface, onProgress: helpers && helpers.onAudioProgress });
 }
 
 function composePrompt(p) {

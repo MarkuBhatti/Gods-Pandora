@@ -5,6 +5,7 @@
 //  • checkInstalled() compares local revisions with the Hub to find model updates
 const fs = require('fs');
 const path = require('path');
+const audioFamilies = require('./audioFamilies');
 
 const API = 'https://huggingface.co/api/models';
 
@@ -59,6 +60,7 @@ async function feed({ token, perLab = 12 } = {}) {
         id: m.id, type, pipeline: m.pipeline_tag, createdAt: m.createdAt,
         likes: m.likes || 0, downloads: m.downloads || 0, license: lic || 'see card',
         engine: (type === 'image' || type === 'video') && tags.includes('diffusers'), // the built-in engine runs diffusers image AND video models (Wan, LTX…)
+        audioEngine: type === 'audio' && (!!audioFamilies.detect(m.id) || tags.includes('diffusers')) && audioFamilies.isAudio(m.id, m.pipeline_tag), // built-in audio engine
         link: 'https://huggingface.co/' + m.id,
       });
     }
@@ -68,17 +70,31 @@ async function feed({ token, perLab = 12 } = {}) {
   return { items: items.slice(0, 80), fetchedAt: new Date().toISOString(), failedLabs: failed };
 }
 
+// Same as plan_other() in engine/hub.py: what a non-diffusers repo (e.g. audio models) really needs
+function planOther(names, size = {}) {
+  const dir = (f) => (f.includes('/') ? f.slice(0, f.lastIndexOf('/')) : '');
+  const stem = (f) => f.replace(/\.[^./]+$/, '');
+  const stDirs = new Set(names.filter((f) => f.endsWith('.safetensors')).map(dir));
+  const stStems = new Set(names.filter((f) => f.endsWith('.safetensors')).map(stem));
+  const keep = names.filter((f) => {
+    const low = f.toLowerCase(); const base = low.split('/').pop();
+    if (/\.(onnx|onnx_data|msgpack|h5|tflite|gguf|mlmodel|mlpackage|png|jpe?g|gif|webp|md|mp4|pdf)$/.test(low) || /^(flax_model|tf_model|rust_model)/.test(base) || base === '.gitattributes') return false;
+    if (/\.(wav|mp3|flac|ogg)$/.test(low) && (size[f] || 0) > 20 * 1024 * 1024) return false;
+    if (/\.(bin|ckpt)$/.test(low) && stDirs.has(dir(f))) return false;
+    if (/\.(pt|pth)$/.test(low) && stStems.has(stem(f))) return false;
+    if (f.startsWith('original/') && stDirs.size) return false;
+    return true;
+  });
+  return keep.length ? keep : names;
+}
+
 // Same plan as engine/hub.py: config files + ONE copy of the weights per component (fp16 safetensors
 // when available). Returns the bytes that will really be downloaded.
 function plannedBytes(files) {
   const names = files.map((f) => f.path);
   const size = Object.fromEntries(files.map((f) => [f.path, f.size || 0]));
   const sum = (list) => list.reduce((a, f) => a + (size[f] || 0), 0);
-  if (!names.includes('model_index.json')) {
-    const st = names.filter((f) => f.endsWith('.safetensors'));
-    if (st.length) return sum(st) + sum(names.filter((f) => /\.(json|txt|model)$/.test(f)));
-    return sum(names.filter((f) => !/\.(onnx|onnx_data|msgpack|h5)$/i.test(f)));
-  }
+  if (!names.includes('model_index.json')) return sum(planOther(names, size)); // audio / single-file / other
   let total = size['model_index.json'] || 0;
   const folders = [...new Set(names.filter((f) => f.includes('/')).map((f) => f.split('/')[0]))];
   for (const d of folders) {
@@ -126,11 +142,16 @@ async function info(repo, token) {
     }
   }
   const format = engine ? 'diffusers' : files.some((f) => /\.gguf$/i.test(f.path)) ? 'gguf' : /comfy/i.test(repo) || files.some((f) => /comfy/i.test(f.path)) ? 'comfyui' : files.length && files.every((f) => !/\//.test(f.path) || /^(assets|images|examples)\//.test(f.path)) ? 'single-file' : 'other';
+  // audio: every family in audioFamilies.js (and any diffusers audio pipeline) runs in the built-in audio engine
+  const audio = !visual && audioFamilies.isAudio(repo, pipe);
+  const fam = audio ? audioFamilies.detect(repo) : null;
+  const audioEngine = audio && (!!fam || hasIndex === true);
   return {
     id: j.id || repo, gated: j.gated || false, sizeBytes: download || j.usedStorage || 0, repoBytes: j.usedStorage || 0,
     sha: j.sha || null, lastModified: j.lastModified || null,
-    engine, kind: /video/.test(pipe) || /wan|ltx|cogvideo|hunyuanvideo/i.test(repo) ? 'video' : /image/.test(pipe) ? 'image' : (pipe || 'other'),
-    format, alt,
+    engine, kind: audio ? 'audio' : /video/.test(pipe) || /wan|ltx|cogvideo|hunyuanvideo/i.test(repo) ? 'video' : /image/.test(pipe) ? 'image' : (pipe || 'other'),
+    format, alt, audioEngine, family: fam ? fam.id : (audioEngine ? 'diffusers-audio' : null), familyLabel: fam ? fam.label : null,
+    setupGB: fam && audioFamilies.NEEDS_SETUP.has(fam.id) ? (fam.setupGB || 0) : 0,
   };
 }
 

@@ -1,4 +1,5 @@
-const { app, BrowserWindow, ipcMain, dialog, safeStorage, protocol, shell, Notification } = require('electron');
+const { app, BrowserWindow, ipcMain, dialog, safeStorage, protocol, shell, Notification, nativeTheme } = require('electron');
+try { nativeTheme.themeSource = 'dark'; } catch (_) {}
 const jobs = require('./jobs');
 const path = require('path');
 const fs = require('fs');
@@ -12,6 +13,7 @@ const updater = require('./updater');
 const hf = require('./hfModels');
 const jutsu = require('./jutsu');
 const cut = require('./cut');
+const timeline = require('./timeline');
 const agent = require('./agent');
 const mcp = require('./mcp');
 const stt = require('./stt');
@@ -61,6 +63,8 @@ let win;
 
 const userData  = () => app.getPath('userData');
 const libraryDir= () => ensure(path.join(userData(), 'library'));
+const { typed } = require('./libpath');
+const videoDir = () => ensure(path.join(libraryDir(), 'Videos'));
 const assetsDir = () => ensure(path.join(userData(), 'assets'));
 const dbPath    = () => path.join(userData(), 'db.json');
 const keysPath  = () => path.join(userData(), 'keys.enc.json');
@@ -119,6 +123,7 @@ function extFromType(t) {
   if (t.includes('webm')) return 'webm';
   if (t.includes('mpeg') || t.includes('mp3')) return 'mp3';
   if (t.includes('wav'))  return 'wav';
+  if (t.includes('gltf') || t.includes('glb')) return 'glb';
   return 'bin';
 }
 
@@ -127,14 +132,14 @@ async function saveFromUrl(url, kindHint) {
   if (url.startsWith('data:')) {
     const m = url.match(/^data:([^;]+);base64,(.*)$/s);
     if (!m) throw new Error('Malformed data URL from provider.');
-    const file = path.join(libraryDir(), id + '.' + extFromType(m[1]));
+    const file = typed(path.join(libraryDir(), id + '.' + extFromType(m[1])));
     fs.writeFileSync(file, Buffer.from(m[2], 'base64'));
     return file;
   }
   const res = await fetch(url);
   if (!res.ok) throw new Error('Download failed: ' + res.status + ' ' + res.statusText);
   const type = res.headers.get('content-type') || kindHint || '';
-  const file = path.join(libraryDir(), id + '.' + extFromType(type));
+  const file = typed(path.join(libraryDir(), id + '.' + extFromType(type)));
   fs.writeFileSync(file, Buffer.from(await res.arrayBuffer()));
   return file;
 }
@@ -216,22 +221,28 @@ function registerIpc() {
       filters: [{ name: 'Images', extensions: ['png','jpg','jpeg','webp'] }]
     });
     if (r.canceled) return [];
-    return r.filePaths.map((p) => {
+    return Promise.all(r.filePaths.map(async (p) => {
       try {
         const dest = path.join(assetsDir(), Date.now() + '-' + path.basename(p));
-        fs.copyFileSync(p, dest);
+        await fs.promises.copyFile(p, dest);
         return dest;
       } catch (_) { return p; }
-    });
+    }));
   });
 
-  safeHandle('media:dataUrl', (_e, file) => fileToDataUrl(file));
+  safeHandle('media:dataUrl', async (_e, file) => {
+    if (!file || !fs.existsSync(file)) throw new Error('File not found: ' + file);
+    const ext = path.extname(file).slice(1).toLowerCase();
+    const mime = { png: 'image/png', jpg: 'image/jpeg', jpeg: 'image/jpeg', webp: 'image/webp', gif: 'image/gif', mp4: 'video/mp4', mov: 'video/quicktime', mp3: 'audio/mpeg', wav: 'audio/wav', webm: 'video/webm', glb: 'model/gltf-binary' }[ext] || 'application/octet-stream';
+    const buf = await fs.promises.readFile(file);
+    return 'data:' + mime + ';base64,' + buf.toString('base64');
+  });
   // Drag & drop: copy dropped files into app assets (so refs keep working if originals move)
-  safeHandle('media:import', (_e, paths) => (paths || []).filter((p) => p && fs.existsSync(p)).map((p) => {
+  safeHandle('media:import', async (_e, paths) => Promise.all((paths || []).filter((p) => p && fs.existsSync(p)).map(async (p) => {
     const dest = path.join(assetsDir(), Date.now() + '-' + Math.random().toString(36).slice(2, 6) + '-' + path.basename(p).replace(/[^\w.-]+/g, '_'));
-    fs.copyFileSync(p, dest);
+    await fs.promises.copyFile(p, dest); // async: big videos never freeze the window
     return dest;
-  }));
+  })));
   // ✨ Prompt enhancer: Claude if you have a key, otherwise your local LLM (Ollama / LM Studio)
   safeHandle('prompt:enhance', async (_e, { prompt, kind }) => {
     const system = `You rewrite rough ideas into one excellent ${kind || 'image'}-generation prompt. Keep every @Name tag and every concrete detail the user gave. ` +
@@ -256,7 +267,7 @@ function registerIpc() {
     if (r.canceled || !r.filePaths[0]) return null;
     const src = r.filePaths[0];
     const dest = path.join(assetsDir(), Date.now() + '-' + path.basename(src).replace(/[^\w.-]+/g, '_'));
-    fs.copyFileSync(src, dest);
+    await fs.promises.copyFile(src, dest);
     return dest;
   });
   // file:// URL for large local media (videos) so the renderer can stream instead of base64
@@ -323,6 +334,43 @@ function registerIpc() {
     const file = await saveFromUrl(out.url || out.dataUrl, 'video/mp4');
     return { file, kind: 'video' };
   }));
+  // ── 3D generation: text / image → GLB (local Shap-E / Hunyuan3D-2 mini, or FAL Hunyuan3D v2 / TRELLIS) ──
+  const gen3dProg = (p) => { if (win && !win.isDestroyed()) win.webContents.send('3d:progress', p); };
+  safeHandle('3d:generate', async (_e, args) => asJob(args && args.jobId, '3D model', async () => {
+    const keys = getKeys(); const a = args || {}; let image = a.image || null;
+    const OBJ = 'single object, centered, full view, plain white background, soft studio lighting, no text';
+    const needsImage = a.provider === 'fal' || a.model === 'hunyuan3d-2mini';
+    if (!image && needsImage) {
+      if (!a.imageModel) throw new Error('Pick an image model to turn your prompt into a picture first, or add an image.');
+      gen3dProg({ stage: 'making the reference image' });
+      const r = await generate({ provider: a.imageModel.provider, model: a.imageModel, kind: 'image', prompt: `${a.prompt}. ${OBJ}`, params: {} }, keys, { fileToDataUrl });
+      image = await saveFromUrl(r.url || r.dataUrl, r.mime);
+    }
+    const imgData = image ? fileToDataUrl(image) : null;
+    let glbUrl;
+    if (a.provider === 'fal') {
+      if (!keys.fal) throw new Error('Add your FAL key in Settings → API Keys (or choose Local).');
+      gen3dProg({ stage: 'generating 3D in the cloud' });
+      const ep = a.model === 'trellis' ? 'fal-ai/trellis' : 'fal-ai/hunyuan3d/v2';
+      const input = a.model === 'trellis' ? { image_url: imgData } : { input_image_url: imgData, textured_mesh: true };
+      const out = await jutsu.falQueue(ep, input, keys.fal, (st) => gen3dProg({ stage: 'generating 3D', status: st }), 20 * 60 * 1000);
+      glbUrl = out.model_mesh?.url || out.model_glb?.url || out.mesh?.url;
+      if (!glbUrl) throw new Error('No 3D model returned: ' + JSON.stringify(out).slice(0, 200));
+    } else {
+      await ensureEngine(keys.huggingface);
+      gen3dProg({ stage: a.prepareOnly ? 'downloading the model (first time only)' : 'generating 3D on your GPU (first run downloads the model)' });
+      const { requestJSON } = require('./net');
+      require('./jobs').onCancel(() => { fetch('http://127.0.0.1:8756/cancel', { method: 'POST', signal: AbortSignal.timeout(5000) }).catch(() => {}); });
+      const { status, json } = await requestJSON('http://127.0.0.1:8756/generate3d', { method: 'POST', timeoutMs: 2 * 60 * 60 * 1000, body: { model: a.model || 'shap-e', prompt: a.prompt || '', image: imgData, prepare_only: !!a.prepareOnly } });
+      if (status !== 200 || !json || json.error) throw new Error('Local 3D: ' + ((json && json.error) || 'HTTP ' + status));
+      if (a.prepareOnly) return { ready: true, model: a.model };
+      glbUrl = json.glb;
+    }
+    const file = await saveFromUrl(glbUrl, 'model/gltf-binary');
+    let glb = file;
+    if (!file.endsWith('.glb')) { glb = typed(path.join(libraryDir(), path.basename(file).replace(/\.[^.]+$/, '') + '.glb')); fs.renameSync(file, glb); }
+    return { file: glb, image, kind: '3d' };
+  }));
   safeHandle('ad:analyze', (_e, args) => asJob(args && args.jobId, 'Ad breakdown', () => jutsu.analyzeAd(args, getKeys())));
   // ── Pandora Cut: auto edit + auto colour (ffmpeg, free) ─────────────────────
   const cutProg = (p) => { if (win && !win.isDestroyed()) win.webContents.send('cut:progress', p); };
@@ -331,22 +379,33 @@ function registerIpc() {
   safeHandle('cut:ensure', () => cut.ensureFfmpeg(userData()));
   safeHandle('cut:autoEdit', (_e, args) => asJob(args && args.jobId, 'Pandora Cut — auto edit', async () => {
     jobs.onCancel(() => cut.cancelAll());
-    return cut.autoEdit(userData(), { ...args, outDir: libraryDir() }, cutProg).catch(cutErr);
+    return cut.autoEdit(userData(), { ...args, outDir: libraryDir(), sortByType: true }, cutProg).catch(cutErr);
   }));
   safeHandle('cut:autoColor', (_e, args) => asJob(args && args.jobId, 'Pandora Cut — auto colour', async () => {
     jobs.onCancel(() => cut.cancelAll());
-    return cut.autoColor(userData(), { ...args, outDir: libraryDir() }, cutProg).catch(cutErr);
+    return cut.autoColor(userData(), { ...args, outDir: libraryDir(), sortByType: true }, cutProg).catch(cutErr);
   }));
   safeHandle('cut:preview', (_e, args) => cut.previewGrade(userData(), args));
   safeHandle('cut:frame', (_e, args) => cut.frame(userData(), args || {}).catch(cutErr));
   safeHandle('cut:jumpCut', (_e, args) => asJob(args && args.jobId, 'Pandora AutoEdit — jump cut', async () => {
     jobs.onCancel(() => cut.cancelAll());
-    return cut.jumpCut(userData(), { ...args, outDir: libraryDir() }, cutProg).catch(cutErr);
+    return cut.jumpCut(userData(), { ...args, outDir: libraryDir(), sortByType: true }, cutProg).catch(cutErr);
   }));
   safeHandle('cut:renderGrade', (_e, args) => asJob(args && args.jobId, 'Pandora Color — render', async () => {
     jobs.onCancel(() => cut.cancelAll());
-    return cut.renderGrade(userData(), { ...args, outDir: libraryDir() }, cutProg).catch(cutErr);
+    return cut.renderGrade(userData(), { ...args, outDir: libraryDir(), sortByType: true }, cutProg).catch(cutErr);
   }));
+  // ── Pandora Edit timeline + Motion Design encoder ─────────────────────────────
+  safeHandle('edit:analyze', (_e, args) => timeline.analyze(userData(), args || {}).catch(cutErr));
+  safeHandle('edit:thumbs', (_e, args) => timeline.thumbStrip(userData(), args || {}).catch(cutErr));
+  safeHandle('edit:render', (_e, args) => asJob(args && args.jobId, 'Pandora Edit — render timeline', async () => {
+    jobs.onCancel(() => cut.cancelAll());
+    return timeline.renderTimeline(userData(), { ...args, outDir: libraryDir(), sortByType: true }, cutProg).catch(cutErr);
+  }));
+  safeHandle('edit:readText', (_e, file) => { const st = fs.statSync(file); if (st.size > 64 * 1024 * 1024) throw new Error('File too large.'); return fs.readFileSync(file, 'utf8'); });
+  safeHandle('motion:begin', (_e, args) => timeline.motionBegin(userData(), { ...(args || {}), outDir: libraryDir(), sortByType: true }));
+  safeHandle('motion:frame', (_e, id, bytes) => timeline.motionFrame(id, bytes));
+  safeHandle('motion:end', (_e, id, cancel) => timeline.motionEnd(id, cancel));
   // Export a look as a .cube LUT (works in Resolve, Premiere, Final Cut, Photoshop, OBS…)
   safeHandle('cut:saveCube', async (_e, cube, name) => {
     const r = await dialog.showSaveDialog(win, { defaultPath: (String(name || 'pandora-look').replace(/[^\w -]+/g, '') || 'pandora-look') + '.cube', filters: [{ name: '3D LUT', extensions: ['cube'] }] });
@@ -359,7 +418,7 @@ function registerIpc() {
     const m = String(dataUrl || '').match(/^data:image\/(jpeg|png|webp);base64,(.*)$/s);
     if (!m) throw new Error('Invalid image data.');
     const safe = String(name || 'photo').replace(/\.[^.]+$/, '').replace(/[^\w-]+/g, '_').slice(0, 40);
-    const file = path.join(libraryDir(), `${Date.now()}-${safe}-edit.${m[1] === 'jpeg' ? 'jpg' : m[1]}`);
+    const file = typed(path.join(libraryDir(), `${Date.now()}-${safe}-edit.${m[1] === 'jpeg' ? 'jpg' : m[1]}`));
     fs.writeFileSync(file, Buffer.from(m[2], 'base64'));
     return file;
   });
@@ -376,7 +435,7 @@ function registerIpc() {
     return r.canceled ? null : r.filePaths[0];
   });
   safeHandle('media:concat', async (_e, files, aspect) => {
-    const out = path.join(libraryDir(), Date.now() + '-ad.mp4');
+    const out = path.join(videoDir(), Date.now() + '-ad.mp4');
     await jutsu.concatVideos(files, out, userData(), aspect);
     return out;
   });
@@ -389,6 +448,8 @@ function registerIpc() {
     fs.writeFileSync(file, Buffer.from(m[2], 'base64'));
     return file;
   });
+  safeHandle('media:openDefault', async (_e, file) => { if (!file || !fs.existsSync(file)) throw new Error('File not found.'); const err = await shell.openPath(file); if (err) throw new Error(err); return true; });
+  safeHandle('media:libraryFolder', () => shell.openPath(libraryDir()));
   safeHandle('media:reveal',  (_e, file) => {
     if (file && fs.existsSync(file)) shell.showItemInFolder(file);
   });
@@ -396,7 +457,7 @@ function registerIpc() {
   safeHandle('generate', async (_e, payload) => asJob(payload && payload.jobId, (payload && payload.kind === 'video' ? 'Video' : payload && payload.kind === 'audio' ? 'Audio' : 'Image') + ' generation', async () => {
     const keys   = getKeys();
     if (payload && payload.provider === 'local') await ensureEngine(keys.huggingface);
-    const result = await generate(payload, keys, { fileToDataUrl });
+    const result = await generate(payload, keys, { fileToDataUrl, onAudioProgress: (p) => { if (win && !win.isDestroyed()) win.webContents.send('audio:setupProgress', p); } });
     const src    = result.url || result.dataUrl;
     if (!src) throw new Error('Provider returned no output URL or data.');
     const file   = await saveFromUrl(src, result.mime);
@@ -435,7 +496,10 @@ function registerIpc() {
 
   // ── Pandora Agent: give it a job, it plans and uses every tool to deliver a finished package ──
   let agentHw = null;
+  const mcpClient = require('./mcpClient'); mcpClient.init(userData());
   const agentDeps = {
+    bridgeTools: () => mcpClient.agentTools(),
+    bridgeCall: (def, input, dir) => mcpClient.callTool(def, input, dir),
     keys: () => getKeys(),
     userData,
     catalog: () => JSON.parse(fs.readFileSync(path.join(__dirname, '..', 'data', 'modelCatalog.json'), 'utf8')),
@@ -458,6 +522,8 @@ function registerIpc() {
     },
     tts: (text, out) => require('./tts').speak(text, out),
     emit: (ev) => { if (win && !win.isDestroyed()) win.webContents.send('agent:event', ev); },
+    view: (file) => { if (win && !win.isDestroyed()) { win.webContents.send('pandora:view', file); if (win.isMinimized()) win.restore(); win.focus(); } },
+    addToGallery: (file, kind, prompt) => { if (win && !win.isDestroyed()) win.webContents.send('pandora:gallery', { file, kind, prompt, model: 'Claude via Pandora Connect' }); },
     toPdf: async (htmlFile, pdfFile) => {
       const w = new BrowserWindow({ show: false, width: 1280, height: 720, webPreferences: { sandbox: true } });
       try {
@@ -484,6 +550,19 @@ function registerIpc() {
   safeHandle('connect:configure', (_e, patch) => mcp.configure(patch || {}));
   safeHandle('connect:configs', () => mcp.clientConfigs());
   safeHandle('connect:addClaude', () => mcp.addToClaudeDesktop(app.getPath('appData')));
+  // creative app bridges (Blender / Resolve / Premiere MCP servers) + phone camera rig for Blender
+  const bridges = require('./bridges'); const camrig = require('./camrig');
+  safeHandle('bridges:list', async () => ({ list: bridges.BRIDGES, ...(await bridges.detect()), claude: bridges.inClaude(app.getPath('appData')) }));
+  safeHandle('agentApps:status', () => mcpClient.status());
+  safeHandle('agentApps:update', (_e, id, patch) => mcpClient.update(id, patch || {}));
+  safeHandle('agentApps:import', () => mcpClient.importFromClaude(app.getPath('appData')));
+  safeHandle('agentApps:test', (_e, id) => mcpClient.test(id));
+  safeHandle('bridges:addClaude', (_e, id) => bridges.addToClaude(app.getPath('appData'), id));
+  safeHandle('bridges:open', (_e, url) => { if (/^https:\/\/(github\.com|docs\.astral\.sh)\//.test(String(url))) shell.openExternal(url); });
+  safeHandle('camrig:start', () => camrig.start(userData()));
+  safeHandle('camrig:stop', () => camrig.stop());
+  safeHandle('camrig:status', () => camrig.status());
+  safeHandle('camrig:addon', () => { const f = camrig.writeAddon(userData()); shell.showItemInFolder(f); return f; });
   safeHandle('agent:routes', async (_e, opts) => {
     const r = await agent.planRoutes(agentDeps, opts || {});
     return { mode: r.mode, vram: r.vram, gpu: r.gpu, brain: r.brain, image: r.image.map((x) => x.label), video: r.video.map((x) => x.label), voice: r.voice.map((x) => x.label) };
@@ -539,6 +618,10 @@ function registerIpc() {
     try { return engine.listModelsDetailed(userData()); } catch (_) { return []; }
   });
   safeHandle('engine:cancelDownload', (_e, repo) => engine.cancelDownload(repo));
+  // Built-in audio engine: which model families are set up, and one-time setup with live progress
+  safeHandle('audio:backends', () => engine.audioBackends(userData()));
+  safeHandle('audio:setup', (_e, family) => engine.setupAudio(userData(), String(family || ''),
+    (p) => { if (win && !win.isDestroyed()) win.webContents.send('audio:setupProgress', p); }));
   safeHandle('engine:activeDownloads', () => engine.activeDownloads());
   safeHandle('engine:deleteModel',    (_e, repo) => engine.deleteModel(userData(), repo));
 
@@ -666,9 +749,12 @@ function createWindow() {
   win = new BrowserWindow({
     width: 1440, height: 900, minWidth: 900, minHeight: 600,
     show: false,
-    backgroundColor: '#0b0920',
+    backgroundColor: '#0A0A0C',
     title: "God's Pandora",
     autoHideMenuBar: true,   // cleaner window; press Alt to show the menu
+    // dark, branded title bar: our own top bar is the drag area, Windows keeps its native min / max / close buttons
+    titleBarStyle: 'hidden',
+    titleBarOverlay: process.platform === 'darwin' ? true : { color: '#0A0A0C', symbolColor: '#EEE9E1', height: 56 },
     webPreferences: {
       preload: path.join(__dirname, 'preload.js'),
       autoplayPolicy: 'no-user-gesture-required', // audio context for voice / "Hey Pandora" must run without a click
@@ -702,21 +788,31 @@ function createWindow() {
     // keep the card up at least ~1.2 s so it doesn't flash
     setTimeout(() => { closeSplash(); if (!win.isDestroyed()) { win.show(); win.focus(); } }, Math.max(0, 1200 - (Date.now() - t0)));
   });
+  // exports from the Effects studio etc. default to the right type folder in the library
+  try { win.webContents.session.on('will-download', (_e, item) => { try { item.setSaveDialogOptions({ title: 'Save to your Pandora library', defaultPath: typed(path.join(libraryDir(), item.getFilename())) }); } catch (_) {} }); } catch (_) {}
   if (process.env.VITE_DEV) win.loadURL('http://localhost:5173');
   else win.loadFile(path.join(__dirname, '..', 'dist', 'index.html'));
 
-  // Renderer crash -> offer reload
+  // Renderer crash -> reload by itself (projects are saved continuously, so nothing is lost).
+  // Only if it keeps crashing (3× in a minute) do we ask, so a broken state can't loop forever.
+  const crashes = [];
   win.webContents.on('render-process-gone', (_ev, details) => {
-    console.error('[Window] Renderer gone:', details.reason);
-    if (['crashed','killed','oom'].includes(details.reason)) {
-      dialog.showMessageBox({
-        type: 'warning', title: "God's Pandora - Recovering",
-        message: "The display process crashed. Reload now?",
-        buttons: ['Reload', 'Quit'], defaultId: 0,
-      }).then(({ response }) => { if (response === 0) win.reload(); else app.quit(); })
-        .catch(() => win.reload());
-    }
+    console.error('[Window] Renderer gone:', details.reason, details.exitCode);
+    if (details.reason === 'clean-exit' || win.isDestroyed()) return;
+    const now = Date.now(); crashes.push(now); while (crashes.length && now - crashes[0] > 60000) crashes.shift();
+    try { require('./cut').cancelAll(); } catch (_) { /* stop runaway renders that may have caused it */ }
+    if (crashes.length < 3) { setTimeout(() => { if (!win.isDestroyed()) win.reload(); }, 400); return; }
+    dialog.showMessageBox({
+      type: 'warning', title: "God's Pandora - Recovering",
+      message: 'The display keeps crashing. Reload, or reload and open the Home page?',
+      buttons: ['Reload', 'Reload to Home', 'Quit'], defaultId: 0,
+    }).then(({ response }) => {
+      if (response === 2) return app.quit();
+      if (response === 1) win.webContents.once('did-finish-load', () => win.webContents.executeJavaScript("try{localStorage.setItem('pandora.safeStart','1')}catch(e){}").catch(() => {}));
+      crashes.length = 0; win.reload();
+    }).catch(() => win.reload());
   });
+  win.webContents.on('preload-error', (_e, p, err) => console.error('[Window] preload error', p, err));
 
   // Unresponsive window -> offer reload
   win.on('unresponsive', () => {
@@ -729,10 +825,14 @@ function createWindow() {
   });
 }
 
+// GPU / utility process crashes: Chromium restarts them; just log (never take the app down)
+app.on('child-process-gone', (_e, d) => console.error('[Process] child gone:', d.type, d.reason));
 // Process-level safety net: log but never quit on unhandled errors
 process.on('uncaughtException',  (err)    => console.error('[Process] uncaughtException:', err));
 process.on('unhandledRejection', (reason) => console.error('[Process] unhandledRejection:', reason));
 
+// media:// serves local files to <video>/<audio>/<img>; 'stream' lets the timeline seek inside big videos
+try { protocol.registerSchemesAsPrivileged([{ scheme: 'media', privileges: { secure: true, supportFetchAPI: true, stream: true, bypassCSP: true } }]); } catch (_) { /* older Electron */ }
 const gotLock = app.requestSingleInstanceLock();
 app.whenReady().then(() => {
   if (!gotLock) return;
@@ -761,6 +861,7 @@ app.on('before-quit', () => {
   try { stt.stopWorker(); } catch (_) {}
 });
 
+app.on('before-quit', () => { try { require('./camrig').stop(); } catch (_) {} try { require('./mcpClient').stopAll(); } catch (_) {} });
 app.on('window-all-closed', () => {
   try { engine.stop(); } catch (_) {}
   try { tdBridge.disconnect(); } catch (_) {}

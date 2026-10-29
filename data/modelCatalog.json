@@ -468,7 +468,9 @@
    "kind": "audio",
    "audioType": "speech",
    "endpoint": "suno/bark-small",
-   "refInput": null
+   "refInput": null,
+   "autoDownload": true,
+   "family": "bark"
   },
   {
    "id": "local-musicgen",
@@ -477,7 +479,9 @@
    "kind": "audio",
    "audioType": "music",
    "endpoint": "facebook/musicgen-small",
-   "refInput": null
+   "refInput": null,
+   "autoDownload": true,
+   "family": "musicgen"
   },
   {
    "id": "local-musicgen-sfx",
@@ -486,7 +490,9 @@
    "kind": "audio",
    "audioType": "sfx",
    "endpoint": "facebook/musicgen-small",
-   "refInput": null
+   "refInput": null,
+   "autoDownload": true,
+   "family": "musicgen"
   }
  ]
 }

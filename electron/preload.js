@@ -30,6 +30,13 @@ contextBridge.exposeInMainWorld('api', {
     renderGrade: (args) => ipcRenderer.invoke('cut:renderGrade', args),
     saveCube: (cube, name) => ipcRenderer.invoke('cut:saveCube', cube, name),
     onProgress: (cb) => { const h = (_e, p) => cb(p); ipcRenderer.on('cut:progress', h); return () => ipcRenderer.removeListener('cut:progress', h); },
+    analyze: (args) => ipcRenderer.invoke('edit:analyze', args),
+    thumbs: (args) => ipcRenderer.invoke('edit:thumbs', args),
+    renderTimeline: (args) => ipcRenderer.invoke('edit:render', args),
+    readText: (file) => ipcRenderer.invoke('edit:readText', file),
+    motionBegin: (args) => ipcRenderer.invoke('motion:begin', args),
+    motionFrame: (id, bytes) => ipcRenderer.invoke('motion:frame', id, bytes),
+    motionEnd: (id, cancel) => ipcRenderer.invoke('motion:end', id, cancel),
   },
   jutsu: {
     trainSoul: (args) => ipcRenderer.invoke('soul:train', args),
@@ -45,6 +52,10 @@ contextBridge.exposeInMainWorld('api', {
     }
   },
   reveal: (file) => ipcRenderer.invoke('media:reveal', file),
+  onView: (cb) => { const h = (_e, f) => cb(f); ipcRenderer.on('pandora:view', h); return () => ipcRenderer.removeListener('pandora:view', h); },
+  onGallery: (cb) => { const h = (_e, g) => cb(g); ipcRenderer.on('pandora:gallery', h); return () => ipcRenderer.removeListener('pandora:gallery', h); },
+  openDefault: (file) => ipcRenderer.invoke('media:openDefault', file),
+  libraryFolder: () => ipcRenderer.invoke('media:libraryFolder'),
   generate: (payload) => ipcRenderer.invoke('generate', payload),
   jobs: {
     cancel: (jobId) => ipcRenderer.invoke('job:cancel', jobId),
@@ -58,6 +69,10 @@ contextBridge.exposeInMainWorld('api', {
     warm: (model) => ipcRenderer.invoke('stt:warm', model),
     onStatus: (cb) => { const h = (_e, m) => cb(m); ipcRenderer.on('stt:status', h); return () => ipcRenderer.removeListener('stt:status', h); },
   },
+  bridges: { list: () => ipcRenderer.invoke('bridges:list'), addClaude: (id) => ipcRenderer.invoke('bridges:addClaude', id), open: (u) => ipcRenderer.invoke('bridges:open', u) },
+  agentApps: { status: () => ipcRenderer.invoke('agentApps:status'), update: (id, p) => ipcRenderer.invoke('agentApps:update', id, p), import: () => ipcRenderer.invoke('agentApps:import'), test: (id) => ipcRenderer.invoke('agentApps:test', id) },
+  gen3d: { run: (args) => ipcRenderer.invoke('3d:generate', args), onProgress: (cb) => { const h = (_e, p) => cb(p); ipcRenderer.on('3d:progress', h); return () => ipcRenderer.removeListener('3d:progress', h); } },
+  camrig: { start: () => ipcRenderer.invoke('camrig:start'), stop: () => ipcRenderer.invoke('camrig:stop'), status: () => ipcRenderer.invoke('camrig:status'), addon: () => ipcRenderer.invoke('camrig:addon') },
   connect: {
     status: () => ipcRenderer.invoke('connect:status'),
     configure: (patch) => ipcRenderer.invoke('connect:configure', patch),
@@ -99,6 +114,16 @@ contextBridge.exposeInMainWorld('api', {
       const h = (_e, p) => cb(p);
       ipcRenderer.on('engine:progress', h);
       return () => ipcRenderer.removeListener('engine:progress', h);
+    }
+  },
+  // Built-in audio engine (music / voice / sound models that run inside God's Pandora)
+  audio: {
+    backends: () => ipcRenderer.invoke('audio:backends'),
+    setup: (family) => ipcRenderer.invoke('audio:setup', family),
+    onSetupProgress: (cb) => {
+      const h = (_e, p) => cb(p);
+      ipcRenderer.on('audio:setupProgress', h);
+      return () => ipcRenderer.removeListener('audio:setupProgress', h);
     }
   },
   models: {

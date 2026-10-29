@@ -119,7 +119,10 @@ images: ${routeText(ctx.routes.image)}
 video shots: ${routeText(ctx.routes.video)}
 voice-over: ${routeText(ctx.routes.voice)}
 Local open-source generation is slower than cloud APIs; prefer fewer, stronger shots. Animated stills are made from images, so write image prompts that work as cinematic frames.
-Today is ${new Date().toISOString().slice(0, 10)}.`;
+Today is ${new Date().toISOString().slice(0, 10)}.${ctx.bridges && ctx.bridges.length ? `
+
+Connected creative apps (tools prefixed with the app id, e.g. blender__…): ${ctx.bridges.join('; ')}.
+Use them when the job involves that app: inspect the scene/project first (read-only tools), then make changes step by step. Images returned by app tools are saved into the project; pass their paths to other tools.` : ''}`;
 }
 
 // ── the run ──
@@ -142,6 +145,13 @@ async function run(deps, opts) {
   emit({ type: 'start', dir, mode: routes.mode, routes: { image: routeText(routes.image), video: routeText(routes.video), voice: routeText(routes.voice) }, models: ctx.models.map((x) => ({ id: x.id, name: x.name, kind: x.kind })) });
 
   const tools = makeTools(deps, ctx, state, emit);
+  // other apps (Blender, Resolve, Premiere…) through their MCP servers
+  let ext = { tools: [], notes: [] };
+  if (deps.bridgeTools) { try { ext = await deps.bridgeTools(); } catch (_) {} }
+  if (ext.notes.length) emit({ type: 'say', text: 'Connected apps — ' + ext.notes.join(' · ') });
+  ctx.bridges = ext.notes; const extBy = Object.fromEntries(ext.tools.map((t) => [t.name, t]));
+  for (const t of ext.tools) tools[t.name] = async (input) => { const r = await deps.bridgeCall(t, input, path.join(dir, 'images')); r.files.forEach((f) => ctx.assets.push({ kind: 'image', file: f, label: t.name })); return r; };
+  const toolList = [...TOOLS, ...ext.tools.map(({ name, description, input_schema }) => ({ name, description, input_schema }))];
   const messages = [{ role: 'user', content: `Job: ${opts.goal}\n\nProject folder: ${dir}` }];
   const sys = systemPrompt(ctx);
   let finished = null;
@@ -149,7 +159,7 @@ async function run(deps, opts) {
     for (let step = 0; step < MAX_STEPS && !finished; step++) {
       if (state.cancelled) throw new Error('cancelled');
       emit({ type: 'thinking', step });
-      const reply = brain === 'claude' ? await claudeTurn(keys.anthropic, sys, messages) : await localTurn(opts.localModel, sys, messages);
+      const reply = brain === 'claude' ? await claudeTurn(keys.anthropic, sys, messages, toolList) : await localTurn(opts.localModel, sys, messages, toolList);
       if (reply.text) emit({ type: 'say', text: reply.text });
       if (!reply.calls.length) {
         // the model answered in text only — nudge it back to work (never send an empty tool_result turn)
@@ -164,7 +174,7 @@ async function run(deps, opts) {
         if (state.cancelled) throw new Error('cancelled');
         emit({ type: 'tool', name: call.name, input: summarize(call.input) });
         let out;
-        try { out = await tools[call.name](call.input || {}); }
+        try { if (!tools[call.name]) throw new Error('Unknown tool ' + call.name); out = await tools[call.name](call.input || {}); }
         catch (e) { out = { error: String(e.message || e).slice(0, 500) }; emit({ type: 'warn', text: `${call.name}: ${out.error}` }); }
         if (call.name === 'finish' && !out.error) finished = out;
         results.push({ id: call.id, name: call.name, content: JSON.stringify(out).slice(0, 4000) });
@@ -194,10 +204,10 @@ function summarize(input) {
   return o;
 }
 
-async function claudeTurn(key, system, messages) {
+async function claudeTurn(key, system, messages, toolList = TOOLS) {
   const res = await fetch('https://api.anthropic.com/v1/messages', {
     method: 'POST', headers: { 'x-api-key': key, 'anthropic-version': '2023-06-01', 'Content-Type': 'application/json' },
-    body: JSON.stringify({ model: 'claude-sonnet-5-5', max_tokens: 8000, system, tools: TOOLS, messages }),
+    body: JSON.stringify({ model: 'claude-sonnet-5-5', max_tokens: 8000, system, tools: toolList, messages }),
   });
   const j = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(`Claude error ${res.status}: ${JSON.stringify(j).slice(0, 300)}`);
@@ -206,9 +216,9 @@ async function claudeTurn(key, system, messages) {
   return { text, calls, stop: j.stop_reason, assistant: { role: 'assistant', content: j.content } };
 }
 
-async function localTurn(model, system, messages) {
+async function localTurn(model, system, messages, toolList = TOOLS) {
   const bases = ['http://localhost:11434/v1', 'http://localhost:1234/v1'];
-  const tools = TOOLS.map((t) => ({ type: 'function', function: { name: t.name, description: t.description, parameters: t.input_schema } }));
+  const tools = toolList.map((t) => ({ type: 'function', function: { name: t.name, description: t.description, parameters: t.input_schema } }));
   let lastErr = null;
   for (const base of bases) {
     try {

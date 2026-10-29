@@ -3,32 +3,70 @@ import { useNav } from '../lib/nav.jsx';
 import { useStore } from '../lib/store.jsx';
 import PandoraBox from '../lib/PandoraBox.jsx';
 import Media from '../lib/Media.jsx';
-import { Icon, bg } from '../lib/ui.jsx';
-import vFilm from '../assets/home/film.mp4';
-import vShorts from '../assets/home/shorts.mp4';
-import vMarketing from '../assets/home/marketing.mp4';
-import vInfluencer from '../assets/home/influencer.mp4';
+import { Icon, bg , show, pageBg, PAGEPOS, NAV, TABS } from '../lib/ui.jsx';
 
 // ⌂ Home — cinematic start screen: video hero + big prompt, studios, made-in-Pandora reel,
 // an end-to-end workflow strip (every step labelled with its model) and your recent work.
 // Images/videos here are placeholders until the final showcase media is supplied.
-const VID = { film: vFilm, shorts: vShorts, marketing: vMarketing, influencer: vInfluencer };
-const CARDS = [
-  ['create', 'Studio', 'Image & video from one prompt', 'create', null, 'FREE ON GPU'],
-  ['cut', 'AutoEdit', 'Clips + music → finished cut', 'shorts', 'shorts', 'NEW'],
-  ['film', 'Film', 'Film stocks, cameras, director styles', 'film', 'film', 'FREE ON GPU'],
-  ['influencer', 'AI Influencer', 'Lock a face, post forever', 'influencer', 'influencer', ''],
+const SHOWCASE = [
+  ['ai-night-ufo', 'Visitors', 'Made in Pandora'], ['ph-braided-river', 'Braided River', 'Photo · Haider Bhatti'], ['ai-billboards', 'Neon Rain', 'Made in Pandora'],
+  ['ph-veil', 'Veil', 'Photo · Haider Bhatti'], ['ai-greenhouse', 'Overgrown', 'Made in Pandora'], ['ph-mountains', 'High Valley', 'Photo · Haider Bhatti'],
+  ['ai-box-smoke', 'The Box', 'Made in Pandora'], ['ph-boat-sunset', 'Last Light', 'Photo · Haider Bhatti'], ['ai-mirrors', 'Mirror Hall', 'Made in Pandora'],
+  ['ph-glacier', 'Glacier Veins', 'Photo · Haider Bhatti'], ['ai-cabin-fire', 'Ember Night', 'Made in Pandora'], ['ph-musicians', 'Courtyard Song', 'Photo · Haider Bhatti'],
+  ['ai-umbrellas', 'Crowd in Red', 'Made in Pandora'], ['ph-terraces', 'Terraces', 'Photo · Haider Bhatti'], ['ai-hand-flame', 'Ignite', 'Made in Pandora'], ['ph-fort', 'Old Fort', 'Photo · Haider Bhatti'],
 ];
-const FLOW = [['Hero still', 'FLUX.2 klein', 'create', 'local'], ['Shot', 'Wan 2.2 5B', 'film', 'local'], ['Cut to music', 'AutoEdit', 'shorts', 'free'], ['Grade', 'Color · Teal & Orange', 'marketing', 'free']];
+const VID = {};
+const CARDS = [
+  ['create', 'Studio', 'Image & video from one prompt', 'ai-night-ufo', null, 'Free on GPU'],
+  ['film', 'Film', 'Cameras, film stocks, director styles', 'ai-rain-lot', null, 'Free on GPU'],
+  ['fx', 'Effects', '51 real-time looks, AI subject mask', 'fx-split', null, 'New'],
+  ['influencer', 'AI Influencer', 'Lock a face, post forever', 'ph-sea-girl', null, ''],
+];
+// One idea carried end to end: the same frame moves through every step (still → shot → cut → grade).
+const FLOW = [['Hero still', 'FLUX.2 klein', 'ph-fire-portrait', 'local', { backgroundPosition: '50% 30%' }],
+  ['Shot', 'Wan 2.2 5B', 'ph-fire-portrait', 'local', { backgroundSize: '170%', backgroundPosition: '52% 24%' }],
+  ['Cut to music', 'AutoEdit', 'ph-fire-portrait', 'free', { backgroundSize: '150%', backgroundPosition: '28% 40%' }],
+  ['Grade', 'Color · Teal & Orange', 'ph-fire-portrait', 'free', { backgroundPosition: '50% 30%', filter: 'saturate(1.25) contrast(1.08) hue-rotate(-8deg)' }]];
 
 function HoverVideo({ src, poster }) {
   const ref = React.useRef(null);
   return (
     <div className="h-media" onMouseEnter={() => ref.current?.play?.().catch(() => {})} onMouseLeave={() => ref.current?.pause?.()}>
-      <div className="h-im" style={{ backgroundImage: `url(${poster})` }} />
+      <div className="h-im" style={{ backgroundImage: `url("${poster}")` }} />
       {src && <video ref={ref} className="h-im" src={src} muted loop playsInline preload="none" />}
     </div>
   );
+}
+
+// "Inside the box" — a guided overview of every section, each with the visual used on its own tab
+const GROUP_LINE = { Create: 'Make images, film, photos, voice, music and 3D.', Edit: 'Cut, grade, animate and transform what you made.', Campaigns: 'Ads, influencers, fashion and product content that sells.',
+  Build: 'Ready-made AI apps, tools you build from a sentence, and node pipelines.', World: 'Characters, places and products that stay the same in every shot.', Library: 'Your gallery, thousands of open models and the whole AI landscape.', System: 'Engine, connections, updates and settings.' };
+function InsideTheBox({ go }) {
+  const groups = NAV.filter(([g]) => g && g !== 'System');
+  return (<>
+    {groups.map(([g, items], gi) => (
+      <section key={g} className="h-sec h-ib-sec">
+        <div className="h-sec-h"><h2>{gi === 0 ? <>Inside the <em>box</em> · </> : null}{g}</h2><p>{items.length} studios — {GROUP_LINE[g]}</p></div>
+        <div className="h-ib-grid">
+          {items.map(([id, label, icon, , badge], i) => {
+            const t = TABS[id] || [];
+            const title = String(t[0] || label).replace(/\*/g, '');
+            return (
+              <button key={id} className={'h-ib' + (i === 0 ? ' big' : '')} onClick={() => go(id)}>
+                <span className="h-ib-im" style={{ backgroundImage: `url("${pageBg(id, t[2])}")`, backgroundPosition: PAGEPOS[id] || undefined }} />
+                <span className="h-ib-ov">
+                  <span className="h-ib-k"><Icon name={icon} /> {label}{badge ? <i>{badge}</i> : null}</span>
+                  <b>{title}</b>
+                  <span className="h-ib-d">{t[1] || ''}</span>
+                  <span className="h-ib-go">Open {label} →</span>
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      </section>
+    ))}
+  </>);
 }
 
 export default function Home() {
@@ -45,7 +83,7 @@ export default function Home() {
   return (
     <div className="h-page">
       <section className="h-hero">
-        <video className="h-hero-bg" src={VID.film} poster={bg('film')} autoPlay muted loop playsInline />
+        <img className="h-hero-bg kb" src={show('ai-night-ufo')} alt="" />
         <div className="h-hero-box"><PandoraBox size={112} /></div>
         <div className="h-eyebrow">Every model · Every medium · No credits</div>
         <h1 className="h-display">Make anything.<br /><em>Own everything.</em></h1>
@@ -72,8 +110,8 @@ export default function Home() {
         <div className="h-cards">
           {CARDS.map(([id, t, s, im, vid, tag]) => (
             <button key={id} className="h-card" onClick={() => go(id)}>
-              <HoverVideo src={vid && VID[vid]} poster={bg(im)} />
-              {tag && <span className={'h-tag' + (tag === 'NEW' ? ' new' : '')}>{tag}</span>}
+              <HoverVideo src={null} poster={show(im) || bg(im)} />
+              {tag && <span className={'h-tag' + (tag === 'New' ? ' new' : '')}>{tag}</span>}
               <span className="h-ov"><b>{t}</b><span>{s}</span></span>
             </button>
           ))}
@@ -81,23 +119,25 @@ export default function Home() {
       </section>
 
       <section className="h-sec">
-        <div className="h-sec-h"><h2>Made in <em>Pandora</em></h2><p>Every piece shows the model that made it.</p><a onClick={() => go('library')}>See all →</a></div>
+        <div className="h-sec-h"><h2>Made in <em>Pandora</em></h2><p>Every frame below was created inside God's Pandora.</p><a onClick={() => go('library')}>Your gallery →</a></div>
         <div className="h-reel">
-          <div className="h-rv big"><video src={VID.marketing} autoPlay muted loop playsInline /><span className="h-rl"><b>Night Shift</b><span>Wan 2.2 5B · local</span></span><i className="h-play">▶</i></div>
-          <div className="h-rv"><video src={VID.shorts} autoPlay muted loop playsInline /><span className="h-rl"><b>Alley Run</b><span>LTX · cloud</span></span><i className="h-play">▶</i></div>
-          <div className="h-rv"><video src={VID.influencer} autoPlay muted loop playsInline /><span className="h-rl"><b>Mara, Day 12</b><span>Identity Lock · Wan</span></span><i className="h-play">▶</i></div>
-          <div className="h-rv"><img src={bg('fashion')} alt="" /><span className="h-rl"><b>Atelier</b><span>FLUX.2 klein · local</span></span></div>
-          <div className="h-rv"><img src={bg('product')} alt="" /><span className="h-rl"><b>Amber No. 5</b><span>Product Lock · SDXL</span></span></div>
+          <div className="h-rv big"><img className="kb" src={show('ai-cabin-fire')} alt="" /><span className="h-rl"><b>Ember Night</b><span>Made in Pandora</span></span></div>
+          <div className="h-rv"><img src={show('ai-hand-flame')} alt="" /><span className="h-rl"><b>Ignite</b><span>Made in Pandora</span></span></div>
+          <div className="h-rv"><img src={show('ai-portrait')} alt="" /><span className="h-rl"><b>Window Light</b><span>Made in Pandora</span></span></div>
+          <div className="h-rv"><img src={show('ai-greenhouse')} alt="" /><span className="h-rl"><b>Overgrown</b><span>Made in Pandora</span></span></div>
+          <div className="h-rv"><img src={show('ai-box-smoke')} alt="" /><span className="h-rl"><b>The Box</b><span>Made in Pandora</span></span></div>
         </div>
       </section>
+
+      <InsideTheBox go={go} />
 
       <section className="h-sec">
         <div className="h-sec-h"><h2>One idea, <em>end to end</em></h2><p>Every step shows the model that made it.</p><a onClick={() => window.dispatchEvent(new Event('pandora:pandy'))}>Ask Pandy to run it →</a></div>
         <div className="h-flow">
-          {FLOW.map(([n, m, im, f], i) => (
+          {FLOW.map(([n, m, im, f, st], i) => (
             <React.Fragment key={n}>
               {i > 0 && <div className="h-edge"><i /></div>}
-              <div className="h-node"><div className="h-nh">{n}<span>{m}</span></div><div className="h-nim" style={{ backgroundImage: `url(${bg(im)})` }} /><div className="h-nf"><span>{f}</span><b>✓ ready</b></div></div>
+              <div className="h-node"><div className="h-nh">{n}<span>{m}</span></div><div className="h-nim" style={{ backgroundImage: `url("${show(im) || bg(im)}")`, ...(st || {}) }} /><div className="h-nf"><span>{f}</span><b>✓ ready</b></div></div>
             </React.Fragment>
           ))}
         </div>

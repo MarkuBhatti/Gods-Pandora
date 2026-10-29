@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { useStore, uid } from './store.jsx';
+import { OpenButtons } from './Viewer.jsx';
 import { useNav } from './nav.jsx';
 
 // Grab the last frame of a video file as a PNG (for "Extend": continue a clip from where it ends)
@@ -66,7 +67,7 @@ export default function AssetActions({ file, kind, prompt = '', compact = false 
         {kind === 'video' && <button className="btn ghost small" title="Continue the clip from its last frame" onClick={extend}>⏭ Extend</button>}
         {kind === 'video' && <button className="btn ghost small" title="Motion transfer / swap / restyle this video" onClick={() => go('genjutsu', { video: file })}>🌀 Shapeshift</button>}
         {visual && <button className="btn ghost small" onClick={() => setOpen((o) => !o)}>＋ Save to…</button>}
-        {!compact && <button className="btn ghost small" onClick={() => window.api.reveal(file)}>Open</button>}
+        {!compact && <OpenButtons file={file} kind={kind} />}
       </div>
       {open && (
         <div className="save-to">

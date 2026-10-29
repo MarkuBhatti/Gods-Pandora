@@ -294,7 +294,7 @@ function HfTab() {
             <div className="row" style={{ gap: 4, margin: '4px 0' }}>
               <span className="badge">⬇ {m.downloads.toLocaleString()}</span><span className="badge">♥ {m.likes.toLocaleString()}</span>
               <span className="badge">{String(m.createdAt).slice(0, 10)}</span><span className="badge">{m.license}</span>
-              {m.engine && <span className="badge" style={{ color: '#00ff88' }}>runs in God's Pandora</span>}
+              {(m.engine || m.audioEngine) && <span className="badge" style={{ color: '#00ff88' }}>runs in God's Pandora</span>}
             </div>
             <div className="row">
               <DownloadButton repo={m.id} installed={installed.includes(m.id)} onDone={() => window.api.engine.listModels().then(setInstalled)} />
@@ -304,7 +304,7 @@ function HfTab() {
         ))}
       </div>
       {!busy && items.length === 0 && !error && <p className="sub">No results.</p>}
-      <p className="sub" style={{ fontSize: 11 }}>“Runs in God's Pandora” = diffusers image and video models (FLUX, SDXL, Wan, LTX…) the built-in engine loads. Audio, 3D and LLM models download into app storage for ComfyUI, Ollama, LM Studio, Blender add-ons or their own apps.</p>
+      <p className="sub" style={{ fontSize: 11 }}>“Runs in God's Pandora” = models the built-in engines run directly: diffusers image and video models (FLUX, SDXL, Wan, LTX…) and music / voice / sound models (ACE-Step, Kokoro, Chatterbox, MusicGen, Bark, Stable Audio Open, XTTS, F5-TTS, Parler…). Pick them in Create → Local.</p>
     </div>
   );
 }

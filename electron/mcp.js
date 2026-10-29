@@ -21,7 +21,7 @@ const jobs = new Map();     // jobId -> { status, result, error, label, started 
 function loadCfg() {
   let c = {};
   try { c = JSON.parse(fs.readFileSync(cfgPath, 'utf8')); } catch (_) {}
-  const def = { enabled: false, port: 8765, token: crypto.randomBytes(24).toString('base64url'), mode: 'hybrid', images: 40, videos: 12, audio: 6 };
+  const def = { enabled: false, port: 8765, token: crypto.randomBytes(24).toString('base64url'), mode: 'hybrid', images: 40, videos: 12, audio: 6, fullAccess: true };
   const out = { ...def, ...c };
   if (!c.token) saveCfg(out);
   return out;
@@ -31,9 +31,9 @@ function saveCfg(c) { fs.mkdirSync(path.dirname(cfgPath), { recursive: true }); 
 const text = (t) => ({ type: 'text', text: typeof t === 'string' ? t : JSON.stringify(t, null, 2) });
 
 // ── tool catalogue exposed to external assistants ──
-const TITLES = { pandora_status: 'Studio status', write_document: 'Write document', generate_image: 'Generate image', generate_video: 'Generate video shot', generate_voiceover: 'Voice-over', auto_edit: 'Auto edit video', color_grade: 'Colour grade', make_presentation: 'Make presentation', list_assets: 'List files', finish_package: 'Finish launch package', run_agent: 'Run Pandora Agent', check_job: 'Check job' };
+const TITLES = { edit_image: 'Edit image', show_file: 'Show file', open_in_pandora: 'Open in Pandora', gallery: 'Gallery', app_tools: 'App tools', app_call: 'Use app', pandora_status: 'Studio status', write_document: 'Write document', generate_image: 'Generate image', generate_video: 'Generate video shot', generate_voiceover: 'Voice-over', auto_edit: 'Auto edit video', color_grade: 'Colour grade', make_presentation: 'Make presentation', list_assets: 'List files', finish_package: 'Finish launch package', run_agent: 'Run Pandora Agent', check_job: 'Check job' };
 function withMeta(t) {
-  const ro = ['pandora_status', 'list_assets', 'check_job'].includes(t.name);
+  const ro = ['pandora_status', 'list_assets', 'check_job', 'show_file', 'gallery', 'app_tools'].includes(t.name);
   return { ...t, title: TITLES[t.name] || t.name, annotations: { title: TITLES[t.name] || t.name, readOnlyHint: ro, destructiveHint: false, idempotentHint: ro, openWorldHint: !ro } };
 }
 function toolList() { return baseToolList().map(withMeta); }
@@ -48,6 +48,12 @@ function baseToolList() {
     { name: 'pandora_status', description: "What God's Pandora can do right now: production mode (free/hybrid/cloud), which model each step will use, session budgets and the project folder.", inputSchema: { type: 'object', properties: {} } },
     ...pick,
     { name: 'run_agent', description: "Hand a whole job to Pandora Agent (it plans and uses every tool itself) — e.g. 'launch my clothing brand: images, promo video, deck'. Returns a job_id; call check_job until done.", inputSchema: { type: 'object', properties: { goal: { type: 'string' }, images: { type: 'number' }, videos: { type: 'number' } }, required: ['goal'] } },
+    { name: 'edit_image', description: 'Edit an existing image with an instruction (change background, outfit, light, add/remove things, restyle) keeping the subject. Returns the new image.', inputSchema: { type: 'object', properties: { file: { type: 'string', description: 'path of the image to edit' }, instruction: { type: 'string' }, aspect_ratio: { type: 'string' } }, required: ['file', 'instruction'] } },
+    { name: 'show_file', description: 'Show any Pandora file (image or video) here in the chat as a preview, with its path.', inputSchema: { type: 'object', properties: { file: { type: 'string' } }, required: ['file'] } },
+    { name: 'open_in_pandora', description: "Open a file in God's Pandora's own viewer on the user's screen.", inputSchema: { type: 'object', properties: { file: { type: 'string' } }, required: ['file'] } },
+    { name: 'gallery', description: "List the user's Pandora Gallery (recent generations with prompts, kinds and file paths). Optional search text and kind.", inputSchema: { type: 'object', properties: { search: { type: 'string' }, kind: { type: 'string', enum: ['image', 'video', 'audio'] }, limit: { type: 'number' } } } },
+    { name: 'app_tools', description: 'List the tools of a connected creative app (blender, resolve, premiere) enabled in Pandora → Connect → "Pandora Agent can use".', inputSchema: { type: 'object', properties: { app: { type: 'string' } }, required: ['app'] } },
+    { name: 'app_call', description: 'Call a tool of a connected creative app (from app_tools), e.g. app=blender tool=get_scene_info.', inputSchema: { type: 'object', properties: { app: { type: 'string' }, tool: { type: 'string' }, arguments: { type: 'object' } }, required: ['app', 'tool'] } },
     { name: 'check_job', description: 'Wait up to ~45 s for a long-running job (video, auto edit, agent) and return its status or result.', inputSchema: { type: 'object', properties: { job_id: { type: 'string' } }, required: ['job_id'] } },
   ];
 }
@@ -56,7 +62,8 @@ async function sessionFor(id) {
   let s = sessions.get(id);
   if (!s) {
     const c = loadCfg();
-    s = { toolbox: await require('./agent').createToolbox(deps, { mode: c.mode, label: 'mcp', images: c.images, videos: c.videos, audio: c.audio, brain: 'local' }), created: Date.now() };
+    const fa = c.fullAccess !== false;
+    s = { toolbox: await require('./agent').createToolbox(deps, { mode: c.mode, label: 'mcp', images: fa ? 999 : c.images, videos: fa ? 200 : c.videos, audio: fa ? 200 : c.audio, brain: 'local' }), created: Date.now() };
     sessions.set(id, s);
   }
   return s;
@@ -72,13 +79,23 @@ function startJob(label, fn) {
 
 async function withPreview(result) {
   const content = [text(result)];
-  const f = result && result.file;
+  let f = result && result.file;
+  if (f && /\.(mp4|mov|webm|mkv)$/i.test(f)) f = await videoFrame(f);
   if (f && /\.(png|jpe?g|webp)$/i.test(f) && deps.thumb) {
     try { const b64 = await deps.thumb(f); if (b64) content.push({ type: 'image', data: b64, mimeType: 'image/jpeg' }); } catch (_) {}
   }
   return content;
 }
 
+// first frame of a video → jpg, so Claude can show a preview of video results in its chat
+function videoFrame(file) {
+  return new Promise((resolve) => { try {
+    const ff = require('./jutsu').findFfmpeg(deps.userData()); if (!ff) return resolve(null);
+    const out = path.join(require('os').tmpdir(), 'pandora-frame-' + crypto.randomBytes(4).toString('hex') + '.jpg');
+    require('child_process').execFile(ff, ['-y', '-ss', '0.8', '-i', file, '-frames:v', '1', '-vf', 'scale=768:-2', out], { windowsHide: true, timeout: 30000 }, () => resolve(fs.existsSync(out) ? out : null));
+  } catch (_) { resolve(null); } });
+}
+const kindOf = (f) => /\.(mp4|mov|webm|mkv)$/i.test(f) ? 'video' : /\.(mp3|wav|ogg|m4a)$/i.test(f) ? 'audio' : 'image';
 async function callTool(sessionId, name, args = {}) {
   const s = await sessionFor(sessionId);
   const tb = s.toolbox;
@@ -94,12 +111,38 @@ async function callTool(sessionId, name, args = {}) {
     while (j.status === 'running' && Date.now() < until) await new Promise((r) => setTimeout(r, 1000));
     if (j.status === 'running') return [text({ status: 'running', label: j.label, elapsed_s: Math.round((Date.now() - j.started) / 1000), hint: 'Still working — call check_job again.' })];
     if (j.status === 'error') return [text({ status: 'error', error: j.error })];
+    if (!j.added && j.result && j.result.file && deps.addToGallery) { j.added = true; deps.addToGallery(j.result.file, kindOf(j.result.file), '[Claude] ' + j.label); }
     return withPreview({ status: 'done', ...j.result });
   }
   if (name === 'run_agent') {
     const c = loadCfg();
     const id = startJob('Pandora Agent: ' + String(args.goal).slice(0, 60), () => require('./agent').run(deps, { goal: String(args.goal || ''), mode: c.mode, brain: deps.keys().anthropic && c.mode !== 'free' ? 'claude' : 'local', images: args.images ?? 8, videos: args.videos ?? 3, audio: 1, reviewPlan: false }));
     return [text({ job_id: id, status: 'running', note: 'The agent is working inside God\'s Pandora. Call check_job with this id.' })];
+  }
+  if (name === 'show_file') { if (!args.file || !fs.existsSync(args.file)) return [text({ error: 'File not found' })]; return withPreview({ file: args.file, kind: kindOf(args.file) }); }
+  if (name === 'open_in_pandora') { if (!args.file || !fs.existsSync(args.file)) return [text({ error: 'File not found' })]; deps.view && deps.view(args.file); return [text({ opened: args.file })]; }
+  if (name === 'gallery') {
+    let g = []; try { g = JSON.parse(fs.readFileSync(path.join(deps.userData(), 'db.json'), 'utf8')).generations || []; } catch (_) {}
+    const q = String(args.search || '').toLowerCase();
+    g = g.filter((x) => (!args.kind || x.kind === args.kind) && (!q || String(x.prompt || '').toLowerCase().includes(q))).slice(0, Math.min(100, args.limit || 25));
+    return [text(g.map((x) => ({ file: x.file, kind: x.kind, prompt: String(x.prompt || '').slice(0, 200), model: x.model, at: x.at })))];
+  }
+  if (name === 'app_tools' || name === 'app_call') {
+    const mc = require('./mcpClient'); const { tools, notes } = await mc.agentTools();
+    const app = String(args.app || '').toLowerCase(); const mine = tools.filter((t) => t._bridge === app);
+    if (!mine.length) return [text({ error: `App "${app}" is not connected. Turn it on in Pandora → Connect → "Pandora Agent can use". Status: ${notes.join('; ') || 'no apps enabled'}` })];
+    if (name === 'app_tools') return [text(mine.map((t) => ({ tool: t._tool, description: t.description, input: t.input_schema })))];
+    const def = mine.find((t) => t._tool === args.tool); if (!def) return [text({ error: 'Unknown tool for ' + app + ': ' + args.tool })];
+    const r = await mc.callTool(def, args.arguments || {}, path.join(tb.ctx.dir, 'images'));
+    const content = [text(r.text || (r.files.length ? 'done' : 'ok'))];
+    for (const f of r.files) { try { const b64 = await deps.thumb(f); if (b64) content.push({ type: 'image', data: b64, mimeType: 'image/jpeg' }); } catch (_) {} }
+    return content;
+  }
+  if (name === 'edit_image') {
+    if (!args.file || !fs.existsSync(args.file)) return [text({ error: 'File not found' })];
+    const r = await tb.tools.generate_image({ prompt: `Edit this image: ${args.instruction}. Keep the same subject, identity and composition unless asked otherwise.`, reference_file: args.file, aspect_ratio: args.aspect_ratio, purpose: 'edit' });
+    if (r && r.file && deps.addToGallery) deps.addToGallery(r.file, 'image', '[Claude edit] ' + args.instruction);
+    return withPreview(r);
   }
   const map = { finish_package: 'finish' };
   const fnName = map[name] || name;
@@ -109,7 +152,9 @@ async function callTool(sessionId, name, args = {}) {
     const id = startJob(name, () => fn(args));
     return [text({ job_id: id, status: 'running', note: 'Call check_job with this id to get the file.' })];
   }
-  return withPreview(await fn(args));
+  const out = await fn(args);
+  if (out && out.file && deps.addToGallery && /generate_|color_grade|auto_edit/.test(fnName)) deps.addToGallery(out.file, kindOf(out.file), '[Claude] ' + String(args.prompt || args.script || args.look || args.title || name).slice(0, 300));
+  return withPreview(out);
 }
 
 async function handleRpc(msg, sessionId) {
@@ -117,7 +162,7 @@ async function handleRpc(msg, sessionId) {
   const ok = (result) => ({ jsonrpc: '2.0', id, result });
   const fail = (code, message) => ({ jsonrpc: '2.0', id, error: { code, message } });
   try {
-    if (method === 'initialize') return ok({ protocolVersion: SUPPORTED.includes(params && params.protocolVersion) ? params.protocolVersion : PROTOCOL, capabilities: { tools: { listChanged: false } }, serverInfo: { name: "God's Pandora", version: deps.version || '0.4.0' }, instructions: "God's Pandora is a creative studio. Start with pandora_status, then use generate_image / generate_video / generate_voiceover / write_document / make_presentation / auto_edit / color_grade, and finish_package at the end. For a whole campaign, call run_agent." });
+    if (method === 'initialize') return ok({ protocolVersion: SUPPORTED.includes(params && params.protocolVersion) ? params.protocolVersion : PROTOCOL, capabilities: { tools: { listChanged: false } }, serverInfo: { name: "God's Pandora", version: deps.version || '0.4.0' }, instructions: "God's Pandora is the user's creative studio and you have full access to it. Start with pandora_status. Generate (generate_image, generate_video, generate_voiceover), edit (edit_image, color_grade, auto_edit), write (write_document, make_presentation), browse the user's work (gallery, show_file), open results on their screen (open_in_pandora) and drive connected apps such as Blender / DaVinci Resolve / Premiere (app_tools, app_call). Image results come back as previews — show them to the user in your reply with their file paths; videos come back as a preview frame plus the file path. For a whole campaign call run_agent." });
     if (method === 'ping') return ok({});
     if (method === 'tools/list') return ok({ tools: toolList() });
     if (method === 'tools/call') {
@@ -239,11 +284,11 @@ async function send(line) {
 function status() {
   const c = loadCfg();
   const url = `http://127.0.0.1:${c.port}/mcp`;
-  return { enabled: c.enabled, running: !!server, port: c.port, url, token: c.token, mode: c.mode, images: c.images, videos: c.videos, audio: c.audio, bridge: bridgePath(), exe: process.execPath, sessions: sessions.size };
+  return { enabled: c.enabled, running: !!server, port: c.port, url, token: c.token, mode: c.mode, fullAccess: c.fullAccess !== false, images: c.images, videos: c.videos, audio: c.audio, bridge: bridgePath(), exe: process.execPath, sessions: sessions.size };
 }
 function configure(patch = {}) {
   const c = { ...loadCfg() };
-  for (const k of ['enabled', 'port', 'mode', 'images', 'videos', 'audio']) if (patch[k] !== undefined) c[k] = patch[k];
+  for (const k of ['enabled', 'port', 'mode', 'images', 'videos', 'audio', 'fullAccess']) if (patch[k] !== undefined) c[k] = patch[k];
   if (patch.newToken) c.token = crypto.randomBytes(24).toString('base64url');
   c.port = Math.min(65000, Math.max(1024, +c.port || 8765));
   saveCfg(c);

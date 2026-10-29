@@ -4,6 +4,7 @@ import { useStore, uid } from '../lib/store.jsx';
 import { useAllModels, modelLabel, ModelStatus, useModelGate, useReadiness } from '../lib/models.jsx';
 import { sampleFrames, videoInfo } from '../lib/videoFrames.js';
 import { resolveMentions } from '../lib/mentions.jsx';
+import { OpenButtons } from '../lib/Viewer.jsx';
 import Media from '../lib/Media.jsx';
 
 // Ad Multiplier — recreate a reference video ad with your own product, cast, location, script, hooks and CTAs.
@@ -305,7 +306,7 @@ export default function AdMultiplier() {
               <div className="row" style={{ marginTop: 6 }}>
                 <span className="sub">{v.clips.length} clip(s)</span>
                 <button className="btn ghost small" onClick={() => window.api.resolveSend(v.final ? [v.final] : v.clips)}>→ Resolve</button>
-                {v.final && <button className="btn ghost small" onClick={() => window.api.reveal(v.final)}>Open</button>}
+                {v.final && <OpenButtons file={v.final} kind="video" />}
               </div>
             </div>
           ))}

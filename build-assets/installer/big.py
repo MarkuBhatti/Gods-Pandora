@@ -51,7 +51,7 @@ def make(s, path):
     # progress area: status text sits at y=438 (live label), track drawn around live bar at y=468..474
     d.rounded_rectangle([x - k(4), k(462), k(884), k(480)], radius=k(9), fill=(16, 15, 24))
     o.rounded_rectangle([x - k(4), k(462), k(884), k(480)], radius=k(9), outline=(255,255,255,22), width=max(1,k(1)))
-    d.text((x, k(500)), 'Version 0.5.0  ·  © 2026 Haider Bhatti', font=fnt('Regular', 12), fill=(120, 116, 140))
+    d.text((x, k(500)), 'Version 0.6.0  ·  © 2026 Haider Bhatti', font=fnt('Regular', 12), fill=(120, 116, 140))
     # window frame
     o.rounded_rectangle([0, 0, W - 1, H - 1], radius=k(14), outline=(255,255,255,24), width=max(1, k(1)))
     c.alpha_composite(ov)

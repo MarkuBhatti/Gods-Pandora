@@ -119,7 +119,7 @@ function Directory() {
             </div>
             <div className="row" style={{ gap: 4, margin: '4px 0' }}>
               {m.added && m.added >= '2026-01' && <span className="badge">new {m.added}</span>}
-              {m.engine && <span className="badge" style={{ color: '#00ff88' }}>runs in God's Pandora</span>}
+              {(m.engine || m.audioEngine) && <span className="badge" style={{ color: '#00ff88' }}>runs in God's Pandora</span>}
               {m.gated && <span className="badge" style={{ color: '#f0a000' }}>gated · HF token</span>}
             </div>
             <p className="sub" style={{ margin: '4px 0', fontSize: 11.5 }}>{m.note} · VRAM {m.vram}{m.license ? ' · ' + m.license : ''}</p>

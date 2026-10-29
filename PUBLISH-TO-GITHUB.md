@@ -24,14 +24,14 @@ git push -u origin main
 
 ## 4 · Make the first release (builds Windows + macOS installers automatically)
 ```bash
-git tag v0.3.0
-git push origin v0.3.0
+git tag v0.6.0
+git push origin v0.6.0
 ```
-GitHub Actions (`.github/workflows/build.yml`) builds `Gods-Pandora-Setup-0.3.0.exe` and the macOS `.dmg`
-files and publishes them as a release. Paste `RELEASE_NOTES_v0.3.0.md` into the release description.
+GitHub Actions (`.github/workflows/build.yml`) builds `Gods-Pandora-Setup-0.6.0.exe` and the macOS `.dmg`
+files and publishes them as a release. Paste `RELEASE_NOTES_v0.6.0.md` into the release description.
 
-Prefer to upload your own installer? GitHub → Releases → **Draft a new release** → tag `v0.3.0` →
-drag in `release\Gods-Pandora-Setup-0.3.0.exe`, `latest.yml` and the `.blockmap` (the last two let the
+Prefer to upload your own installer? GitHub → Releases → **Draft a new release** → tag `v0.6.0` →
+drag in `release\Gods-Pandora-Setup-0.6.0.exe`, `latest.yml` and the `.blockmap` (the last two let the
 in-app updater find new versions).
 
 ## 5 · Polish the repo page

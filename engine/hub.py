@@ -54,7 +54,54 @@ def plan(files):
     return allow, ("fp16" if fp16_any else None)
 
 
+# Formats God's Pandora never loads (other runtimes / frameworks) and repo decoration
+NEVER = (".onnx", ".onnx_data", ".msgpack", ".h5", ".tflite", ".gguf", ".mlmodel", ".mlpackage", ".png", ".jpg", ".jpeg",
+         ".gif", ".webp", ".md", ".mp4", ".pdf")
+DUP_WEIGHTS = (".bin", ".ckpt")
+MEDIA = (".wav", ".mp3", ".flac", ".ogg")
+
+
+def plan_other(files, sizes=None):
+    """Non-diffusers repos (audio models such as ACE-Step, Kokoro, Chatterbox, Bark …): everything the model
+    needs — configs, tokenizers, code, .safetensors and .pt/.pth weights — but not ONNX/Flax/TF/GGUF copies,
+    pytorch_model.bin duplicates of .safetensors weights, or big demo media."""
+    sizes = sizes or {}
+    folders_with_st = {os.path.dirname(f) for f in files if f.endswith(".safetensors")}
+    st_stems = {os.path.splitext(f)[0] for f in files if f.endswith(".safetensors")}
+    keep = []
+    for f in files:
+        low = f.lower()
+        name = os.path.basename(low)
+        if low.endswith(NEVER) or name.startswith(("flax_model", "tf_model", "rust_model")) or name == ".gitattributes":
+            continue
+        if low.endswith(MEDIA) and sizes.get(f, 0) > 20 * 1024 * 1024:
+            continue
+        if low.endswith(DUP_WEIGHTS) and os.path.dirname(f) in folders_with_st:
+            continue
+        if low.endswith((".pt", ".pth")) and os.path.splitext(f)[0] in st_stems:
+            continue
+        if f.startswith("original/") and folders_with_st:
+            continue
+        keep.append(f)
+    return keep or list(files)
+
+
 MARKER = ".pandora-complete"
+META = ".pandora-meta.json"
+
+
+def save_meta(repo, token=None):
+    """Remember what kind of model this is (pipeline tag, tags) so the app can list it offline."""
+    try:
+        import json
+        from huggingface_hub import HfApi
+        info = HfApi().model_info(repo, token=token)
+        meta = {"pipeline_tag": getattr(info, "pipeline_tag", None) or "", "tags": list(getattr(info, "tags", None) or [])[:60],
+                "library": getattr(info, "library_name", None) or ""}
+        with open(os.path.join(repo_cache_dir(repo), META), "w", encoding="utf-8") as f:
+            json.dump(meta, f)
+    except Exception:  # noqa: BLE001
+        pass
 
 
 def repo_cache_dir(repo):
@@ -130,10 +177,8 @@ def fetch(repo, token=None, on_plan=None):
         except Exception:
             raise RuntimeError("No internet connection and this model isn't downloaded yet. Connect once to download it — after that it works offline.")
     allow, variant = plan(files)
-    if allow is None:  # not a diffusers repo (single-file / other) — fetch safetensors + configs only
-        allow = [f for f in files if not f.lower().endswith(SKIP_EXT) or f.endswith(".safetensors")]
-        if not any(f.endswith(".safetensors") for f in allow):
-            allow = [f for f in files if not any(fnmatch.fnmatch(f, "*" + e) for e in (".onnx", ".msgpack", ".h5"))]
+    if allow is None:  # not a diffusers repo (audio / single-file / other)
+        allow = plan_other(files, sizes)
     wanted = [f for f in files if any(fnmatch.fnmatch(f, a) for a in allow)]
     total = sum(sizes.get(f, 0) for f in wanted)
     # files already in the cache count as done (re-sync / resume shows the real remaining part)
@@ -171,6 +216,7 @@ if __name__ == "__main__":  # used by the app's "Download" button: python hub.py
 
     threading.Thread(target=_report, daemon=True).start()
     p, v = fetch(repo, tok, on_plan=lambda n: print("TOTAL", n, flush=True))
+    save_meta(repo, tok)
     stop.set()
     print("PROGRESS", _progress["total"], _progress["total"], flush=True)
     print("DOWNLOADED", p, v or "", flush=True)

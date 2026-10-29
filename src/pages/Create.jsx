@@ -5,13 +5,14 @@ import { useStore, uid } from '../lib/store.jsx';
 import Media from '../lib/Media.jsx';
 import GuideBook from './GuideBook.jsx';
 import GenSettings, { DEFAULT_GEN, genParams } from '../lib/GenSettings.jsx';
-import { useAllModels, modelLabel, useMarketFiles, ModelStatus, useModelGate, useReadiness, isFree, VOICES, readiness } from '../lib/models.jsx';
+import { useAllModels, modelLabel, useMarketFiles, ModelStatus, useModelGate, useReadiness, isFree, VOICES, AUDIO_VOICES, audioTypeOf, readiness } from '../lib/models.jsx';
 import LoraPicker, { loraParams, triggerText } from '../lib/LoraPicker.jsx';
 import { takeIntent, useNav } from '../lib/nav.jsx';
 import { MentionBar, resolveMentions, insertMention } from '../lib/mentions.jsx';
 import AssetActions from '../lib/AssetActions.jsx';
 import { useJob, RunButton, ErrorBox, friendlyError, runKeys } from '../lib/job.jsx';
 import { usePersist, PromptTools, DropZone, addPromptHistory } from '../lib/qol.jsx';
+import OptionPicker from '../lib/OptionPicker.jsx';
 
 const KINDS = ['image', 'video', 'audio'];
 
@@ -22,6 +23,27 @@ const GENERAL_REFS = [
   { id: 'color',     label: '🌈 Color / Palette',      hint: 'Color mood, palette, or grade to follow' },
   { id: 'compose',   label: '📐 Composition / Layout', hint: 'Shot framing, perspective, or layout guide' },
 ];
+
+// Audio-only options (replace Visual style / Camera when generating sound). Picked tags are added to the
+// prompt for music and sound-effect models (speech models read the prompt aloud, so they get none).
+const opt = (group, names) => names.map((n) => ({ id: n.toLowerCase(), name: n, group }));
+const AUDIO_PRESETS = {
+  music: [
+    ['genre', '🎼 Genre', [...opt('Popular', ['Pop', 'Hip-hop', 'Trap', 'R&B', 'Rock', 'Indie', 'EDM', 'House', 'Techno', 'Lo-fi', 'Synthwave', 'Phonk', 'Drill', 'Afrobeats', 'Reggaeton', 'K-pop']),
+      ...opt('Cinematic', ['Epic orchestral', 'Cinematic trailer', 'Ambient', 'Piano score', 'Dark tension', 'Documentary', 'Fantasy']),
+      ...opt('Regional', ['Qawwali', 'Bollywood', 'Punjabi bhangra', 'Arabic', 'Latin', 'Flamenco', 'Celtic', 'J-pop', 'Anime OST']),
+      ...opt('Other', ['Jazz', 'Blues', 'Classical', 'Country', 'Folk', 'Metal', 'Funk', 'Gospel', 'Children', 'Corporate'])]],
+    ['mood', '🌗 Mood', opt('', ['Uplifting', 'Happy', 'Energetic', 'Hype', 'Romantic', 'Chill', 'Calm', 'Dreamy', 'Nostalgic', 'Sad', 'Melancholic', 'Dark', 'Tense', 'Mysterious', 'Heroic', 'Inspirational', 'Funny', 'Spooky'])],
+    ['inst', '🎹 Instruments', opt('', ['Piano', 'Acoustic guitar', 'Electric guitar', '808 bass', 'Synth pads', 'Strings', 'Brass', 'Choir', 'Drums', 'Tabla', 'Sitar', 'Flute', 'Violin', 'Cello', 'Saxophone', 'Harmonium', 'Bells', 'Plucks'])],
+    ['vocal', '🎤 Vocals', opt('', ['Instrumental', 'Male vocals', 'Female vocals', 'Duet', 'Choir vocals', 'Rap', 'Humming', 'Whisper vocals'])],
+    ['tempo', '⏱ Tempo', opt('', ['Slow 70 BPM', 'Mid 95 BPM', 'Groovy 110 BPM', 'Upbeat 124 BPM', 'Fast 140 BPM', 'Very fast 170 BPM'])],
+  ],
+  sfx: [
+    ['env', '🌍 Environment', opt('', ['Indoor room', 'Big hall', 'Outdoor', 'City street', 'Forest', 'Ocean', 'Rain', 'Wind', 'Space', 'Underwater', 'Cave', 'Crowd', 'Office', 'Kitchen'])],
+    ['char', '🔊 Character', opt('', ['Close-up', 'Distant', 'Loud impact', 'Soft', 'Whoosh', 'Riser', 'Glitch', 'Cinematic hit', 'Foley', 'UI click', 'Retro 8-bit', 'Looping ambience'])],
+  ],
+  speech: [],
+};
 
 function RefThumbs({ files, onRemove }) {
   if (!files || files.length === 0) return null;
@@ -63,11 +85,16 @@ export default function Create() {
   const [prompt, setPrompt] = useState('');
   const [negativePrompt, setNeg] = usePersist('create.neg', '');
   const [gen, setGen] = usePersist('create.gen', DEFAULT_GEN);
+  // audio: length, voice and (for song models) lyrics
+  const [audioSecs, setAudioSecs] = usePersist('create.audioSecs', 30);
+  const [voices, setVoices] = usePersist('create.voices', {}); // voice per model family
+  const [lyrics, setLyrics] = useState('');
   const [cameraId, setCameraId] = useState('');
   const [styleId, setStyleId] = useState('');
   const [charId, setCharId] = useState('');
   const [locId, setLocId] = useState('');
   const [refs, setRefs] = useState({});  // { style: [file, ...], subject: [...], ... }
+  const [audioTags, setAudioTags] = usePersist('create.audioTags', {}); // { genre: [...], mood: [...] }
   const job = useJob();
   const busy = job.running;
   const [error, setError] = useState('');
@@ -103,6 +130,11 @@ export default function Create() {
   const allRefFiles = Object.values(refs).flat();
   const rdy = useReadiness();
   const gate = useModelGate(model);
+  const audioFam = model?.provider === 'localaudio' ? (model.family || (/bark/i.test(model.endpoint || '') ? 'bark' : '')) : '';
+  const voiceList = kind !== 'audio' || !model ? [] : model.provider === 'localaudio' ? (AUDIO_VOICES[audioFam] || []) : (VOICES[model.provider] || []);
+  const voiceKey = audioFam || model?.provider || '';
+  const audioPresets = kind === 'audio' && model ? (AUDIO_PRESETS[audioTypeOf(model)] || []) : [];
+  const voiceId = voices[voiceKey] && voiceList.some(([v]) => v === voices[voiceKey]) ? voices[voiceKey] : (voiceList[0] || [''])[0];
 
   async function pickRef(slotId) {
     try {
@@ -134,13 +166,22 @@ export default function Create() {
         if (n > 1) setProgress(`${i + 1} of ${n}`);
         try {
           const p = { ...genParams(gen, kind), negativePrompt };
+          if (kind === 'audio') {
+            if (audioTypeOf(model) !== 'speech') p.seconds = +audioSecs || 30;
+            if (voiceList.length) p.voiceId = voiceId;
+            if (model.family === 'acestep' && lyrics.trim()) p.lyrics = lyrics;
+          }
           const useLoras = model.provider === 'local' ? loraParams(loras, marketFiles).filter((x) => marketFiles.some((f) => f.file === x.path)) : [];
           if (useLoras.length) p.loras = useLoras;
-          const sendPrompt = useLoras.length && addTriggers ? triggerText(loras, marketFiles) + prompt : prompt;
+          let sendPrompt = useLoras.length && addTriggers ? triggerText(loras, marketFiles) + prompt : prompt;
+          if (kind === 'audio' && audioPresets.length) {
+            const tags = audioPresets.flatMap(([k, , list]) => (audioTags[k] || []).map((id) => (list.find((o) => o.id === id) || {}).name).filter(Boolean));
+            if (tags.length) sendPrompt = sendPrompt.trim().replace(/[.,;\s]+$/, '') + ', ' + tags.join(', ');
+          }
           if (n > 1 && p.seed != null) p.seed = p.seed + i; // fixed seed → consecutive variations
           const res = await window.api.generate({
             jobId: job.step(), provider: model.provider, model, kind, prompt: sendPrompt, mentions,
-            params: p, toolRefs: allRefFiles, cameraPreset: camera, character, location, style,
+            params: p, toolRefs: kind === 'audio' ? [] : allRefFiles, cameraPreset: kind === 'audio' ? null : camera, character: kind === 'audio' ? null : character, location: kind === 'audio' ? null : location, style: kind === 'audio' ? null : style,
           });
           setResults((r) => [...r, res.file]); setNote(res.note || '');
           update((d) => {
@@ -206,6 +247,77 @@ export default function Create() {
           <PromptTools value={prompt} onChange={setPrompt} kind={kind} />
           <MentionBar db={db} value={prompt} onInsert={(t) => setPrompt((p) => insertMention(p, t))} />
 
+          {kind !== 'audio' && (
+            <div className="ref-strip">
+              <div className="row" style={{ justifyContent: 'space-between', alignItems: 'baseline' }}>
+                <strong style={{ fontSize: 13 }}>📎 Reference images</strong>
+                <span className="sub" style={{ fontSize: 11 }}>
+                  {allRefFiles.length ? `✓ ${allRefFiles.length} will be sent to the model` : refsSupported || !model ? 'optional — guide style, subject, colour or layout' : 'this model ignores image refs — pick a “refs” model'}
+                </span>
+              </div>
+              <div className="ref-slots">
+                {GENERAL_REFS.map((slot) => (
+                  <DropZone key={slot.id} onFiles={(files) => setRefs((prev) => ({ ...prev, [slot.id]: [...(prev[slot.id] || []), ...files] }))}>
+                    <div className="ref-slot" title={slot.hint}>
+                      <div className="row" style={{ justifyContent: 'space-between', flexWrap: 'nowrap' }}>
+                        <span className="ref-slot-l">{slot.label}</span>
+                        <button className="btn ghost small" style={{ padding: '2px 8px' }} onClick={() => pickRef(slot.id)}>+</button>
+                      </div>
+                      {(refs[slot.id] || []).length ? <RefThumbs files={refs[slot.id]} onRemove={(i) => removeRef(slot.id, i)} /> : <div className="sub" style={{ fontSize: 10 }}>drop or click +</div>}
+                    </div>
+                  </DropZone>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {kind !== 'audio' && (
+            <div className="opick-grid">
+              <OptionPicker icon="🎥" label="Camera move" value={cameraId} onChange={setCameraId}
+                options={presets.presets.map((p) => ({ id: p.id, name: p.name, hint: p.promptText, group: p.category }))} />
+              <OptionPicker icon="❖" label="Visual style" value={styleId} onChange={setStyleId}
+                options={allStyles.map((s) => ({ id: s.id, name: s.name, hint: s.promptText, group: s.category || 'My styles' }))} />
+              <OptionPicker icon="☺" label="Character" value={charId} onChange={setCharId} noneLabel={db.characters.length ? 'None' : 'None (make one in Characters)'}
+                options={db.characters.map((c) => ({ id: c.id, name: c.name }))} />
+              <OptionPicker icon="⌖" label="Location lock" value={locId} onChange={setLocId} noneLabel={db.locations.length ? 'None' : 'None (save one in Locations)'}
+                options={db.locations.map((l) => ({ id: l.id, name: l.name }))} />
+            </div>
+          )}
+          {kind !== 'audio' && model && !refsSupported && (charId || locId) && <p className="sub" style={{ fontSize: 11, margin: '4px 0 0' }}>This model has no image-reference input, so character/location consistency uses their descriptions only — pick a “refs” model for the strongest lock.</p>}
+
+          {kind === 'audio' && model && (<>
+            {audioPresets.length > 0 && (
+              <div className="opick-grid">
+                {audioPresets.map(([k, label, list]) => (
+                  <OptionPicker key={k} label={label} value={audioTags[k] || []} multi noneLabel="Any" options={list}
+                    onChange={(v) => setAudioTags({ ...audioTags, [k]: v })} />
+                ))}
+              </div>
+            )}
+            {audioTypeOf(model) === 'speech' && <p className="sub" style={{ fontSize: 11, margin: '6px 0 0' }}>🗣 Speech models read your prompt aloud — type exactly what should be said. Use commas and “…” for pauses.</p>}
+            {audioTypeOf(model) !== 'speech' && (<>
+              <label>Length</label>
+              <div className="row" style={{ gap: 4 }}>
+                {[10, 30, 60, 120, 180, 240].map((n) => (
+                  <button key={n} className={'chip mini' + (+audioSecs === n ? ' on' : '')} onClick={() => setAudioSecs(n)}>{n < 60 ? n + ' s' : n / 60 + ' min'}</button>
+                ))}
+              </div>
+              {model.family === 'musicgen' && +audioSecs > 60 && <div className="sub" style={{ fontSize: 11 }}>MusicGen makes up to 60 s per clip.</div>}
+              {model.family === 'stableaudio' && +audioSecs > 47 && <div className="sub" style={{ fontSize: 11 }}>Stable Audio Open makes up to 47 s per clip.</div>}
+            </>)}
+            {voiceList.length > 0 && (<>
+              <label>Voice</label>
+              <select value={voiceId} onChange={(e) => setVoices({ ...voices, [voiceKey]: e.target.value })}>
+                {voiceList.map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+              </select>
+            </>)}
+            {model.family === 'acestep' && (<>
+              <label>Lyrics (optional — leave empty for an instrumental)</label>
+              <textarea value={lyrics} onChange={(e) => setLyrics(e.target.value)} placeholder={'[verse]\nWrite your lyrics here…\n\n[chorus]\n…'} style={{ minHeight: 110 }} />
+              <div className="sub" style={{ fontSize: 11 }}>Pick the sound above (genre, mood, instruments, vocals, tempo) and put the words here with [verse] / [chorus] tags.</div>
+            </>)}
+          </>)}
+
           {kind !== 'audio' && (<>
             <label>Negative prompt (optional)</label>
             <input value={negativePrompt} onChange={(e) => setNeg(e.target.value)} placeholder="blurry, low quality…" />
@@ -223,104 +335,37 @@ export default function Create() {
             )}
           </div>
           <ErrorBox error={error} />
-          {results.length > 0 && (
-            <div className={results.length > 1 ? 'result-grid' : ''}>
-              {results.map((f) => (
-                <div key={f} className="result-box">
-                  <Media file={f} kind={kind} controls />
-                  {note && results.length === 1 && <div className="sub" style={{ fontSize: 11, marginTop: 6 }}>ℹ {note}</div>}
-                  <div style={{ marginTop: 8 }}><AssetActions file={f} kind={kind} prompt={prompt} /></div>
-                </div>
-              ))}
-            </div>
-          )}
         </div>
 
         <div>
-          {kind !== 'audio' && (
-            <div className="card">
-              <h3 style={{ marginTop: 0 }}>🎥 Camera move</h3>
-              <div className="row">
-                <button className={'chip' + (!cameraId ? ' on' : '')} onClick={() => setCameraId('')}>None</button>
-                {presets.presets.map((p) => (
-                  <button key={p.id} className={'chip' + (cameraId === p.id ? ' on' : '')} title={p.promptText} onClick={() => setCameraId(p.id)}>{p.name}</button>
-                ))}
-              </div>
-            </div>
-          )}
-
-          <div className="card" style={{ marginTop: 14 }}>
-            <h3 style={{ marginTop: 0 }}>❖ Visual style</h3>
-            <div className="row">
-              <button className={'chip' + (!styleId ? ' on' : '')} onClick={() => setStyleId('')}>None</button>
-              {allStyles.map((s) => (
-                <button key={s.id} className={'chip' + (styleId === s.id ? ' on' : '')} title={s.promptText} onClick={() => setStyleId(s.id)}>{s.name}</button>
-              ))}
-            </div>
-          </div>
-
-          {kind !== 'audio' && (
-            <div className="card" style={{ marginTop: 14 }}>
-              <h3 style={{ marginTop: 0 }}>☺ Character (consistent identity)</h3>
-              <div className="row">
-                <button className={'chip' + (!charId ? ' on' : '')} onClick={() => setCharId('')}>None</button>
-                {db.characters.map((c) => (
-                  <button key={c.id} className={'chip' + (charId === c.id ? ' on' : '')} onClick={() => setCharId(c.id)}>{c.name}</button>
-                ))}
-              </div>
-              {db.characters.length === 0 && <p className="sub" style={{ margin: '8px 0 0' }}>Create characters in the Characters tab.</p>}
-            </div>
-          )}
-
-          {kind !== 'audio' && (
-            <div className="card" style={{ marginTop: 14 }}>
-              <h3 style={{ marginTop: 0 }}>⌖ Location Lock</h3>
-              <div className="row">
-                <button className={'chip loc' + (!locId ? ' on' : '')} onClick={() => setLocId('')}>None</button>
-                {db.locations.map((l) => (
-                  <button key={l.id} className={'chip loc' + (locId === l.id ? ' on' : '')} onClick={() => setLocId(l.id)}>{l.name}</button>
-                ))}
-              </div>
-              <p className="sub" style={{ margin: '8px 0 0' }}>
-                Locks the scene to a saved virtual location — same environment across every generation.
-                {model && !refsSupported && (charId || locId) ? ' This model has no image-reference input, so consistency uses the location/character description only — pick a "refs" model for strongest lock.' : ''}
-              </p>
-            </div>
-          )}
-
-          {/* Reference image upload panel */}
-          {kind !== 'audio' && (
-            <div className="card" style={{ marginTop: 14 }}>
-              <h3 style={{ marginTop: 0 }}>📎 Reference Images</h3>
-              <p className="sub" style={{ margin: '0 0 10px', fontSize: 11.5 }}>
-                Upload reference photos to guide style, subject, color, or composition.
-                {!refsSupported && model && ' (Selected model may not support image refs — switch to a ref-capable model for full effect.)'}
-              </p>
-              <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))', gap: 8 }}>
-                {GENERAL_REFS.map((slot) => (
-                  <div key={slot.id} style={{ background: 'rgba(139,107,255,.04)', border: '1px solid rgba(139,107,255,.12)', borderRadius: 8, padding: 9 }}>
-                    <div style={{ fontSize: 12, fontWeight: 700, color: '#dff0f8', marginBottom: 2 }}>{slot.label}</div>
-                    <div style={{ fontSize: 11, color: '#b7b2dc', marginBottom: 7 }}>{slot.hint}</div>
-                    <DropZone onFiles={(files) => setRefs((prev) => ({ ...prev, [slot.id]: [...(prev[slot.id] || []), ...files] }))}>
-                      <button className="btn ghost small" onClick={() => pickRef(slot.id)}>+ Add</button>
-                      <span className="sub" style={{ fontSize: 10, marginLeft: 6 }}>or drop images</span>
-                    </DropZone>
-                    <RefThumbs files={refs[slot.id] || []} onRemove={(i) => removeRef(slot.id, i)} />
-                    {(refs[slot.id] || []).length > 0 && (
-                      <div style={{ fontSize: 10, color: '#b7b2dc', marginTop: 4 }}>
-                        {(refs[slot.id] || []).length} image{(refs[slot.id] || []).length > 1 ? 's' : ''}
-                      </div>
-                    )}
+          <div className="card create-out">
+            <h3 style={{ marginTop: 0 }}>{kind === 'audio' ? '🎧 Output' : kind === 'video' ? '🎞 Output' : '🖼 Output'}</h3>
+            {results.length > 0 ? (
+              <div className={results.length > 1 ? 'result-grid' : ''}>
+                {results.map((f) => (
+                  <div key={f} className="result-box">
+                    <Media file={f} kind={kind} controls />
+                    {note && results.length === 1 && <div className="sub" style={{ fontSize: 11, marginTop: 6 }}>ℹ {note}</div>}
+                    <div style={{ marginTop: 8 }}><AssetActions file={f} kind={kind} prompt={prompt} /></div>
                   </div>
                 ))}
               </div>
-              {allRefFiles.length > 0 && (
-                <div style={{ marginTop: 10, fontSize: 11, color: '#8b6bff' }}>
-                  ✓ {allRefFiles.length} reference image{allRefFiles.length > 1 ? 's' : ''} will be sent to the model
-                </div>
-              )}
-            </div>
-          )}
+            ) : (
+              <div className="create-empty">
+                <div style={{ fontSize: 34, opacity: 0.5 }}>{kind === 'audio' ? '♫' : kind === 'video' ? '▶' : '✦'}</div>
+                <p className="sub" style={{ margin: 0 }}>{busy ? 'Generating…' : 'Your ' + kind + ' appears here.'}</p>
+                {kind !== 'audio' && (camera || style || character || location || allRefFiles.length > 0) && (
+                  <div className="row" style={{ justifyContent: 'center', gap: 5, marginTop: 10 }}>
+                    {camera && <span className="badge">🎥 {camera.name}</span>}
+                    {style && <span className="badge">❖ {style.name}</span>}
+                    {character && <span className="badge">☺ {character.name}</span>}
+                    {location && <span className="badge">⌖ {location.name}</span>}
+                    {allRefFiles.length > 0 && <span className="badge">📎 {allRefFiles.length} refs</span>}
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

@@ -2,6 +2,7 @@ import React, { useMemo, useState } from 'react';
 import { ErrorBox, friendlyError } from '../lib/job.jsx';
 import { useStore, uid } from '../lib/store.jsx';
 import { DEFAULTS, sampleStats, autoParams, autoChoices } from '../lib/grade.js';
+import FxStack from '../lib/FxStack.jsx';
 import { loadImageData, downscale, render, imgToDataUrl, useProcessed, Viewer, Histogram, SliderGroup, ChoiceGallery, lookChoices, Tabs, Slider } from '../lib/GradeUI.jsx';
 
 // Pandora Photo — auto photo edit & portrait retouch:
@@ -172,7 +173,7 @@ export default function PandoraPhoto() {
             <button className="btn small" onClick={pickRef}>{ref ? 'Change reference' : 'Pick reference photo'}</button>
             {params.match && <Slider label="Match strength" value={(params.match.amount ?? 100) / 100} min={0} max={1} onChange={(v) => set({ match: { ...params.match, amount: Math.round(v * 100) } })} fmt={(v) => Math.round(v * 100) + '%'} />}
           </>)}
-          {orig && panel === 'effects' && (<><h4 className="g-h">Detail & effects</h4><SliderGroup group="finish" params={params} set={set} /></>)}
+          {orig && panel === 'effects' && (<><h4 className="g-h">Detail</h4><SliderGroup group="finish" params={params} set={set} /><h4 className="g-h">Effects</h4><FxStack value={params.fx} onChange={(v) => set({ fx: v })} video={false} /></>)}
           {orig && <div className="row" style={{ marginTop: 12 }}><button className="btn ghost small" onClick={() => { patchCur((p) => ({ ...p, params: { ...DEFAULTS, ...RET }, strokes: [] })); setActive('none'); }}>↺ Reset photo</button></div>}
         </div>
       </div>

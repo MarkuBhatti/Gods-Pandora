@@ -8,13 +8,13 @@ export function PandyFace({ className = '', mood = 'happy' }) {
   return (
     <svg className={'pandy-face ' + className} viewBox="0 0 100 100" aria-hidden="true">
       <defs>
-        <linearGradient id="pdy-b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#ffd99a" /><stop offset=".55" stopColor="#f3a84b" /><stop offset="1" stopColor="#c46a2a" /></linearGradient>
+        <linearGradient id="pdy-b" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#F3DDB7" /><stop offset=".55" stopColor="#f3a84b" /><stop offset="1" stopColor="#c46a2a" /></linearGradient>
         <linearGradient id="pdy-l" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ffe7bd" /><stop offset="1" stopColor="#f0b45e" /></linearGradient>
         <radialGradient id="pdy-g" cx=".5" cy=".5" r=".5"><stop offset="0" stopColor="#b9a3ff" stopOpacity=".9" /><stop offset="1" stopColor="#8b6bff" stopOpacity="0" /></radialGradient>
       </defs>
       <ellipse cx="50" cy="93" rx="26" ry="4" fill="#000" opacity=".35" />
       <circle cx="50" cy="30" r="22" fill="url(#pdy-g)" className="pdy-spark" />
-      <circle cx="36" cy="18" r="2" fill="#fff" className="pdy-spark" /><circle cx="66" cy="14" r="1.6" fill="#ffd99a" className="pdy-spark" style={{ animationDelay: '.8s' }} /><circle cx="58" cy="22" r="1.2" fill="#9fe8ff" className="pdy-spark" style={{ animationDelay: '1.4s' }} />
+      <circle cx="36" cy="18" r="2" fill="#fff" className="pdy-spark" /><circle cx="66" cy="14" r="1.6" fill="#F3DDB7" className="pdy-spark" style={{ animationDelay: '.8s' }} /><circle cx="58" cy="22" r="1.2" fill="#9fe8ff" className="pdy-spark" style={{ animationDelay: '1.4s' }} />
       <rect x="18" y="38" width="64" height="50" rx="16" fill="url(#pdy-b)" />
       <rect x="18" y="38" width="64" height="50" rx="16" fill="none" stroke="#fff" strokeOpacity=".25" />
       <path d="M24 46 Q50 41 76 46" stroke="#fff" strokeOpacity=".35" strokeWidth="2" fill="none" strokeLinecap="round" />

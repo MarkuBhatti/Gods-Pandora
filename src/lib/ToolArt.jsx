@@ -1,4 +1,26 @@
 import React from 'react';
+import { show, SHOW, PAGEBG } from './ui.jsx';
+
+// Every showcase image, in a stable shuffled order. Cards on a page walk this list by position,
+// so no two cards on the same page share a picture, and none repeats the page's own banner.
+// ph-fire-portrait is reserved for the Fashion banner and Home's "One idea, end to end" strip.
+const nameHash = (s) => { let h = 7; for (let i = 0; i < s.length; i++) h = (h * 131 + s.charCodeAt(i)) >>> 0; return h; };
+const ALL = Object.keys(SHOW).map((k) => k.split('/').pop().replace(/\.jpg$/, '')).filter((k) => k !== 'ph-fire-portrait' && k !== 'fx-split').sort((a, b) => nameHash(a) - nameHash(b));
+export function artFor(tool, i, page) {
+  const banner = PAGEBG[page];
+  const list = ALL.filter((k) => k !== banner);
+  const n = list.length || 1;
+  const idx = Number.isInteger(i) ? (nameHash(page || '') + i) % n : nameHash(tool.id || tool.name || '') % n;
+  return show(list[idx]);
+}
+// Brand v1.0: every tool card shows a frame from the showcase (chosen by kind, stable per tool).
+const ART = {
+  image: ['ai-portrait-window','ai-gallery-room','ph-veil','ai-portrait','ph-beach-portrait','ai-mirrors','ph-portrait-bw','ai-runway','ph-sea-girl','ph-light-dancer','ph-fire-portrait','ph-silhouette','bh-window-man','ph-boy','ph-family-field','ph-canyon-dolls'],
+  video: ['ai-rain-lot','ai-night-ufo','ai-umbrellas','ai-billboards','ai-fog-lot','ai-house-hover','ai-corridor','ph-boat-sunset','bh-blue-window','bh-blue-room','bh-aerial-boats','bh-hands','ph-tunnel','ph-flood-road','ph-dusk-rooftop','ai-floating-house'],
+  audio: ['ph-fire-portrait','ai-cabin-fire','ph-musicians','ai-hand-flame','ai-cabin-night','ph-red-gate','ph-cave-fire','ph-dusk-ember','ph-village-crowd','ph-shepherds','ph-boat-boys','ph-reeds'],
+  llm: ['ai-desk','ai-tv-wall','ai-hall','ai-chair-light','ai-greenhouse','bh-blue-room','bh-hands','ph-tunnel','ai-corridor','ph-city-aerial'],
+  '3d': ['ph-mountains','ph-glacier','ph-braided-river','ph-ruin-aerial','ph-peaks','ph-aerial-river','ph-terraces','ph-fort','ph-ruin-water','ph-snow-valley','ph-delta','ph-high-plain','ph-valley','ph-dark-peak','ph-cloud-ridge','bh-valley-river','bh-aerial-bay','bh-aerial-coast'],
+  td: ['ai-tv-wall','ai-billboards','ph-ice','ai-mirrors','bh-ice-veins','bh-ice-bridge','bh-ice-branch','bh-sea-rock'] };
 
 // Visual thumbnail for every tool card: a colour-coded mini scene with an illustrated glyph,
 // floating sparkles and an "input → result" strip so each tool explains itself at a glance.
@@ -143,13 +165,13 @@ export function Glyph({ name, size = 24, stroke = 1.7 }) {
 
 const KIND_LABEL = { image: 'Image', video: 'Video', audio: 'Audio', llm: 'Code / text', '3d': '3D model', td: 'Live visuals' };
 
-export default function ToolArt({ tool }) {
+export default function ToolArt({ tool, i, page }) {
   const icon = toolIcon(tool);
   const base = KIND_HUE[tool.kind] ?? 260;
   const hue = (base + hashHue(tool.id || tool.name || '') * 7) % 360; // colourful, stable per tool
   const inputs = (tool.imageInputs || []).map((i) => i.label).slice(0, 2);
   return (
-    <div className="tool-art" style={{ '--th': hue }} aria-hidden="true">
+    <div className="tool-art brand" style={{ '--th': hue, backgroundImage: `url("${artFor(tool, i, page)}")` }} aria-hidden="true">
       <span className="ta-orb" />
       <span className="ta-grid" />
       <span className="ta-spark s1" /><span className="ta-spark s2" /><span className="ta-spark s3" />

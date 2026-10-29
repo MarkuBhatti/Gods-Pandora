@@ -10,7 +10,7 @@ ManifestDPIAware true
 
 !define APPNAME "God's Pandora"
 !define EXENAME "God's Pandora.exe"
-!define VERSION "0.5.0"
+!define VERSION "0.6.0"
 !define PUBLISHER "Haider Bhatti"
 !define UNINSTKEY "Software\Microsoft\Windows\CurrentVersion\Uninstall\com.haider.godspandora"
 !define SRC "../release/win-unpacked"

@@ -50,9 +50,12 @@ export async function startDownload(repo) {
     const saved = info.repoBytes && info.repoBytes > info.sizeBytes * 1.2 ? ` (the full repository is ${fmtBytes(info.repoBytes)} — only the files the engine needs are downloaded)` : '';
     const gated = info.gated ? '\n\n⚠ This model is GATED: accept its license on huggingface.co and add your Hugging Face token in Settings → API Keys ("huggingface") first.' : '';
     const visual = info.kind === 'image' || info.kind === 'video';
-    const engineNote = info.engine ? `\n\n✓ Runs directly in God's Pandora (built-in ${info.kind === 'video' ? 'video' : 'image'} engine) — no ComfyUI or other apps needed.`
-      : visual ? `\n\nNote: this copy is in ${info.format === 'gguf' ? 'GGUF' : info.format === 'comfyui' ? 'ComfyUI' : 'a non-standard'} format, so it is stored for ComfyUI and other tools. For use inside God's Pandora, install the official "-Diffusers" version of this model.`
-      : '\n\nNote: this kind of model (chat, audio or 3D) is stored for tools like Ollama, LM Studio or ComfyUI — it does not run in the built-in image/video engine.';
+    const engineNote = info.engine ? `\n\n✓ Runs directly in God's Pandora (built-in ${info.kind === 'video' ? 'video' : 'image'} engine) — no other apps needed.`
+      : info.audioEngine ? `\n\n✓ Runs directly in God's Pandora (built-in audio engine) — pick it in Create → Local → audio. No other apps needed.`
+        + (info.setupGB ? `\nFirst use also sets up its audio engine once (about ${info.setupGB} GB, done automatically inside God's Pandora).` : '')
+      : visual ? `\n\nNote: this copy is in ${info.format === 'gguf' ? 'GGUF' : info.format === 'comfyui' ? 'ComfyUI' : 'a non-standard'} format, which the built-in engine can't load. Install the official "-Diffusers" version of this model to use it inside God's Pandora.`
+      : info.kind === 'audio' ? "\n\nNote: God's Pandora's built-in audio engine doesn't support this model family yet, so you won't be able to generate with it in Create."
+      : "\n\nNote: God's Pandora's built-in engines don't run this kind of model yet (chat or 3D) — it is only stored on this PC.";
     const vram = info.kind === 'video' && /14b|a14b/i.test(repo) ? '\n\n⚠ This is a 14B video model: it needs about 24 GB of GPU memory. On 8–16 GB GPUs use Wan 2.2 TI2V 5B instead.' : '';
     const big = info.sizeBytes > 200 * 1024 ** 3 ? '\n\n⚠ This is a very large model meant for multi-GPU servers.' : '';
     if (!window.confirm(`Download ${repo}?\n\nDownload size: ${size}${saved}${gated}${engineNote}${vram}${big}`)) return { ok: false, cancelled: true };

@@ -419,6 +419,110 @@ def generate(req: GenRequest):
         return {"error": msg}
 
 
+class Gen3DRequest(BaseModel):
+    model: str = "shap-e"             # "shap-e" (text or image, light) | "hunyuan3d-2mini" (image, high quality)
+    prompt: str = ""
+    image: str | None = None          # data URI (image → 3D)
+    steps: int = 0                    # 0 = model default
+    seed: int | None = None
+    prepare_only: bool = False        # "Download & run": install + download weights, no generation
+
+
+def _pip(*pkgs):
+    import subprocess
+    import sys
+    subprocess.check_call([sys.executable, "-m", "pip", "install", "--prefer-binary", "--disable-pip-version-check", *pkgs])
+
+
+def _need(mod, *pkgs):
+    import importlib
+    try:
+        return importlib.import_module(mod)
+    except ImportError:
+        _pip(*(pkgs or (mod,)))
+        return importlib.import_module(mod)
+
+
+def _data_image(uri):
+    from PIL import Image
+    raw = uri.split(",", 1)[1] if uri.startswith("data:") else uri
+    return Image.open(io.BytesIO(base64.b64decode(raw)))
+
+
+def _load3d(model, img2img):
+    dev, dtype = device()
+    key = "3d:" + model + (":img" if img2img else "")
+    pipe = PIPELINES.get(key)
+    if pipe is not None:
+        return pipe
+    PIPELINES.clear()
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+    if model == "shap-e":
+        from diffusers import ShapEImg2ImgPipeline, ShapEPipeline
+        rid = "openai/shap-e-img2img" if img2img else "openai/shap-e"
+        pipe = (ShapEImg2ImgPipeline if img2img else ShapEPipeline).from_pretrained(rid, torch_dtype=dtype).to(dev)
+    elif model == "hunyuan3d-2mini":
+        os.environ.setdefault("HY3DGEN_MODELS", os.path.join(os.environ.get("HF_HOME", os.path.expanduser("~/.cache")), "hy3dgen"))
+        try:
+            from hy3dgen.shapegen import Hunyuan3DDiTFlowMatchingPipeline
+        except ImportError:
+            _pip("trimesh", "pymeshlab", "pygltflib", "einops", "omegaconf", "opencv-python-headless", "scikit-image", "rembg", "onnxruntime")
+            _pip("--no-deps", "https://github.com/Tencent-Hunyuan/Hunyuan3D-2/archive/refs/heads/main.zip")
+            from hy3dgen.shapegen import Hunyuan3DDiTFlowMatchingPipeline
+        try:
+            pipe = Hunyuan3DDiTFlowMatchingPipeline.from_pretrained("tencent/Hunyuan3D-2mini", subfolder="hunyuan3d-dit-v2-mini", variant="fp16", device=dev)
+        except Exception:  # noqa: BLE001
+            pipe = Hunyuan3DDiTFlowMatchingPipeline.from_pretrained("tencent/Hunyuan3D-2mini", subfolder="hunyuan3d-dit-v2-mini", device=dev)
+    else:
+        raise ValueError("Unknown 3D model: " + model)
+    PIPELINES[key] = pipe
+    return pipe
+
+
+@app.post("/generate3d")
+def generate3d(req: Gen3DRequest):
+    """Text / image → 3D mesh (GLB). Shap-E runs on any GPU; Hunyuan3D-2 mini needs ~6 GB VRAM."""
+    import math
+    import tempfile
+    try:
+        CANCEL["flag"] = False
+        img2img = bool(req.image) or req.model == "hunyuan3d-2mini"
+        pipe = _load3d(req.model, img2img)
+        trimesh = _need("trimesh")
+        if req.prepare_only:
+            return {"ok": True, "ready": req.model}
+        seed = req.seed if req.seed is not None else int(torch.randint(0, 2**31 - 1, (1,)).item())
+        gen = torch.Generator(device="cpu").manual_seed(seed)
+        if req.model == "shap-e":
+            from diffusers.utils import export_to_ply
+            kw = dict(num_inference_steps=req.steps or 64, frame_size=256, output_type="mesh", generator=gen)
+            out = pipe(image=_data_image(req.image).convert("RGB"), guidance_scale=3.0, **kw) if req.image else pipe(req.prompt or "a 3D object", guidance_scale=15.0, **kw)
+            tmp = tempfile.NamedTemporaryFile(suffix=".ply", delete=False)
+            tmp.close()
+            export_to_ply(out.images[0], tmp.name)
+            mesh = trimesh.load(tmp.name)
+            os.unlink(tmp.name)
+            mesh.apply_transform(trimesh.transformations.rotation_matrix(-math.pi / 2, [1, 0, 0]))
+        else:
+            if not req.image:
+                return {"error": "Hunyuan3D needs an image (Pandora makes one from your prompt first)."}
+            img = _data_image(req.image)
+            if img.mode != "RGBA":
+                from hy3dgen.rembg import BackgroundRemover
+                img = BackgroundRemover()(img.convert("RGB"))
+            mesh = pipe(image=img, num_inference_steps=req.steps or 30, octree_resolution=380, num_chunks=20000, generator=gen, output_type="trimesh")[0]
+        if CANCEL["flag"]:
+            return {"error": "Cancelled."}
+        glb = mesh.export(file_type="glb")
+        return {"glb": "data:model/gltf-binary;base64," + base64.b64encode(glb).decode(), "seed": seed, "faces": int(len(getattr(mesh, "faces", [])))}
+    except Exception as e:  # noqa: BLE001
+        msg = str(e)
+        if "out of memory" in msg.lower():
+            msg = "Not enough GPU memory for this 3D model. Try Shap-E (lighter) or close other apps."
+        return {"error": msg[:600]}
+
+
 @app.post("/animate")
 def animate(req: AnimateRequest):
     """Genjutsu local: Wan-Animate-2 animates a reference image with the motion of a driving video.

@@ -40,7 +40,7 @@ export default function PandoraConnect() {
     try { const r = await window.api.connect.addClaude(); setMsg('✓ Added to Claude Desktop. ' + r.restart); } catch (e) { setErr(String(e.message || e)); }
   };
 
-  const tok = st ? (show ? st.token : st.token.slice(0, 4) + '••••••••••••' + st.token.slice(-4)) : '';
+  const tok = st && st.token ? (show ? st.token : st.token.slice(0, 4) + '••••••••••••' + st.token.slice(-4)) : '';
   const CLIENTS = [['claude', 'Claude Desktop'], ['claudeweb', 'Claude (connector URL)'], ['claudecode', 'Claude Code'], ['chatgpt', 'ChatGPT'], ['cursor', 'Cursor'], ['vscode', 'VS Code / Copilot'], ['windsurf', 'Windsurf'], ['any', 'Any MCP app']];
 
   return (
@@ -72,12 +72,13 @@ export default function PandoraConnect() {
           <div className="row">
             {[['free', '🆓 Free (your PC)'], ['hybrid', '⚖ Hybrid'], ['cloud', '☁ Cloud APIs']].map(([id, l]) => <button key={id} className={'chip' + (st?.mode === id ? ' on' : '')} onClick={() => conf({ mode: id })}>{l}</button>)}
           </div>
-          <label>Limits per chat session (protects your API credits)</label>
+          <label className="row" style={{ gap: 8, marginTop: 10 }}><input type="checkbox" checked={st?.fullAccess !== false} onChange={(e) => conf({ fullAccess: e.target.checked })} /><b>Full access</b><span className="sub">— Claude can generate, edit, grade, cut, browse your Gallery, open results in Pandora and use connected apps, with no per-chat limits. Results also land in your Gallery.</span></label>
+          {st?.fullAccess === false && <><label>Limits per chat session (protects your API credits)</label>
           <div className="cinerow">
             <div><label>Images: {st?.images}</label><input type="range" min="1" max="100" value={st?.images || 40} onChange={(e) => setSt((s) => ({ ...s, images: +e.target.value }))} onMouseUp={(e) => conf({ images: +e.target.value })} /></div>
             <div><label>Video shots: {st?.videos}</label><input type="range" min="0" max="40" value={st?.videos || 12} onChange={(e) => setSt((s) => ({ ...s, videos: +e.target.value }))} onMouseUp={(e) => conf({ videos: +e.target.value })} /></div>
             <div><label>Voice-overs: {st?.audio}</label><input type="range" min="0" max="20" value={st?.audio || 6} onChange={(e) => setSt((s) => ({ ...s, audio: +e.target.value }))} onMouseUp={(e) => conf({ audio: +e.target.value })} /></div>
-          </div>
+          </div></>}
           <label>Port</label>
           <input type="number" min="1024" max="65000" defaultValue={st?.port} key={st?.port} onBlur={(e) => +e.target.value !== st?.port && conf({ port: +e.target.value })} style={{ maxWidth: 140 }} />
           <p className="sub" style={{ fontSize: 11 }}>Only apps on this computer can reach it (127.0.0.1) and every request needs the token. Files land in your Pandora projects folder and Gallery.</p>
@@ -134,10 +135,77 @@ export default function PandoraConnect() {
 
           <h3>Tools your assistant gets</h3>
           <div className="cn-tools">
-            {[['pandora_status', 'what can run now (free or paid)'], ['generate_image', 'images & product shots'], ['generate_video', 'video shots'], ['generate_voiceover', 'voice-overs'], ['write_document', 'scripts, copy, plans'], ['make_presentation', 'slide decks (PDF)'], ['auto_edit', 'edit shots into a promo'], ['color_grade', 'colour grading'], ['finish_package', 'launch package folder'], ['run_agent', 'hand over a whole job']].map(([t, d]) => <span key={t} className="badge"><code>{t}</code> · {d}</span>)}
+            {[['pandora_status', 'what can run now (free or paid)'], ['generate_image', 'images & product shots'], ['generate_video', 'video shots'], ['generate_voiceover', 'voice-overs'], ['write_document', 'scripts, copy, plans'], ['make_presentation', 'slide decks (PDF)'], ['auto_edit', 'edit shots into a promo'], ['color_grade', 'colour grading'], ['finish_package', 'launch package folder'], ['run_agent', 'hand over a whole job'], ['edit_image', 'edit any image'], ['gallery', 'browse your work'], ['show_file', 'previews in chat'], ['open_in_pandora', 'open on your screen'], ['app_call', 'drive Blender / Resolve / Premiere']].map(([t, d]) => <span key={t} className="badge"><code>{t}</code> · {d}</span>)}
           </div>
         </div>
       </div>
+      <Bridges />
     </div>
   );
 }
+
+// Creative app bridges — Claude Desktop becomes the hub that drives Pandora + Blender + Resolve + Premiere together.
+function Bridges() {
+  const [d, setD] = useState(null); const [msg, setMsg] = useState({}); const [open, setOpen] = useState('');
+  const load = () => window.api.bridges.list().then(setD).catch(() => {});
+  useEffect(() => { load(); }, []);
+  if (!d || !Array.isArray(d.list)) return null;
+  const add = async (id) => { try { await window.api.bridges.addClaude(id); setMsg((m) => ({ ...m, [id]: '✓ Added — restart Claude Desktop.' })); load(); } catch (e) { setMsg((m) => ({ ...m, [id]: '⚠ ' + (e.message || e) })); } };
+  const chip = (ok, yes, no) => <span className="badge" style={{ color: ok ? 'var(--green)' : 'var(--muted)' }}>{ok ? '● ' + yes : '○ ' + no}</span>;
+  return (
+    <div className="card" style={{ marginTop: 16 }}>
+      <h3 style={{ marginTop: 0 }}>Creative app bridges</h3>
+      <p className="sub">Connect Claude to your other creative apps with open-source MCP servers. With God's Pandora + these bridges in Claude Desktop, one request can generate a shot in Pandora, build the scene in Blender and cut it in Resolve or Premiere. Blender also has Pandora's own <b>Phone Camera</b> link (Create → Phone Camera).</p>
+      <div className="row" style={{ gap: 6, marginBottom: 10 }}>{chip(d.claude?.pandora, 'Pandora in Claude Desktop', 'Pandora not in Claude Desktop yet (add it above)')}{chip(d.uvx, 'uv installed', 'uv not found')}{chip(d.python, 'Python found', 'Python not found')}</div>
+      <div className="grid" style={{ gridTemplateColumns: 'repeat(auto-fill,minmax(260px,1fr))', gap: 12 }}>
+        {d.list.map((b) => (
+          <div key={b.id} className="card" style={{ padding: 12 }}>
+            <div className="row" style={{ justifyContent: 'space-between' }}><b>{b.name}</b>{chip(d.apps?.[b.id], 'installed', 'not detected')}</div>
+            <div style={{ margin: '6px 0' }}>{chip(d.claude?.[b.id], 'in Claude Desktop', 'not connected')}</div>
+            <div className="row" style={{ gap: 6, flexWrap: 'wrap' }}>
+              {b.server && <button className="btn small" disabled={!d.uvx} title={d.uvx ? '' : 'Install uv first'} onClick={() => add(b.id)}>＋ Add to Claude Desktop</button>}
+              {b.id === 'blender' && !d.uvx && <button className="btn ghost small" onClick={() => window.api.bridges.open('https://docs.astral.sh/uv/getting-started/installation/')}>Get uv</button>}
+              <button className="btn ghost small" onClick={() => window.api.bridges.open(b.repo)}>Open project</button>
+              <button className="btn ghost small" onClick={() => setOpen(open === b.id ? '' : b.id)}>{open === b.id ? 'Hide steps' : 'Setup steps'}</button>
+            </div>
+            {open === b.id && <ol className="sub" style={{ paddingLeft: 18, fontSize: 12, lineHeight: 1.6 }}>{b.steps.map((t) => <li key={t}>{t}</li>)}</ol>}
+            {msg[b.id] && <div className={msg[b.id].startsWith('⚠') ? 'err' : 'ok'} style={{ fontSize: 11, marginTop: 6 }}>{msg[b.id]}</div>}
+          </div>
+        ))}
+      </div>
+      <button className="btn ghost small" style={{ marginTop: 10 }} onClick={load}>Re-check</button>
+      <AgentApps />
+    </div>
+  );
+}
+
+// Pandora Agent ↔ apps: the agent starts these MCP servers itself and gets their tools (no Claude Desktop needed).
+function AgentApps() {
+  const [list, setList] = useState([]); const [msg, setMsg] = useState({}); const [busy, setBusy] = useState('');
+  const load = () => window.api.agentApps.status().then((l) => setList(Array.isArray(l) ? l : [])).catch(() => {});
+  useEffect(() => { load(); }, []);
+  const set = async (id, patch) => { await window.api.agentApps.update(id, patch); load(); };
+  const test = async (id) => { setBusy(id); setMsg((m) => ({ ...m, [id]: 'Starting… (first run can take a minute)' }));
+    try { const r = await window.api.agentApps.test(id); setMsg((m) => ({ ...m, [id]: `✓ Connected — ${r.tools.length} tools: ${r.tools.slice(0, 8).join(', ')}${r.tools.length > 8 ? '…' : ''}` })); }
+    catch (e) { setMsg((m) => ({ ...m, [id]: '⚠ ' + String(e.message || e).replace(/^Error invoking remote method '[^']+': (Error: )?/, '') })); }
+    setBusy(''); load(); };
+  const imp = async () => { const r = await window.api.agentApps.import(); setMsg((m) => ({ ...m, _: r.imported.length ? '✓ Imported: ' + r.imported.join(', ') : 'Nothing to import — install the Resolve / Premiere MCP server first (it adds itself to Claude Desktop).' })); load(); };
+  return (
+    <div style={{ marginTop: 18 }}>
+      <h3>Pandora Agent can use</h3>
+      <p className="sub">Switch an app on and the Pandora Agent starts its MCP server itself and gets its tools — e.g. “block a desert scene in Blender with a camera dolly, render the viewport, then turn it into a cinematic shot and cut a 15 s teaser in Resolve”. Keep the app open (and its MCP panel connected) while the agent works.</p>
+      <div className="row" style={{ gap: 6, marginBottom: 8 }}><button className="btn small" onClick={imp}>Import from Claude Desktop</button>{msg._ && <span className="sub" style={{ fontSize: 12 }}>{msg._}</span>}</div>
+      {list.map((b) => (
+        <div key={b.id} className="row" style={{ gap: 8, padding: '8px 0', borderTop: '1px solid var(--line)', flexWrap: 'wrap' }}>
+          <label className="row" style={{ gap: 6, minWidth: 170 }}><input type="checkbox" checked={!!b.enabled} disabled={!b.command} onChange={(e) => set(b.id, { enabled: e.target.checked })} /><b>{b.name}</b></label>
+          <input style={{ flex: 1, minWidth: 220, fontFamily: 'var(--mono)', fontSize: 11 }} placeholder="command (e.g. uvx blender-mcp)" defaultValue={[b.command, ...(b.args || [])].filter(Boolean).join(' ')}
+            onBlur={(e) => { const parts = (e.target.value.match(/"[^"]*"|\S+/g) || []).map((x) => x.replace(/^"|"$/g, '')); set(b.id, { command: parts[0] || '', args: parts.slice(1) }); }} />
+          <span className="badge" style={{ color: b.running ? 'var(--green)' : 'var(--muted)' }}>{b.running ? `● running · ${b.tools} tools` : '○ idle'}</span>
+          <button className="btn ghost small" disabled={!b.command || busy === b.id} onClick={() => test(b.id)}>{busy === b.id ? 'Testing…' : 'Test'}</button>
+          {msg[b.id] && <div className={msg[b.id].startsWith('⚠') ? 'err' : 'ok'} style={{ width: '100%', fontSize: 11 }}>{msg[b.id]}</div>}
+        </div>
+      ))}
+    </div>
+  );
+}
+
