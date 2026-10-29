@@ -20,9 +20,9 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS-lightgrey)](../../releases)
-[![Downloads](https://img.shields.io/github/downloads/YOUR_GITHUB_USERNAME/gods-pandora/total)](../../releases)
-[![Release](https://img.shields.io/github/v/release/YOUR_GITHUB_USERNAME/gods-pandora)](../../releases/latest)
-[![Build](https://img.shields.io/github/actions/workflow/status/YOUR_GITHUB_USERNAME/gods-pandora/build.yml)](../../actions)
+[![Downloads](https://img.shields.io/github/downloads/MarkuBhatti/gods-pandora/total)](../../releases)
+[![Release](https://img.shields.io/github/v/release/MarkuBhatti/gods-pandora)](../../releases/latest)
+[![Build](https://img.shields.io/github/actions/workflow/status/MarkuBhatti/gods-pandora/build.yml)](../../actions)
 
 [**⬇ Download for Windows**](../../releases/latest) · [**⬇ Download for macOS**](../../releases/latest) · [Report a bug](../../issues) · [Request a feature](../../issues)
 
@@ -113,7 +113,7 @@ Your keys go directly from your machine to the provider. God's Pandora never see
 **Requirements:** Node.js 18+, npm
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/Gods-Pandora.git
+git clone https://github.com/MarkuBhatti/Gods-Pandora.git
 cd gods-pandora
 npm install
 npm run dev
@@ -274,7 +274,7 @@ See [docs/10X-ROADMAP.md](docs/10X-ROADMAP.md) for the full 23-feature plan. Top
 Pull requests are welcome. For major changes, open an issue first.
 
 ```bash
-git clone https://github.com/YOUR_GITHUB_USERNAME/Gods-Pandora.git
+git clone https://github.com/MarkuBhatti/Gods-Pandora.git
 cd gods-pandora
 npm install
 npm run dev   # hot-reload dev mode
@@ -292,7 +292,7 @@ npm run dev   # hot-reload dev mode
 ---
 
 <div align="center">
-Made by <a href="https://github.com/YOUR_GITHUB_USERNAME">Haider Bhatti</a>
+Made by <a href="https://github.com/MarkuBhatti">Haider Bhatti</a>
 <br><br>
 <sub>God's Pandora is not affiliated with any AI provider. You are responsible for complying with each provider's terms of service.</sub>
 </div>
