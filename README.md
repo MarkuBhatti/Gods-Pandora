@@ -1,59 +1,60 @@
-<div align="center">
+<p align="center"><a href="https://github.com/MarkuBhatti/Gods-Pandora/releases/latest"><img src="docs/banner.jpg" alt="God's Pandora — Make anything. Own everything." width="100%"></a></p>
 
-<img src="build-assets/icon.png" width="140" alt="God's Pandora" />
+<h1 align="center">God's Pandora</h1>
 
-# GOD'S PANDORA
+<p align="center"><b>Every model. Every medium. One creative universe.</b><br>
+A free, open-source AI creative studio for Windows: image, video, voice, 3D and motion.<br>
+Bring your own cloud keys, or run open-source models free on your own GPU. No credits, no markup.</p>
 
-### Every model. Every medium. One creative universe.
+<p align="center">
+<a href="https://github.com/MarkuBhatti/Gods-Pandora/releases/latest"><img src="https://img.shields.io/github/v/release/MarkuBhatti/Gods-Pandora?label=download&color=E7C08A&style=for-the-badge" alt="Download"></a>
+<a href="https://github.com/MarkuBhatti/Gods-Pandora/releases"><img src="https://img.shields.io/github/downloads/MarkuBhatti/Gods-Pandora/total?color=23232A&style=for-the-badge" alt="Downloads"></a>
+<a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-23232A?style=for-the-badge" alt="MIT"></a>
+<img src="https://img.shields.io/badge/platform-Windows-23232A?style=for-the-badge" alt="Windows">
+</p>
 
-**Cloud model APIs + local open-source models — image, video, audio, 3D and TouchDesigner in one desktop app**
+<p align="center"><a href="https://github.com/MarkuBhatti/Gods-Pandora/releases/latest"><b>⬇ Download for Windows</b></a> · <a href="https://github.com/MarkuBhatti/Gods-Pandora/issues">Report a bug</a> · <a href="https://github.com/MarkuBhatti/Gods-Pandora/issues">Request a feature</a></p>
 
-| | |
-|---|---|
-| **God's Pandora** | the main platform |
-| **Pandora Core** | the open-source core (MIT) and local engine |
-| **Pandora Cloud** | cloud / API services on your own keys |
-| **Pandora Models** | model library and market |
-| **Pandora Studio** | the creative workspace |
-| **Pandora Plugins** | extensions (Pinokio one-click apps) |
-| **Pandora Gallery** | your creations |
-
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
-[![Platform](https://img.shields.io/badge/platform-Windows%20%7C%20macOS-lightgrey)](../../releases)
-[![Downloads](https://img.shields.io/github/downloads/MarkuBhatti/gods-pandora/total)](../../releases)
-[![Release](https://img.shields.io/github/v/release/MarkuBhatti/gods-pandora)](../../releases/latest)
-[![Build](https://img.shields.io/github/actions/workflow/status/MarkuBhatti/gods-pandora/build.yml)](../../actions)
-
-[**⬇ Download for Windows**](../../releases/latest) · [**⬇ Download for macOS**](../../releases/latest) · [Report a bug](../../issues) · [Request a feature](../../issues)
-
-</div>
-
-<p align="center"><img src="docs/screenshots/home.jpg" width="100%" alt="God's Pandora home screen with the living Pandora box" /></p>
+<p align="center"><img src="docs/screenshots/home.jpg" alt="God's Pandora home screen" width="100%"></p>
 
 ---
 
-## What is God's Pandora?
+## Why God's Pandora?
 
-God's Pandora is a desktop AI creative studio that combines two approaches in one app:
+- **Every model in one app.** Frontier cloud models (FAL, Replicate, OpenAI, Google, ElevenLabs, Stability, Higgsfield, Hugging Face) next to open models running offline on your GPU.
+- **You own everything.** Your keys go straight from your PC to the provider. No credits, no subscription, nothing expires. Your files stay on your machine.
+- **Download & run, no terminal.** Search Hugging Face and Civitai, press one button, and the model appears in your studio.
+- **One idea, end to end.** One brief becomes stills, motion, voice and a finished, graded cut.
 
-- **Cloud mode** — Connect your own API keys (FAL.ai, Replicate, OpenAI, Google, ElevenLabs, Stability AI) and generate images, video, and audio with frontier models. You pay providers directly — no middleman markup.
-- **Local mode** — Download open-source models (SDXL, FLUX Schnell, SD 1.5, Civitai checkpoints & LoRAs, any Hugging Face diffusers repo) and run them offline on your own GPU.
-- **🛒 Model Market** — one search across Hugging Face, Civitai, OpenModelDB, Ollama and Pinokio (185+ one-click AI apps for music, voice, sound, video and 3D), plus quick search on 20+ other model sites.
+## Highlights
 
-Signature feature: **⌖ Location Lock** — save a virtual location once, and every generation stays in that environment. Combine it with **🧬 Identity Lock** (trained faces) and Product Lock for consistent characters, places and products in one shot.
-
----
+<table>
+<tr>
+<td width="50%"><img src="docs/highlights/07-phone-camera-rig.jpg" width="100%"><br><b>📱 Your phone is the camera</b><br>Scan a QR code and your phone becomes a live handheld camera in Blender. Walk the shot, then <b>Blocking → Film</b> turns the grey blocking into the finished scene.</td>
+<td width="50%"><img src="docs/highlights/20-claude-inside.jpg" width="100%"><br><b>🤖 Ask Claude, Pandora does it</b><br>Connect Claude (or Cursor, VS Code…) over MCP and it can generate, edit, grade and open anything in Pandora. Results land right in the chat and in your Gallery.</td>
+</tr>
+<tr>
+<td><img src="docs/highlights/21-drives-your-apps.jpg" width="100%"><br><b>🔗 It drives your other apps</b><br>The Pandora Agent connects to Blender, DaVinci Resolve and Premiere Pro through MCP and works inside them in the same job.</td>
+<td><img src="docs/highlights/12-image-to-3d.jpg" width="100%"><br><b>🧊 From a picture to a model</b><br>Text or image → textured GLB with Hunyuan3D-2 mini or Shap-E on your GPU, or Hunyuan3D v2 / TRELLIS in the cloud. Built-in 3D viewer.</td>
+</tr>
+<tr>
+<td><img src="docs/highlights/14-effects-engine.jpg" width="100%"><br><b>✨ 51 effects, zero plugins</b><br>GPU-rendered halftone, duotone, glitch, glass, light and poster type that slides behind your subject (offline AI subject mask). Layers, templates, video export.</td>
+<td><img src="docs/highlights/13-pandora-motion.jpg" width="100%"><br><b>🎞 Motion design on autopilot</b><br>Pandora Motion builds animated promos from your media, writes code scenes, or remakes the rhythm of any reference ad with your brief.</td>
+</tr>
+<tr>
+<td><img src="docs/highlights/04-identity-lock.jpg" width="100%"><br><b>🧬 Same face, every scene</b><br>Identity Lock, Location Lock and Product Lock keep characters, places and products consistent across every image and video.</td>
+<td><img src="docs/highlights/24-no-credits.jpg" width="100%"><br><b>💸 No credits, no markup</b><br>Pay providers directly with your own keys, or run open models free on your own GPU. Keys are encrypted on-device.</td>
+</tr>
+</table>
 
 ## A look inside
 
 | | |
 |---|---|
-| <img src="docs/screenshots/studio.jpg" alt="Pandora Studio" /> **Pandora Studio** — any image, video or audio model, cloud or local | <img src="docs/screenshots/apps.jpg" alt="Pandora Apps" /> **Pandora Apps** — 41 one-click tools, each with its own visual card |
-| <img src="docs/screenshots/film.jpg" alt="Pandora Film Studio" /> **Film Studio** — 40 film styles, 70 cameras, 70 lenses | <img src="docs/screenshots/market.jpg" alt="Pandora Models" /> **Pandora Models** — Hugging Face, Civitai, Pinokio, Ollama in one search |
-| <img src="docs/screenshots/shapeshift.jpg" alt="Shapeshift" /> **Shapeshift** — motion transfer, swap, restyle any video | <img src="docs/screenshots/touchdesigner.jpg" alt="TouchDesigner Studio" /> **TouchDesigner** — live AI visuals over OSC / WebSocket |
-
-Every page has its own cinematic night scene — fog, practical lamps, neon, city lights and cars — and the
-living Pandora box revolves on the home screen.
+| <img src="docs/screenshots/create.jpg" width="100%"><br>**Pandora Studio:** any image, video or audio model, cloud or local | <img src="docs/screenshots/film.jpg" width="100%"><br>**Film:** shot-by-shot storyboards, 70 cameras, 70 lenses, 130 director styles |
+| <img src="docs/screenshots/fx.jpg" width="100%"><br>**Effects:** 51 real-time looks with an AI subject mask | <img src="docs/screenshots/camrig.jpg" width="100%"><br>**Phone Camera:** your phone as a Blender camera |
+| <img src="docs/screenshots/motion.jpg" width="100%"><br>**Motion Design:** kinetic titles, logo reveals and remakes | <img src="docs/screenshots/spatial.jpg" width="100%"><br>**3D & Spatial:** text / image → 3D, splats, 22 tools |
+| <img src="docs/screenshots/connect.jpg" width="100%"><br>**Connect:** plug Claude, Cursor or ChatGPT into Pandora | |
 
 ---
 
@@ -83,17 +84,20 @@ living Pandora box revolves on the home screen.
 
 ## Unique features
 
-### ⌖ Location Lock
-Save a virtual location once (reference images + description). Every generation reproduces that exact environment. Chain it with **Character Lock** (trained face consistency) for full scene consistency.
+### ⌖ Location Lock · 🧬 Identity Lock · 📦 Product Lock
+Save a place, a face or a product once. Every generation reproduces it exactly, and the three locks combine in one shot.
 
-### ☺ Character Lock
-Attach reference images + a description to any character. Reuse the same face, outfit, and identity across every image and video.
+### 🤖 Claude full access (MCP)
+Pandora runs a private, token-protected connector on 127.0.0.1. Claude can generate, edit, auto-edit, grade, browse your Gallery and drive connected apps, with results shown in its own chat.
+
+### 📱 Phone Camera → Blender → Film
+Your phone's motion sensors drive a Blender camera live over Wi-Fi; REC records the real hand move as keyframes.
 
 ### ⚒ App Forge
-Describe any app, game, or tool → God's Pandora calls Claude to build it as a self-contained HTML/JS app → preview it live → save it to your shelf.
+Describe any app, game or tool. Pandora asks Claude to build it as a self-contained app, previews it live and saves it to your shelf.
 
 ### 💰 You own your API keys
-Your keys go directly from your machine to the provider. God's Pandora never sees your prompts, images, or billing.
+Your keys go directly from your machine to the provider. God's Pandora never sees your prompts, images or billing.
 
 ---
 
@@ -102,11 +106,10 @@ Your keys go directly from your machine to the provider. God's Pandora never see
 ### Option A — Download the installer (easiest)
 
 1. Go to [**Releases**](../../releases/latest)
-2. Download `Gods-Pandora-Setup-x.x.x.exe` (Windows) or `Gods-Pandora-x.x.x-arm64.dmg` (macOS)
+2. Download `Gods-Pandora-Setup-x.x.x.exe` (Windows 10/11, 64-bit)
 3. Run the installer → launch from Desktop or Start Menu
 
 > **Windows "Windows protected your PC" screen?** Click **More info → Run anyway**. Signed releases remove this once the certificate builds SmartScreen reputation — see [SIGNING.md](SIGNING.md).
-> **macOS "app is damaged / can't be opened"?** The app isn't notarized yet. Drag it to Applications, then run `xattr -cr "/Applications/God's Pandora.app"` in Terminal once.
 
 ### Option B — Run from source
 
@@ -114,7 +117,7 @@ Your keys go directly from your machine to the provider. God's Pandora never see
 
 ```bash
 git clone https://github.com/MarkuBhatti/Gods-Pandora.git
-cd gods-pandora
+cd Gods-Pandora
 npm install
 npm run dev
 ```
@@ -240,7 +243,7 @@ Output lands in `release/`. See [BUILD.md](BUILD.md) for full details including 
 ## Architecture
 
 ```
-gods-pandora/
+Gods-Pandora/
 ├── electron/          # Main process, IPC handlers, API providers
 │   ├── main.js        # App entry, window, IPC registration
 │   ├── generate.js    # Generation dispatcher
@@ -275,7 +278,7 @@ Pull requests are welcome. For major changes, open an issue first.
 
 ```bash
 git clone https://github.com/MarkuBhatti/Gods-Pandora.git
-cd gods-pandora
+cd Gods-Pandora
 npm install
 npm run dev   # hot-reload dev mode
 ```
