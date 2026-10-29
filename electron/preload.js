@@ -180,3 +180,6 @@ contextBridge.exposeInMainWorld('api', {
     }
   }
 });
+
+// Platform class on <html> so the UI can make room for macOS traffic-light buttons (top-left) vs Windows controls (top-right).
+window.addEventListener('DOMContentLoaded', () => { try { document.documentElement.classList.add('plat-' + process.platform); } catch (_) {} });

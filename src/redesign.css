@@ -563,3 +563,8 @@ body { --accent: #E7C08A !important; --accent2: #E9773E !important; --g1: linear
   100%  { transform: translate3d(0, calc(var(--s) * -.035), 0); }
 }
 .pbox-art.still .pa-float { animation: none !important; }
+
+/* macOS: native traffic lights sit top-left over the sidebar; Windows controls are top-right */
+.plat-darwin .topbar.tb2 { padding-right: 18px !important; }
+.plat-darwin .sidebar.sb2 { padding-top: 30px; }
+.plat-darwin .sidebar.sb2 .logo { -webkit-app-region: drag; }

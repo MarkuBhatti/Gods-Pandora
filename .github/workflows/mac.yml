@@ -1,0 +1,70 @@
+name: Build macOS
+
+# Builds the macOS app (Apple Silicon + Intel) on GitHub's free Mac runners and attaches the
+# .dmg / .zip files to the matching GitHub release. Run it from Actions → Build macOS → Run workflow,
+# or it runs automatically when a v* tag is pushed.
+on:
+  workflow_dispatch:
+    inputs:
+      tag:
+        description: 'Release tag to attach the Mac files to'
+        required: true
+        default: 'v0.6.0'
+  push:
+    tags: ['v*']
+
+permissions:
+  contents: write
+
+jobs:
+  mac:
+    runs-on: macos-14
+    env:
+      TAG: ${{ github.event.inputs.tag || github.ref_name }}
+      CSC_IDENTITY_AUTO_DISCOVERY: 'false'   # no Apple Developer ID yet: ad-hoc signed below
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.event.inputs.tag && 'main' || github.ref }}
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install
+        run: npm ci
+
+      - name: Build UI
+        run: npm run build:ui
+
+      - name: Package app bundles (arm64 + x64)
+        run: npx electron-builder --mac dir --arm64 --x64 --publish never
+
+      - name: Ad-hoc sign (required for Apple Silicon to launch unsigned apps)
+        run: |
+          for app in release/mac*/*.app; do
+            echo "Signing $app"
+            codesign --force --deep --sign - "$app"
+            codesign --verify --deep "$app" && echo ok
+          done
+
+      - name: Make .dmg and .zip
+        run: |
+          npx electron-builder --mac dmg zip --arm64 --prepackaged "release/mac-arm64/God's Pandora.app" --publish never
+          npx electron-builder --mac dmg zip --x64 --prepackaged "release/mac/God's Pandora.app" --publish never
+          ls -la release
+
+      - name: Attach to release
+        run: |
+          gh release upload "$TAG" release/*.dmg release/*.zip --clobber -R "$GITHUB_REPOSITORY"
+
+      - name: Keep a copy as a workflow artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: gods-pandora-macos
+          path: |
+            release/*.dmg
+            release/*.zip
+          retention-days: 14

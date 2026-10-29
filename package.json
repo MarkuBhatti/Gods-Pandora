@@ -82,7 +82,10 @@
       "icon": "build-assets/icon.png",
       "category": "public.app-category.graphics-design",
       "darkModeSupport": true,
-      "artifactName": "Gods-Pandora-${version}-${arch}.${ext}"
+      "artifactName": "Gods-Pandora-${version}-${arch}.${ext}",
+      "identity": null,
+      "hardenedRuntime": false,
+      "gatekeeperAssess": false
     },
     "nsis": {
       "oneClick": false,
@@ -98,13 +101,17 @@
       {
         "provider": "github",
         "owner": "MarkuBhatti",
-        "repo": "gods-pandora",
+        "repo": "Gods-Pandora",
         "releaseType": "release"
       }
     ],
     "asarUnpack": [
       "engine/**"
-    ]
+    ],
+    "dmg": {
+      "title": "God's Pandora ${version}",
+      "writeUpdateInfo": false
+    }
   },
   "repository": {
     "type": "git",
