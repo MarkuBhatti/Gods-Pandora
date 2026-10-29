@@ -310,6 +310,16 @@ npm run dev   # hot-reload dev mode
 
 ---
 
+## Code signing policy
+
+Free code signing provided by [SignPath.io](https://about.signpath.io), certificate by [SignPath Foundation](https://signpath.org) (pending acceptance; until then Windows builds are unsigned).
+
+- **What's signed:** only installers built from this repository by [GitHub Actions](.github/workflows/windows.yml), with manual approval for every release.
+- **Team:** committers, reviewers and approvers are listed in [CODE_SIGNING_POLICY.md](CODE_SIGNING_POLICY.md). Currently [@MarkuBhatti](https://github.com/MarkuBhatti).
+- **Privacy:** this program will not transfer any information to other networked systems unless specifically requested by the user or the person installing or operating it. See [PRIVACY.md](PRIVACY.md).
+
+---
+
 ## License
 
 [MIT](LICENSE) — free to use, modify, and distribute.
