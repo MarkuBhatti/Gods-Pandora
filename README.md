@@ -21,7 +21,7 @@ Bring your own cloud keys, or run open-source models free on your own GPU. No cr
 
 ## Why God's Pandora?
 
-- **Every model in one app.** Frontier cloud models (FAL, Replicate, OpenAI, Google, ElevenLabs, Stability, Higgsfield, Hugging Face) next to open models running offline on your GPU.
+- **Open source + API in one platform.** The only studio that puts frontier cloud models (FAL, Replicate, OpenAI, Google, ElevenLabs, Stability, Higgsfield, Hugging Face) side by side with open-source models running free and offline on your GPU.
 - **You own everything.** Your keys go straight from your PC to the provider. No credits, no subscription, nothing expires. Your files stay on your machine.
 - **Download & run, no terminal.** Search Hugging Face and Civitai, press one button, and the model appears in your studio.
 - **One idea, end to end.** One brief becomes stills, motion, voice and a finished, graded cut.
@@ -42,24 +42,28 @@ Bring your own cloud keys, or run open-source models free on your own GPU. No cr
 
 <table>
 <tr>
-<td width="50%"><img src="docs/highlights/image-and-video.jpg" width="100%"><br><b>🖼 Image &amp; video from one prompt</b><br>Any model, one prompt box: FLUX, Wan, Kling, Veo and more in the cloud, or open models free on your GPU. Turn any still into motion.</td>
-<td width="50%"><img src="docs/highlights/film-studio.jpg" width="100%"><br><b>🎬 Film, shot by shot</b><br>Storyboard a film with 70 cameras, 70 lenses, 130 director styles and 40 film looks, then animate every shot.</td>
+<td width="50%"><img src="docs/highlights/open-source-plus-api.jpg" width="100%"><br><b>🔓 Open source + API, one platform</b><br>Every cloud model on your own keys <b>and</b> every open-source model free on your GPU, side by side. No other app gives you both in one place.</td>
+<td width="50%"><img src="docs/highlights/image-and-video.jpg" width="100%"><br><b>🖼 Image &amp; video from one prompt</b><br>FLUX, Wan, Kling, Veo and more in the cloud, or open models free on your GPU. Turn any still into motion.</td>
 </tr>
 <tr>
-<td width="50%"><img src="docs/highlights/07-phone-camera-rig.jpg" width="100%"><br><b>📱 Your phone is the camera</b><br>Scan a QR code and your phone becomes a live handheld camera in Blender. Walk the shot, then <b>Blocking → Film</b> turns the grey blocking into the finished scene.</td>
-<td width="50%"><img src="docs/highlights/20-claude-inside.jpg" width="100%"><br><b>🤖 Ask Claude, Pandora does it</b><br>Connect Claude (or Cursor, VS Code…) over MCP and it can generate, edit, grade and open anything in Pandora. Results land right in the chat and in your Gallery.</td>
+<td width="50%"><img src="docs/highlights/film-studio.jpg" width="100%"><br><b>🎬 Film, shot by shot</b><br>Storyboard with 70 cameras, 70 lenses, 130 director styles and 40 film looks, then animate every shot.</td>
+<td width="50%"><img src="docs/highlights/3d-generation.jpg" width="100%"><br><b>🧊 Picture in, 3D model out</b><br>Text or image → textured GLB with Hunyuan3D-2 mini / Shap-E on your GPU, or Hunyuan3D v2 / TRELLIS in the cloud.</td>
 </tr>
 <tr>
-<td><img src="docs/highlights/21-drives-your-apps.jpg" width="100%"><br><b>🔗 It drives your other apps</b><br>The Pandora Agent connects to Blender, DaVinci Resolve and Premiere Pro through MCP and works inside them in the same job.</td>
-<td><img src="docs/highlights/3d-generation.jpg" width="100%"><br><b>🧊 From a picture to a model</b><br>Text or image → textured GLB with Hunyuan3D-2 mini or Shap-E on your GPU, or Hunyuan3D v2 / TRELLIS in the cloud. Built-in 3D viewer.</td>
+<td width="50%"><img src="docs/highlights/auto-color.jpg" width="100%"><br><b>🎨 Auto colour, full treatment</b><br>One click balances and matches every shot. Then go deeper: nodes, colour wheels, curves, qualifiers, LUTs and live scopes.</td>
+<td width="50%"><img src="docs/highlights/edit-timeline.jpg" width="100%"><br><b>✂ Cut like Resolve, or let it cut</b><br>A real multi-track timeline (trim, blade, ripple, transitions, titles) plus AutoEdit, which cuts your clips to the beat in one click.</td>
 </tr>
 <tr>
-<td><img src="docs/highlights/14-effects-engine.jpg" width="100%"><br><b>✨ 51 effects, zero plugins</b><br>GPU-rendered halftone, duotone, glitch, glass, light and poster type that slides behind your subject (offline AI subject mask). Layers, templates, video export.</td>
-<td><img src="docs/highlights/13-pandora-motion.jpg" width="100%"><br><b>🎞 Motion design on autopilot</b><br>Pandora Motion builds animated promos from your media, writes code scenes, or remakes the rhythm of any reference ad with your brief.</td>
+<td width="50%"><img src="docs/highlights/07-phone-camera-rig.jpg" width="100%"><br><b>📱 Your phone is the camera</b><br>Scan a QR code and your phone becomes a live camera in Blender. <b>Blocking → Film</b> turns the grey blocking into the finished scene.</td>
+<td width="50%"><img src="docs/highlights/20-claude-inside.jpg" width="100%"><br><b>🤖 Ask Claude, Pandora does it</b><br>Connect Claude (or Cursor, VS Code…) over MCP and it can generate, edit, grade and open anything in Pandora.</td>
 </tr>
 <tr>
-<td><img src="docs/highlights/04-identity-lock.jpg" width="100%"><br><b>🧬 Same face, every scene</b><br>Identity Lock, Location Lock and Product Lock keep characters, places and products consistent across every image and video.</td>
-<td><img src="docs/highlights/24-no-credits.jpg" width="100%"><br><b>💸 No credits, no markup</b><br>Pay providers directly with your own keys, or run open models free on your own GPU. Keys are encrypted on-device.</td>
+<td width="50%"><img src="docs/highlights/21-drives-your-apps.jpg" width="100%"><br><b>🔗 It drives your other apps</b><br>The Pandora Agent works inside Blender, DaVinci Resolve and Premiere Pro through MCP, in the same job.</td>
+<td width="50%"><img src="docs/highlights/14-effects-engine.jpg" width="100%"><br><b>✨ 51 effects, zero plugins</b><br>GPU halftone, duotone, glitch, glass, light and poster type that slides behind your subject.</td>
+</tr>
+<tr>
+<td width="50%"><img src="docs/highlights/13-pandora-motion.jpg" width="100%"><br><b>🎞 Motion design on autopilot</b><br>Animated promos from your media, code scenes, or a remake of any reference ad with your brief.</td>
+<td width="50%"><img src="docs/highlights/04-identity-lock.jpg" width="100%"><br><b>🧬 Same face, every scene</b><br>Identity, Location and Product Lock keep characters, places and products consistent everywhere.</td>
 </tr>
 </table>
 
